@@ -10,6 +10,12 @@ namespace EverythingGrows
         private readonly Dictionary<Vector2Int, Plot> plots = new();
         private readonly List<Piece> pieces = new();
         private Sprite sprite;
+        private FarmArt art;
+        private SpriteRenderer farmer, heldModel;
+        private float walkTime, actionTime;
+        private int facing;
+        private bool plantingMode, showHelp;
+        private GUIStyle titleStyle, smallStyle;
         private Camera view;
         private Transform player;
         private SpriteRenderer plantingPreview;
@@ -29,12 +35,18 @@ namespace EverythingGrows
         public void Initialize()
         {
             if(player!=null) return;
+            art=new FarmArt();
             sprite=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),new Vector2(.5f,.5f),2);
             view=Camera.main;
             if(view==null) { var cameraObject=new GameObject("Main Camera"); view=cameraObject.AddComponent<Camera>(); cameraObject.tag="MainCamera"; }
-            view.orthographic=true; view.orthographicSize=6.7f; view.transform.position=new Vector3(0,0,-10); view.backgroundColor=new Color(.12f,.22f,.22f);
-            for(int x=-5;x<=5;x++) for(int y=-3;y<=3;y++) Draw("Ground",new Vector2(x,y),new Vector2(.97f,.97f),new Color(.3f+(x+y)%2*.015f,.43f,.25f),-10);
-            player=Draw("Farmer",Vector2.zero,new Vector2(.4f,.55f),new Color(.96f,.73f,.35f),10).transform;
+            view.orthographic=true; view.orthographicSize=4.8f; view.transform.position=new Vector3(0,0,-10); view.backgroundColor=new Color(.12f,.22f,.22f);
+            for(int x=-8;x<=8;x++) for(int y=-5;y<=5;y++) ArtDraw("Ground",new Vector2(x,y),Vector2.one,9,new Color(.3f,.43f,.25f),-100);
+            for(int x=-7;x<=7;x++) if(Mathf.Abs(x)>5) for(int y=-4;y<=4;y+=2)
+                ArtDraw("Border flowers",new Vector2(x,y),Vector2.one*.7f,14,Color.yellow,-50);
+            farmer=ArtDraw("Farmer",Vector2.zero,Vector2.one*1.1f,0,new Color(.96f,.73f,.35f),10);
+            player=farmer.transform;
+            heldModel=Draw("Held object",Vector2.zero,Vector2.one*.55f,Color.white,11);
+            heldModel.transform.SetParent(player,true); heldModel.enabled=false;
             plantingPreview=Draw("Planting preview",Vector2.zero,Vector2.one*.95f,new Color(.4f,.9f,.5f,.35f),-2);
             plantingPreview.enabled=false;
             if(definitions==null || definitions.Length<5) { message="Missing plant definitions. Run Tools > Everything Grows > Create prototype."; return; }
@@ -45,16 +57,22 @@ namespace EverythingGrows
             var root=new GameObject(label); root.transform.SetParent(transform,false); root.transform.position=position; root.transform.localScale=new Vector3(size.x,size.y,1);
             var renderer=root.AddComponent<SpriteRenderer>(); renderer.sprite=sprite; renderer.color=color; renderer.sortingOrder=order; return renderer;
         }
+        private SpriteRenderer ArtDraw(string label,Vector2 position,Vector2 size,int index,Color fallback,int order)
+        {
+            var renderer=Draw(label,position,size,fallback,order);
+            if(art.Available) { renderer.sprite=art.Get(index); renderer.color=Color.white; }
+            return renderer;
+        }
         private void Spawn(PlantDefinition definition,Vector2 point)
         {
-            var renderer=Draw(definition.label,point,new Vector2(.6f,.5f),definition.color,3);
+            var renderer=ArtDraw(definition.label,point,Vector2.one*.8f,art.ItemIndex(definition),definition.color,3);
             pieces.Add(new Piece { definition=definition,model=renderer.gameObject });
         }
         private static bool Inside(Vector2Int cell) => cell.x>=-5 && cell.x<=5 && cell.y>=-3 && cell.y<=3;
         public bool Till(Vector2Int cell)
         {
             if(!Inside(cell) || plots.ContainsKey(cell)) return false;
-            plots[cell]=new Plot { cell=cell,soil=Draw("Tilled soil",cell,new Vector2(.9f,.9f),new Color(.37f,.23f,.14f),-5) }; return true;
+            plots[cell]=new Plot { cell=cell,soil=ArtDraw("Tilled soil",cell,Vector2.one,10,new Color(.37f,.23f,.14f),-90) }; return true;
         }
         public bool AddItem(PlantDefinition definition)
         {
@@ -88,13 +106,13 @@ namespace EverythingGrows
         public bool PlantSelected(Vector2Int cell)
         {
             if(Held==null || !plots.TryGetValue(cell,out var plot) || plot.plant!=null) { message="Select an item and an empty tilled patch."; return false; }
-            plot.plant=Held; plot.model=Draw("Growing "+Held.label,cell,Vector2.one*.15f,Held.color,4);
+            plot.plant=Held; plot.model=ArtDraw("Growing "+Held.label,cell,Vector2.one*.45f,12,Held.color,4);
             inventory.RemoveAt(selected); selected=Mathf.Min(selected,Capacity-1); message="Planted. Water it and see what happens."; return true;
         }
         public int Water(Vector2 point,float radius)
         {
             int count=0; foreach(var plot in plots.Values) if(plot.plant!=null && Vector2.Distance(point,plot.cell)<=radius)
-            { plot.wet=true; plot.soil.color=new Color(.18f,.25f,.29f); count++; } return count;
+            { plot.wet=true; if(art.Available) plot.soil.sprite=art.Get(11); else plot.soil.color=new Color(.18f,.25f,.29f); count++; } return count;
         }
         public void Tick(float seconds)
         {
@@ -109,8 +127,8 @@ namespace EverythingGrows
                     float remaining=(1-plot.progress)*Mathf.Max(.1f,plot.plant.growthSeconds);
                     activeSeconds=Mathf.Max(0,seconds-remaining);
                     plot.progress=Mathf.Min(1,plot.progress+seconds/Mathf.Max(.1f,plot.plant.growthSeconds));
-                    plot.model.transform.localScale=Vector3.one*Mathf.Lerp(.15f,.75f,plot.progress);
-                    if(plot.progress>=1) { plot.mature=true; message=plot.plant.label+" grew into a new function."; }
+                    plot.model.transform.localScale=Vector3.one*Mathf.Lerp(.45f,1f,plot.progress);
+                    if(plot.progress>=1) { plot.mature=true; if(art.Available) plot.model.sprite=art.Get(plot.plant.effect==GrowthEffect.Produce?15:art.ItemIndex(plot.plant)); message=plot.plant.label+" grew into a new function."; }
                 }
                 if(!plot.mature) continue;
                 switch(plot.plant.effect)
@@ -140,11 +158,11 @@ namespace EverythingGrows
         private Vector2 MousePoint => view.ScreenToWorldPoint(Input.mousePosition);
         private Vector2Int MouseCell => Vector2Int.RoundToInt(MousePoint);
         private bool Near(Vector2 point) => Vector2.Distance(player.position,point)<=2.8f;
-        private Rect SlotRect(int index) => new Rect(12+(index%8)*55,Screen.height-65-(index/8)*55,50,50);
+        private Rect SlotRect(int index) => new Rect((Screen.width-Mathf.Min(8,Capacity)*56)/2+(index%8)*56,Screen.height-72-(index/8)*56,52,52);
         private bool OverUI()
         {
             Vector2 point=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
-            if(new Rect(10,10,450,135).Contains(point)) return true;
+            if(new Rect(10,10,450,showHelp?150:62).Contains(point)) return true;
             for(int i=0;i<Capacity;i++) if(SlotRect(i).Contains(point)) return true;
             return false;
         }
@@ -155,8 +173,14 @@ namespace EverythingGrows
             Vector3 next=player.position+(Vector3)Vector2.ClampMagnitude(move,1)*3*Time.deltaTime;
             next.x=Mathf.Clamp(next.x,-5.5f,5.5f); next.y=Mathf.Clamp(next.y,-3.5f,3.5f); player.position=next;
             for(int i=0;i<Mathf.Min(9,Capacity);i++) if(Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1+i))) selected=i;
+            AnimateFarmer(move);
+            if(Input.GetKeyDown(KeyCode.H)) showHelp=!showHelp;
+            if(Input.GetKeyDown(KeyCode.Tab)) plantingMode=!plantingMode;
+            float wheel=Input.mouseScrollDelta.y;
+            if(wheel!=0) selected=(selected+(wheel>0?-1:1)+Capacity)%Capacity;
             Tick(Time.deltaTime);
             if(Input.GetKeyDown(KeyCode.R)) RestoreSlot();
+            if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; inventory.RemoveAt(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }
             UpdatePlantingPreview();
             if(OverUI()) return;
             var point=MousePoint; var cell=MouseCell;
@@ -165,27 +189,67 @@ namespace EverythingGrows
             {
                 if(PieceAt(point)!=null) DetachAt(point); else Uproot(cell);
             }
-            if(Input.GetMouseButtonDown(0)) { if(Held==null) Till(cell); else PlantSelected(cell); }
-            if(Input.GetKeyDown(KeyCode.Space)) Water(point,.7f);
+            if(Input.GetMouseButtonDown(0))
+            {
+                actionTime=.25f;
+                if(Held==null) Till(cell);
+                else if(plantingMode || (Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water)) PlantSelected(cell);
+                else if(Held.effect==GrowthEffect.Dig) Till(cell);
+                else Water(point,Held.effectRadius);
+            }
+            if(Input.GetKeyDown(KeyCode.Space)) { Water(point,.7f); actionTime=.25f; }
             if(Input.GetKeyDown(KeyCode.F) && Held!=null) { if(Held.effect==GrowthEffect.Dig) Till(cell); else if(Held.effect==GrowthEffect.Water) Water(point,Held.effectRadius); }
             if(Input.GetKeyDown(KeyCode.E)) Collect(cell);
-            if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; inventory.RemoveAt(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }
+        }
+        private void AnimateFarmer(Vector2 move)
+        {
+            walkTime+=Time.deltaTime; actionTime=Mathf.Max(0,actionTime-Time.deltaTime);
+            if(move.sqrMagnitude>0) facing=Mathf.Abs(move.x)>Mathf.Abs(move.y)?(move.x<0?2:3):(move.y>0?1:0);
+            if(art.Available) farmer.sprite=art.Get(facing);
+            // Sort by feet position so walking behind plants hides the farmer correctly.
+            farmer.sortingOrder=30-Mathf.RoundToInt(player.position.y*10);
+            farmer.transform.localScale=new Vector3(1.1f,1.1f+(move.sqrMagnitude>0?Mathf.Sin(walkTime*18)*.025f:0),1);
+            heldModel.enabled=Held!=null && art.Available;
+            if(heldModel.enabled)
+            {
+                heldModel.sprite=art.Get(art.ItemIndex(Held));
+                heldModel.transform.localPosition=new Vector3(facing==2?-.3f:.3f,-.12f,0);
+                heldModel.transform.localRotation=Quaternion.Euler(0,0,actionTime>0?Mathf.Sin(actionTime/.25f*Mathf.PI)*-80:0);
+                heldModel.sortingOrder=farmer.sortingOrder+1;
+            }
+            foreach(var piece in pieces) if(piece.model!=null) piece.model.GetComponent<SpriteRenderer>().sortingOrder=30-Mathf.RoundToInt(piece.model.transform.position.y*10);
+            foreach(var plot in plots.Values) if(plot.model!=null) plot.model.sortingOrder=29-Mathf.RoundToInt(plot.cell.y*10);
+        }
+        private void Panel(Rect rect,Color color)
+        {
+            var previous=GUI.color; GUI.color=new Color(.24f,.13f,.08f); GUI.DrawTexture(rect,Texture2D.whiteTexture);
+            GUI.color=color; GUI.DrawTexture(new Rect(rect.x+3,rect.y+3,rect.width-6,rect.height-6),Texture2D.whiteTexture); GUI.color=previous;
         }
         private void OnGUI()
         {
-            GUI.Box(new Rect(10,10,450,135),"EVERYTHING GROWS — first prototype");
-            GUI.Label(new Rect(22,35,430,22),"WASD move | RMB detach / uproot | LMB till / plant");
-            GUI.Label(new Rect(22,57,430,22),"Space water by hand | F use held tool | E collect fruit");
-            GUI.Label(new Rect(22,79,430,22),"1-9 select | Q drop | RMB slot: detach | R reattach slot");
-            GUI.Label(new Rect(22,101,430,38),message);
+            if(player==null) return;
+            titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
+            smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
+            Panel(new Rect(10,10,450,showHelp?150:62),new Color(.48f,.3f,.17f,.95f));
+            GUI.Label(new Rect(22,16,425,24),"EVERYTHING GROWS  |  "+(plantingMode?"PLANT MODE":"TOOL MODE")+"  |  H: help",titleStyle);
+            GUI.Label(new Rect(22,39,425,28),message);
+            if(showHelp)
+            {
+                GUI.Label(new Rect(22,70,425,22),"WASD move | Click use tool | Tab switch planting mode");
+                GUI.Label(new Rect(22,92,425,22),"RMB take / uproot | Space water | E collect | Q drop");
+                GUI.Label(new Rect(22,114,425,22),"1-9 / wheel select | RMB slot detach | R restore slot");
+            }
             for(int i=0;i<Capacity;i++)
             {
-                Rect rect=SlotRect(i); Color color=GUI.backgroundColor;
-                GUI.backgroundColor=i==selected?new Color(.95f,.78f,.3f):Color.white;
-                if(GUI.Button(rect,(i+1)+"\n"+(i<inventory.Count?inventory[i].label:""))) selected=i;
-                GUI.backgroundColor=color;
-                if(Event.current.type==EventType.MouseDown && Event.current.button==1 && rect.Contains(Event.current.mousePosition)) { DetachSlot(); Event.current.Use(); break; }
+                Rect rect=SlotRect(i);
+                Panel(rect,i==selected?new Color(.85f,.64f,.3f):new Color(.55f,.36f,.2f));
+                if(i<inventory.Count && art.Available) art.Icon(new Rect(rect.x+6,rect.y+5,40,40),art.ItemIndex(inventory[i]));
+                else if(i<inventory.Count) GUI.Label(rect,inventory[i].label,smallStyle);
+                GUI.Label(new Rect(rect.x+4,rect.y+1,16,16),(i+1).ToString());
+                if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
+                { if(Event.current.button==0) selected=i; else if(Event.current.button==1) DetachSlot(); Event.current.Use(); break; }
             }
+            GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+(plantingMode?" - plant":" - use"):"Empty hands - till soil",smallStyle);
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
                 Vector3 position=view.WorldToScreenPoint((Vector2)plot.cell+Vector2.up*.6f);
@@ -201,13 +265,14 @@ namespace EverythingGrows
             }
             foreach(var piece in pieces) if(piece.model!=null) { var position=view.WorldToScreenPoint(piece.model.transform.position); GUI.Label(new Rect(position.x-50,Screen.height-position.y+12,100,22),piece.definition.label); }
         }
-        private void OnDestroy() { if(sprite!=null) { if(Application.isPlaying) Destroy(sprite); else DestroyImmediate(sprite); } }
+        private void OnDestroy() { art?.Dispose(); if(sprite!=null) { if(Application.isPlaying) Destroy(sprite); else DestroyImmediate(sprite); } }
         private void UpdatePlantingPreview()
         {
             var cell=MouseCell;
             plantingPreview.enabled=!OverUI() && Inside(cell);
             plantingPreview.transform.position=new Vector3(cell.x,cell.y,0);
-            bool possible=Near(MousePoint) && (Held==null?!plots.ContainsKey(cell):plots.TryGetValue(cell,out var plot) && plot.plant==null);
+            bool toolMode=Held!=null && !plantingMode && (Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water);
+            bool possible=Near(MousePoint) && (Held==null || (toolMode && Held.effect==GrowthEffect.Dig)?!plots.ContainsKey(cell):toolMode?plots.ContainsKey(cell):plots.TryGetValue(cell,out var plot) && plot.plant==null);
             plantingPreview.color=possible?new Color(.4f,.9f,.5f,.35f):new Color(.95f,.3f,.25f,.35f);
         }
     }
