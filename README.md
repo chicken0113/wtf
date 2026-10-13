@@ -3,7 +3,7 @@
 새 게임의 2D 탑뷰 첫 시제품. 설계는 [Docs/GAME_DESIGN.md](Docs/GAME_DESIGN.md).
 
 Unity Hub에서 C:/Users/MSI/wtf를 Add project from disk로 등록하고 Unity 6000.3.25f1로 엽니다.
-Assets/Scenes/Garden.unity를 열고 Play 합니다. 처음 설정이 필요하면 Tools > Everything Grows > Create prototype을 실행합니다.
+현재 열린 씬을 세팅해 저장한 Assets/Scenes/FirstGarden.unity를 열고 Play 합니다. Garden.unity는 초기 샘플로 남아 있습니다. 처음 설정이 필요하면 Tools > Everything Grows > Create prototype을 실행합니다.
 
 - WASD: 이동
 - 우클릭: 물건·구름 뜯기 / 심은 대상 회수 / UI 칸 뜯기
@@ -23,3 +23,4 @@ Assets/Settings의 PlantDefinition에서 성장 시간·효과 범위·생산 �
 작업 저장소: https://github.com/chicken0113/wtf — 로컬 폴더 C:/Users/MSI/wtf. Unity Hub에는 이 폴더를 등록합니다.
 
 현재 첫 단계: 마우스 위치에 경작/식재 가능 여부를 초록·빨강으로 표시하고, 심어진 대상은 물 필요 여부와 성장 진행 막대를 표시합니다. 한 밭에 한 대상만 심을 수 있고 실패한 식재는 아이템을 소비하지 않습니다.
+현재 씬을 다시 연결하려면 Tools > Everything Grows > Set up current scene을 사용합니다. 현재 씬의 오브젝트를 유지하고 Farm 데이터와 2D 카메라를 연결합니다. 저장되지 않은 씬은 FirstGarden 이름의 새 파일로 저장합니다.
