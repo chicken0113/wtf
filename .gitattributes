@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.cs text eol=lf
+*.md text eol=lf
+*.unity text eol=lf
+*.prefab text eol=lf
+*.asset text eol=lf
