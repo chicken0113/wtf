@@ -38,7 +38,7 @@ public sealed class FarmMapWindow : EditorWindow
     {
         var map=Map();
         EditorGUILayout.LabelField("씬에서 직접 배치",EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("배치 시작 → Scene에서 클릭. 바닥·길은 드래그로 배치. Shift+클릭/드래그로 현재 계층의 대상만 삭제. Esc로 일반 편집 복귀. Ctrl+Z로 취소.",MessageType.Info);
+        EditorGUILayout.HelpBox("배치 시작 → Scene에서 클릭. 바닥·길은 드래그로 배치. Shift+클릭/드래그는 선택 종류와 관계없이 커서 아래 맨 위 오브젝트를 삭제. Esc로 일반 편집 복귀. Ctrl+Z로 취소.",MessageType.Info);
         using(new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
             if(map==null)
@@ -101,9 +101,10 @@ public sealed class FarmMapWindow : EditorWindow
         var ray=HandleUtility.GUIPointToWorldRay(e.mousePosition);
         if(!new Plane(Vector3.forward,Vector3.zero).Raycast(ray,out float distance)) return;
         Vector2 point=ray.GetPoint(distance);
-        if(snap) point=new Vector2(Mathf.Round(point.x/grid)*grid,Mathf.Round(point.y/grid)*grid);
+        if(snap && !e.shift) point=new Vector2(Mathf.Round(point.x/grid)*grid,Mathf.Round(point.y/grid)*grid);
         Handles.color=e.shift?Color.red:Color.cyan; Handles.DrawWireCube(point,new Vector3(scale,scale,0));
-        Handles.Label((Vector3)point+Vector3.up*.6f,(e.shift?"삭제: ":"배치: ")+prefab.name);
+        var eraseTarget=e.shift?MapPlacement.EraseTarget(map,point):null;
+        Handles.Label((Vector3)point+Vector3.up*.6f,e.shift?"삭제: "+(eraseTarget!=null?eraseTarget.name:"없음"):"배치: "+prefab.name);
         var category=MapPlacement.CategoryOf(prefab);
         bool drag=category==MapPlacement.Category.Ground || category==MapPlacement.Category.Paths || e.shift;
         if(e.button==0 && (e.type==EventType.MouseDown || (e.type==EventType.MouseDrag && drag)))
@@ -115,9 +116,10 @@ public sealed class FarmMapWindow : EditorWindow
                 Undo.IncrementCurrentGroup(); stroke=Undo.GetCurrentGroup(); Undo.SetCurrentGroupName("Paint map layer");
             }
             else if(ownedControl!=control || GUIUtility.hotControl!=control) return;
-            if(visited.Add(point))
+            Vector2 visitedPoint=e.shift?new Vector2(Mathf.Round(point.x/grid)*grid,Mathf.Round(point.y/grid)*grid):point;
+            if(visited.Add(visitedPoint))
             {
-                if(e.shift) MapPlacement.Erase(map,point,Mathf.Max(.25f,grid*.45f),category);
+                if(e.shift) MapPlacement.Erase(map,point);
                 else { var placed=MapPlacement.Place(map,prefab,point,scale,category); if(placed!=null) Selection.activeGameObject=placed; }
             }
             e.Use();

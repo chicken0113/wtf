@@ -43,13 +43,29 @@ public static class MapPlacement
         }
         Undo.RegisterCreatedObjectUndo(placed,"Place map object"); EditorSceneManager.MarkSceneDirty(map.gameObject.scene); return placed;
     }
-    public static bool Erase(FarmMapLayout map,Vector2 point,float radius,Category category)
+    public static GameObject EraseTarget(FarmMapLayout map,Vector2 point)
     {
-        if(EditorApplication.isPlayingOrWillChangePlaymode || map==null) return false;
-        var group=map.transform.Find(category.ToString()); if(group==null) return false;
-        Transform nearest=null; float distance=radius;
-        foreach(Transform child in group) { float candidate=Vector2.Distance(child.position,point); if(candidate<=distance) { nearest=child; distance=candidate; } }
-        if(nearest==null) return false;
-        Undo.DestroyObjectImmediate(nearest.gameObject); EditorSceneManager.MarkSceneDirty(map.gameObject.scene); return true;
+        if(EditorApplication.isPlayingOrWillChangePlaymode || map==null) return null;
+        GameObject target=null; int layer=int.MinValue,order=int.MinValue; float depth=float.PositiveInfinity;
+        foreach(Category category in System.Enum.GetValues(typeof(Category)))
+        {
+            var group=map.transform.Find(category.ToString()); if(group==null) continue;
+            foreach(var renderer in group.GetComponentsInChildren<SpriteRenderer>())
+            {
+                if(!renderer.enabled || renderer.sprite==null) continue;
+                var bounds=renderer.bounds;
+                if(point.x<bounds.min.x || point.x>bounds.max.x || point.y<bounds.min.y || point.y>bounds.max.y) continue;
+                int candidateLayer=SortingLayer.GetLayerValueFromID(renderer.sortingLayerID); float candidateDepth=renderer.transform.position.z;
+                if(candidateLayer<layer || (candidateLayer==layer && renderer.sortingOrder<order) || (candidateLayer==layer && renderer.sortingOrder==order && candidateDepth>depth)) continue;
+                var root=renderer.transform; while(root.parent!=group && root.parent!=null) root=root.parent;
+                target=root.gameObject; layer=candidateLayer; order=renderer.sortingOrder; depth=candidateDepth;
+            }
+        }
+        return target;
+    }
+    public static bool Erase(FarmMapLayout map,Vector2 point)
+    {
+        var target=EraseTarget(map,point); if(target==null) return false;
+        Undo.DestroyObjectImmediate(target); EditorSceneManager.MarkSceneDirty(map.gameObject.scene); return true;
     }
 }

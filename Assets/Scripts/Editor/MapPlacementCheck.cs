@@ -25,13 +25,22 @@ public static class MapPlacementCheck
         Check(placed!=null && placed.transform.parent.name=="Ground" && PrefabUtility.IsPartOfPrefabInstance(placed),"Ground placement is not a prefab in the right layer");
         Undo.PerformUndo(); Check(map.transform.Find("Ground").childCount==count,"Placement undo failed");
         Undo.IncrementCurrentGroup();
-        var sword=MapPlacement.Place(map,item,Vector2.zero,.8f,MapPlacement.Category.Items);
+        var sword=MapPlacement.Place(map,item,Vector2.zero,3,MapPlacement.Category.Items);
         Check(sword!=null && sword.GetComponent<FarmItemPlacement>().item!=null,"Item placement lost definition");
         int items=map.transform.Find("Items").childCount;
         Undo.IncrementCurrentGroup();
-        Check(MapPlacement.Erase(map,Vector2.zero,.3f,MapPlacement.Category.Items),"Erase failed");
+        Check(MapPlacement.EraseTarget(map,new Vector2(.9f,0))==sword,"Scaled prefab edges cannot be erased");
+        Check(MapPlacement.Erase(map,new Vector2(.9f,0)),"Erase failed");
         Check(map.transform.Find("Items").childCount==items-1 && map.transform.Find("Ground").childCount==count,"Erase affected another layer");
         Undo.PerformUndo(); Check(map.transform.Find("Items").childCount==items,"Erase undo failed");
+        Undo.IncrementCurrentGroup();
+        var flower=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/Flower.prefab");
+        var top=MapPlacement.Place(map,flower,Vector2.zero,1,MapPlacement.Category.Decoration);
+        top.GetComponent<SpriteRenderer>().sortingOrder=100;
+        Check(MapPlacement.EraseTarget(map,Vector2.zero)==top,"Top visible prefab not selected across categories");
+        Check(MapPlacement.Erase(map,Vector2.zero) && map.transform.Find("Items").childCount==items,"Erase removed underlying prefab");
+        Undo.PerformUndo();
+        Check(map.safeArea!=null && map.playerSpawn!=null,"Erase removed map controls");
         var window=ScriptableObject.CreateInstance<FarmMapWindow>();
         var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
         window.Choose(ground);
@@ -41,6 +50,6 @@ public static class MapPlacementCheck
         window.Choose(null);
         Check(!(bool)typeof(FarmMapWindow).GetField("painting",flags).GetValue(window),"Clearing prefab left painting active");
         UnityEngine.Object.DestroyImmediate(window);
-        Debug.Log("MAP_PLACEMENT_VALIDATION_SUCCESS: overlapping blocks, visible overlays, undo, scoped erase and continuous prefab switching.");
+        Debug.Log("MAP_PLACEMENT_VALIDATION_SUCCESS: overlapping blocks, undo, cursor erase across categories, scaled bounds, topmost prefab and continuous switching.");
     }
 }
