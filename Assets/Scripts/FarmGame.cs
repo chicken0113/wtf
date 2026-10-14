@@ -6,6 +6,13 @@ namespace EverythingGrows
     public sealed class FarmGame : MonoBehaviour
     {
         [SerializeField] private PlantDefinition[] definitions;
+        [SerializeField] private FarmMapLayout mapLayout;
+        public FarmMapLayout Layout => mapLayout;
+        public Rect WorldBounds => mapLayout!=null?mapLayout.World:new Rect(-24.5f,-16.5f,49,33);
+        public Rect SafeBounds => mapLayout!=null?mapLayout.Safe:new Rect(-6.5f,-4.5f,13,9);
+        public Vector2 SpawnPosition => mapLayout!=null?mapLayout.Spawn:Vector2.zero;
+        public bool IsSafe(Vector2 point) => SafeBounds.Contains(point);
+        public void ConfigureMap(FarmMapLayout layout) => mapLayout=layout;
         private readonly List<PlantDefinition> inventory = new();
         private readonly Dictionary<Vector2Int, Plot> plots = new();
         private readonly List<Piece> pieces = new();
@@ -20,7 +27,7 @@ namespace EverythingGrows
         public Vector2 PlayerPosition => player==null?Vector2.zero:(Vector2)player.position;
         public PlantDefinition SelectedItem => Held;
         public void Notify(string text) => message=text;
-        public void MovePlayer(Vector2 point) { if(player!=null) player.position=new Vector3(Mathf.Clamp(point.x,-23.5f,23.5f),Mathf.Clamp(point.y,-15.5f,15.5f),0); }
+        public void MovePlayer(Vector2 point) { if(player!=null) player.position=new Vector3(Mathf.Clamp(point.x,WorldBounds.xMin+.5f,WorldBounds.xMax-.5f),Mathf.Clamp(point.y,WorldBounds.yMin+.5f,WorldBounds.yMax-.5f),0); }
         public void DropCombatMaterial(Vector2 point,bool ranged) { var item=Resources.Load<PlantDefinition>("Equipment/"+(ranged?"Bow":"Sword")); if(item!=null) Spawn(item,point); }
         private GUIStyle titleStyle, smallStyle;
         private Camera view;
@@ -42,11 +49,14 @@ namespace EverythingGrows
         public void Initialize()
         {
             if(player!=null) return;
+            if(mapLayout==null) mapLayout=GetComponentInChildren<FarmMapLayout>();
             art=new FarmArt();
             sprite=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),new Vector2(.5f,.5f),2);
             view=Camera.main;
             if(view==null) { var cameraObject=new GameObject("Main Camera"); view=cameraObject.AddComponent<Camera>(); cameraObject.tag="MainCamera"; }
             view.orthographic=true; view.orthographicSize=4.8f; view.transform.position=new Vector3(0,0,-10); view.backgroundColor=new Color(.12f,.22f,.22f);
+            if(mapLayout==null)
+            {
             for(int x=-24;x<=24;x++) for(int y=-16;y<=16;y++)
             {
                 var ground=ArtDraw("Ground",new Vector2(x,y),Vector2.one,9,new Color(.3f,.43f,.25f),-100);
@@ -58,16 +68,29 @@ namespace EverythingGrows
             for(int y=-4;y<=4;y+=2) { Draw("Safe area marker",new Vector2(6.6f,y),new Vector2(.12f,.18f),new Color(.95f,.78f,.3f),-80); Draw("Safe area marker",new Vector2(-6.6f,y),new Vector2(.12f,.18f),new Color(.95f,.78f,.3f),-80); }
             for(int x=-7;x<=7;x++) if(Mathf.Abs(x)>5) for(int y=-4;y<=4;y+=2)
                 ArtDraw("Border flowers",new Vector2(x,y),Vector2.one*.7f,14,Color.yellow,-50);
-            farmer=ArtDraw("Farmer",Vector2.zero,Vector2.one*1.1f,0,new Color(.96f,.73f,.35f),10);
+            }
+            farmer=ArtDraw("Farmer",SpawnPosition,Vector2.one*1.1f,0,new Color(.96f,.73f,.35f),10);
             player=farmer.transform;
             heldModel=Draw("Held object",Vector2.zero,Vector2.one*.55f,Color.white,11);
             heldModel.transform.SetParent(player,true); heldModel.enabled=false;
             plantingPreview=Draw("Planting preview",Vector2.zero,Vector2.one*.95f,new Color(.4f,.9f,.5f,.35f),-2);
             plantingPreview.enabled=false;
             if(definitions==null || definitions.Length<5) { message="Missing plant definitions. Run Tools > Everything Grows > Create prototype."; return; }
+            if(mapLayout!=null)
+            {
+                foreach(var placement in mapLayout.GetComponentsInChildren<FarmItemPlacement>())
+                    if(placement.item!=null) Spawn(placement.item,placement.transform.position,new Vector2(Mathf.Abs(placement.transform.lossyScale.x),Mathf.Abs(placement.transform.lossyScale.y)));
+                mapLayout.HideMarkers();
+                var safe=SafeBounds;
+                for(float x=safe.xMin;x<=safe.xMax;x+=2) { Draw("Safe marker",new Vector2(x,safe.yMin),new Vector2(.12f,.18f),Color.yellow,-80); Draw("Safe marker",new Vector2(x,safe.yMax),new Vector2(.12f,.18f),Color.yellow,-80); }
+                for(float y=safe.yMin;y<=safe.yMax;y+=2) { Draw("Safe marker",new Vector2(safe.xMin,y),new Vector2(.12f,.18f),Color.yellow,-80); Draw("Safe marker",new Vector2(safe.xMax,y),new Vector2(.12f,.18f),Color.yellow,-80); }
+            }
+            else
+            {
             Spawn(definitions[0],new Vector2(-3,0)); Spawn(definitions[1],new Vector2(-2,0)); Spawn(definitions[2],new Vector2(2,-1)); Spawn(definitions[3],new Vector2(4,3));
             var sword=Resources.Load<PlantDefinition>("Equipment/Sword"); var bow=Resources.Load<PlantDefinition>("Equipment/Bow");
             if(sword!=null) Spawn(sword,new Vector2(-1,1)); if(bow!=null) Spawn(bow,new Vector2(1,1));
+            }
             combat=gameObject.AddComponent<OpenFieldCombat>(); combat.Initialize(this);
             message="RMB: take item. E: plant / harvest. Click: use / attack. Walk outside to fight.";
         }
@@ -82,12 +105,12 @@ namespace EverythingGrows
             if(art.Available) { renderer.sprite=art.Get(index); renderer.color=Color.white; }
             return renderer;
         }
-        private void Spawn(PlantDefinition definition,Vector2 point)
+        private void Spawn(PlantDefinition definition,Vector2 point,Vector2? size=null)
         {
-            var renderer=ArtDraw(definition.label,point,Vector2.one*.8f,art.ItemIndex(definition),definition.color,3);
+            var renderer=ArtDraw(definition.label,point,size??Vector2.one*.8f,art.ItemIndex(definition),definition.color,3);
             pieces.Add(new Piece { definition=definition,model=renderer.gameObject });
         }
-        private static bool Inside(Vector2Int cell) => cell.x>=-23 && cell.x<=23 && cell.y>=-15 && cell.y<=15;
+        private bool Inside(Vector2Int cell) => mapLayout!=null?mapLayout.CanFarm(cell):cell.x>=-23 && cell.x<=23 && cell.y>=-15 && cell.y<=15;
         public bool Till(Vector2Int cell)
         {
             if(!Inside(cell) || plots.ContainsKey(cell)) return false;
@@ -247,8 +270,9 @@ namespace EverythingGrows
         {
             if(player==null || view==null) return;
             float halfHeight=view.orthographicSize, halfWidth=halfHeight*view.aspect;
-            view.transform.position=new Vector3(Mathf.Clamp(player.position.x,-Mathf.Max(0,24.5f-halfWidth),Mathf.Max(0,24.5f-halfWidth)),Mathf.Clamp(player.position.y,-Mathf.Max(0,16.5f-halfHeight),Mathf.Max(0,16.5f-halfHeight)),-10);
+            view.transform.position=new Vector3(ClampCamera(player.position.x,WorldBounds.xMin,WorldBounds.xMax,halfWidth),ClampCamera(player.position.y,WorldBounds.yMin,WorldBounds.yMax,halfHeight),-10);
         }
+        private static float ClampCamera(float value,float min,float max,float half) => max-min<=half*2?(min+max)*.5f:Mathf.Clamp(value,min+half,max-half);
         private void AnimateFarmer(Vector2 move)
         {
             walkTime+=Time.deltaTime; actionTime=Mathf.Max(0,actionTime-Time.deltaTime);
@@ -322,8 +346,10 @@ namespace EverythingGrows
             Rect rect=new Rect(Screen.width/2-170,Screen.height/2-120,340,240);
             Panel(rect,new Color(.24f,.34f,.24f));
             var previous=GUI.color; GUI.color=new Color(.52f,.63f,.3f);
-            GUI.DrawTexture(new Rect(rect.center.x-6.5f*6,rect.center.y-4.5f*6,13*6,9*6),Texture2D.whiteTexture);
-            GUI.color=Color.yellow; GUI.DrawTexture(new Rect(rect.center.x+PlayerPosition.x*6-3,rect.center.y-PlayerPosition.y*6-3,6,6),Texture2D.whiteTexture); GUI.color=previous;
+            float scale=Mathf.Min((rect.width-24)/WorldBounds.width,(rect.height-48)/WorldBounds.height);
+            Vector2 origin=rect.center-WorldBounds.center*new Vector2(scale,-scale);
+            GUI.DrawTexture(new Rect(origin.x+SafeBounds.xMin*scale,origin.y-SafeBounds.yMax*scale,SafeBounds.width*scale,SafeBounds.height*scale),Texture2D.whiteTexture);
+            GUI.color=Color.yellow; GUI.DrawTexture(new Rect(origin.x+PlayerPosition.x*scale-3,origin.y-PlayerPosition.y*scale-3,6,6),Texture2D.whiteTexture); GUI.color=previous;
             GUI.Label(new Rect(rect.x+12,rect.y+8,310,24),"M: close | Center: safe farm | Outside: enemies");
         }
         private void OnDestroy() { art?.Dispose(); if(sprite!=null) { if(Application.isPlaying) Destroy(sprite); else DestroyImmediate(sprite); } }

@@ -18,6 +18,7 @@ namespace EverythingGrows
         public int EnemyCount { get { int n=0; foreach(var enemy in enemies) if(enemy.health>0) n++; return n; } }
         public bool IsRolling => rollTime>0;
         public static bool Safe(Vector2 point) => Mathf.Abs(point.x)<=6.5f && Mathf.Abs(point.y)<=4.5f;
+        private bool IsSafe(Vector2 point) => farm.IsSafe(point);
         private sealed class Enemy
         {
             public Vector2 home, aim;
@@ -30,6 +31,11 @@ namespace EverythingGrows
         public void Initialize(FarmGame owner)
         {
             farm=owner; art=new FarmArt(); square=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2);
+            if(farm.Layout!=null)
+            {
+                foreach(var marker in farm.Layout.GetComponentsInChildren<EnemyPlacement>()) SpawnEnemy(marker.transform.position,marker.ranged,new Vector2(Mathf.Abs(marker.transform.lossyScale.x),Mathf.Abs(marker.transform.lossyScale.y)));
+                return;
+            }
             SpawnEnemy(new Vector2(10,2),false); SpawnEnemy(new Vector2(12,-3),true);
             SpawnEnemy(new Vector2(-11,-2),false); SpawnEnemy(new Vector2(-13,4),true);
             SpawnEnemy(new Vector2(3,9),false); SpawnEnemy(new Vector2(-4,-10),true);
@@ -39,10 +45,10 @@ namespace EverythingGrows
             var root=new GameObject(name); root.transform.SetParent(transform,false); root.transform.position=point; root.transform.localScale=new Vector3(size.x,size.y,1);
             var renderer=root.AddComponent<SpriteRenderer>(); renderer.sprite=icon<0?square:art.Get(icon); renderer.color=color; renderer.sortingOrder=50; return renderer;
         }
-        public void SpawnEnemy(Vector2 point,bool ranged)
+        public void SpawnEnemy(Vector2 point,bool ranged,Vector2? size=null)
         {
-            if(Safe(point)) return;
-            var enemy=new Enemy { home=point,ranged=ranged,model=Draw(ranged?"Spitter":"Chaser",point,Vector2.one*1.2f,Color.white,ranged?21:20),warning=Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
+            if(IsSafe(point)) return;
+            var enemy=new Enemy { home=point,ranged=ranged,model=Draw(ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,Color.white,ranged?21:20),warning=Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
             enemy.warning.enabled=false; enemies.Add(enemy);
         }
         public bool Roll(Vector2 direction)
@@ -84,17 +90,17 @@ namespace EverythingGrows
             else
             {
                 Vector2 pushed=(Vector2)enemy.model.transform.position+direction*.35f;
-                if(!Safe(pushed)) enemy.model.transform.position=pushed;
+                if(!IsSafe(pushed)) enemy.model.transform.position=pushed;
             }
         }
         public void DamagePlayer(float damage)
         {
-            if(invulnerability>0 || Safe(farm.PlayerPosition)) return;
+            if(invulnerability>0 || IsSafe(farm.PlayerPosition)) return;
             Health=Mathf.Max(0,Health-damage); invulnerability=.65f; quietTime=0;
             if(Health<=0)
             {
                 // Solo prototype recovery; inventory is preserved. Planted resurrection is a later milestone.
-                farm.MovePlayer(Vector2.zero); Health=100; invulnerability=1.5f; rollTime=0;
+                farm.MovePlayer(farm.SpawnPosition); Health=100; invulnerability=1.5f; rollTime=0;
                 farm.Notify("You collapsed. Returned to the farm; your items are safe.");
             }
         }
@@ -104,7 +110,7 @@ namespace EverythingGrows
             attackCooldown=Mathf.Max(0,attackCooldown-seconds); invulnerability=Mathf.Max(0,invulnerability-seconds);
             rollCooldown=Mathf.Max(0,rollCooldown-seconds); quietTime+=seconds;
             if(rollTime>0) { float active=Mathf.Min(rollTime,seconds); farm.MovePlayer(farm.PlayerPosition+rollDirection*active*9); rollTime=Mathf.Max(0,rollTime-seconds); }
-            if(Safe(farm.PlayerPosition) && quietTime>2) Health=Mathf.Min(100,Health+seconds*14);
+            if(IsSafe(farm.PlayerPosition) && quietTime>2) Health=Mathf.Min(100,Health+seconds*14);
             foreach(var enemy in enemies)
             {
                 if(enemy.health<=0)
@@ -114,7 +120,7 @@ namespace EverythingGrows
                     continue;
                 }
                 Vector2 point=enemy.model.transform.position, offset=farm.PlayerPosition-point;
-                bool active=!Safe(farm.PlayerPosition) && offset.magnitude<7;
+                bool active=!IsSafe(farm.PlayerPosition) && offset.magnitude<7;
                 enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10);
                 enemy.model.flipX=offset.x<0;
                 if(!active) { enemy.windup=0; enemy.warning.enabled=false; enemy.model.transform.position=Vector2.MoveTowards(point,enemy.home,seconds*1.7f); enemy.cooldown=Mathf.Max(.5f,enemy.cooldown-seconds); continue; }
@@ -137,7 +143,7 @@ namespace EverythingGrows
                 else if(offset.magnitude>reach*.85f)
                 {
                     Vector2 next=Vector2.MoveTowards(point,farm.PlayerPosition,seconds*(enemy.ranged?1.3f:2));
-                    if(!Safe(next)) enemy.model.transform.position=next;
+                    if(!IsSafe(next)) enemy.model.transform.position=next;
                 }
             }
             for(int i=shots.Count-1;i>=0;i--)
@@ -145,7 +151,7 @@ namespace EverythingGrows
                 var shot=shots[i]; Vector2 start=shot.model.transform.position, end=start+shot.velocity*Mathf.Min(seconds,shot.life); shot.life-=seconds; bool hit=false;
                 if(shot.hostile)
                 {
-                    if(Safe(end)) hit=true;
+                    if(IsSafe(end)) hit=true;
                     else if(SegmentDistance(start,end,farm.PlayerPosition)<.35f) { DamagePlayer(shot.damage); hit=true; }
                 }
                 else foreach(var enemy in enemies) if(enemy.health>0 && SegmentDistance(start,end,enemy.model.transform.position)<.5f)
@@ -164,7 +170,7 @@ namespace EverythingGrows
         private void OnGUI()
         {
             if(farm==null) return;
-            GUI.Box(new Rect(Screen.width-230,10,220,78),Safe(farm.PlayerPosition)?"FARM / SAFE":"WILD FIELD / COMBAT");
+            GUI.Box(new Rect(Screen.width-230,10,220,78),IsSafe(farm.PlayerPosition)?"FARM / SAFE":"WILD FIELD / COMBAT");
             GUI.Label(new Rect(Screen.width-215,34,200,22),"HP "+Mathf.CeilToInt(Health)+" / 100   |   Defeated "+Kills);
             GUI.Label(new Rect(Screen.width-215,54,200,22),"Shift: dodge   |   M: map");
             var camera=Camera.main;

@@ -30,6 +30,13 @@ public static class OpenFieldPlayCheck
         SessionState.SetBool(Key,true); SessionState.SetString(Key+"Error","");
         EditorApplication.isPlaying=true;
     }
+    public static void RunAuthored()
+    {
+        if(!Application.isBatchMode) throw new Exception("Use isolated batch project.");
+        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        SessionState.SetBool(Key,true); SessionState.SetString(Key+"Error","");
+        EditorApplication.isPlaying=true;
+    }
     static void Tick()
     {
         if(!EditorApplication.isPlaying || Time.timeSinceLevelLoad<2)
@@ -41,7 +48,7 @@ public static class OpenFieldPlayCheck
         if(!string.IsNullOrEmpty(error)) { Finish(false,error); return; }
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
         if(farm==null || farm.Combat==null || farm.Combat.EnemyCount!=6 || Camera.main==null) { Finish(false,"Runtime initialization failed"); return; }
-        if(farm.transform.childCount<1600) { Finish(false,"Open field was not generated"); return; }
+        if(farm.GetComponentsInChildren<SpriteRenderer>().Length<1600) { Finish(false,"Open field was not loaded"); return; }
         Finish(true,"OPEN_FIELD_PLAY_SUCCESS: runtime Awake, Update, camera and enemies.");
     }
     static void Finish(bool success,string message)

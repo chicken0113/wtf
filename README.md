@@ -1,7 +1,7 @@
 # Everything Grows — 농사 + 오픈필드 전투 시제품
 
 작업 폴더: `C:/Users/MSI/wtf`. Unity 6000.3.25f1, 2D 탑뷰, Built-in 렌더링.
-`Assets/Scenes/FirstGarden.unity`에서 Play. 기존 씬을 그대로 사용하며 필드는 실행 시 생성합니다.
+직접 배치할 씬은 `Assets/Scenes/EditableField.unity`입니다. 이 씬을 열고 Play합니다. 기존 `FirstGarden.unity`는 유지합니다. 씬에 저장된 `EditableMap` 배치를 그대로 사용합니다. 배치가 없는 초기 샘플만 실행 시 기본 필드를 생성합니다.
 
 ## 첫 플레이
 
@@ -46,3 +46,25 @@
 
 별도의 임시 Unity 프로젝트에서 `OpenFieldCheck.Run`으로 농사 회귀 검사, 무기 변환과 수확, 재식재 제한, 안전 구역, 공격 재사용 간격, 근접/투사체 처치, 피할 수 있는 적 탄환, 회피, 체력 회복, 사망 후 아이템 보존을 검사합니다.
 `OpenFieldPlayCheck.Run`은 격리 프로젝트의 실제 Play 모드 초기화 및 실행 오류를 확인합니다. 사용자 씬에서 이 검증을 실행하지 마세요.
+
+## Unity에서 직접 맵 배치하기
+
+Play를 끈 상태에서 `Assets/Scenes/EditableField.unity`를 엽니다. Hierarchy의 `Farm > EditableMap`에서 수정합니다.
+
+| 계층 | 편집 방법 |
+|---|---|
+| Ground | 바닥 타일 이동·복제·삭제. `FarmGround > Can Farm`으로 경작 가능 여부 설정 |
+| Paths | 길 타일 이동·복제·삭제. 길은 시각 표시이며 경작 허용 여부는 아래 Ground가 결정 |
+| Decoration | 꽃·나무 등 시각 장식. 현재 장식은 통과 가능 |
+| Items | 아이템 이동·복제·삭제. `FarmItemPlacement > Item`에 원하는 PlantDefinition 지정 |
+| EnemySpawns | 적 시작 위치 이동·복제·삭제. `EnemyPlacement > Ranged` 체크 시 원거리 적 |
+| Regions/WorldBounds | 이동 가능한 전체 영역. Transform Position으로 중심, Scale X/Y로 폭·높이 설정 |
+| Regions/SafeArea | 안전 구역. Transform Position과 Scale X/Y로 위치·크기 설정 |
+| Regions/PlayerSpawn | 플레이어 시작·사망 후 복귀 위치 |
+
+`Assets/Prefabs/Map`의 프리팹을 해당 계층에 드래그해 추가하고 Ctrl+D로 복제할 수 있습니다.
+바닥을 넓힐 때는 Ground 타일 추가와 WorldBounds 확장을 함께 합니다. 구역과 바닥은 회전하지 않고 XY 평면에서 배치합니다.
+적 출현 지점을 SafeArea 안에 넣으면 그 적은 생성되지 않습니다. PlayerSpawn은 WorldBounds와 SafeArea 안에 두는 것을 권장합니다.
+수정 후 Ctrl+S로 씬을 저장하고 Play합니다. Play 중 변경한 값은 정지하면 돌아가므로 배치는 Play 밖에서 수정합니다.
+이미 변환된 맵에는 생성 메뉴가 덮어쓰지 않습니다. 초기 씬에 배치가 없다면 `Tools > Everything Grows > Make current map editable`로 한 번 생성합니다.
+프리팹 미리보기용 아이템·적·플레이어 그림은 Play 중 숨기고 실제 게임 객체를 해당 위치에 생성합니다. 바닥·길·장식은 씬 객체를 그대로 사용합니다.
