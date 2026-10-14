@@ -284,7 +284,7 @@ namespace EverythingGrows
             }
             if(Input.GetMouseButtonDown(0))
             {
-                if(Held==null) Till(cell);
+                if(Held==null) message="Select a hoe to till soil.";
                 else if(Held.effect==GrowthEffect.Dig) Till(cell);
                 else if(Held.effect==GrowthEffect.Water) Water(point,Held.effectRadius);
                 else if(Held.effect!=GrowthEffect.Weapon) message="This item has no direct use. Press E to plant it.";
@@ -353,7 +353,7 @@ namespace EverythingGrows
                 if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
                 { if(Event.current.button==0) selected=i; else if(Event.current.button==1) { if(shop!=null && shop.IsOpen) shop.Sell(i); else DetachSlot(); } Event.current.Use(); break; }
             }
-            GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+" - click: use | E: plant / harvest":"Empty hands - till soil",smallStyle);
+            GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+" - click: use | E: plant / harvest":"Empty hands - select a hoe",smallStyle);
             if(showMap) DrawMap();
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
@@ -389,7 +389,9 @@ namespace EverythingGrows
             plantingPreview.transform.position=new Vector3(cell.x,cell.y,0);
             plots.TryGetValue(cell,out var plot);
             bool harvest=plot!=null && plot.plant!=null && plot.mature && (plot.plant.effect!=GrowthEffect.Produce || plot.ready);
-            bool possible=Near(MousePoint) && (harvest || (Held==null?plot==null:!Held.transformed && plot!=null && plot.plant==null));
+            bool canTill=Held!=null && Held.effect==GrowthEffect.Dig && plot==null;
+            bool canPlant=Held!=null && !Held.transformed && plot!=null && plot.plant==null;
+            bool possible=Near(MousePoint) && (harvest || canTill || canPlant);
             plantingPreview.color=possible?new Color(.4f,.9f,.5f,.35f):new Color(.95f,.3f,.25f,.35f);
         }
     }
