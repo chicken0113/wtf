@@ -1,7 +1,7 @@
 # Everything Grows — 농사 + 오픈필드 전투 시제품
 
 작업 폴더: `C:/Users/MSI/wtf`. Unity 6000.3.25f1, 2D 탑뷰, Built-in 렌더링.
-직접 배치할 씬은 `Assets/Scenes/EditableField.unity`입니다. 이 씬을 열고 Play합니다. 기존 `FirstGarden.unity`는 유지합니다. 씬에 저장된 `EditableMap` 배치를 그대로 사용합니다. 배치가 없는 초기 샘플만 실행 시 기본 필드를 생성합니다.
+현재 열린 `Assets/Scenes/FirstGarden.unity`에 편집용 맵을 연결했습니다. 이 씬에서 직접 배치하고 Play합니다. `EditableField.unity`는 동일한 기본 배치를 가진 별도 샘플입니다. 씬에 저장된 `EditableMap` 배치를 그대로 사용합니다. 배치가 없는 초기 샘플만 실행 시 기본 필드를 생성합니다.
 
 ## 첫 플레이
 
@@ -49,7 +49,7 @@
 
 ## Unity에서 직접 맵 배치하기
 
-Play를 끈 상태에서 `Assets/Scenes/EditableField.unity`를 엽니다. Hierarchy의 `Farm > EditableMap`에서 수정합니다.
+Play를 끈 상태에서 `Assets/Scenes/FirstGarden.unity`를 엽니다. Hierarchy의 `Farm > EditableMap`에서 수정합니다.
 
 | 계층 | 편집 방법 |
 |---|---|
