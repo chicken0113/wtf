@@ -45,6 +45,7 @@ namespace EverythingGrows
         {
             if(!IsOpen || index<0 || index>=activeProfile.offers.Count) return false;
             var offer=activeProfile.offers[index]; if(offer==null || offer.item==null || offer.buyPrice<0) return false;
+            if(offer.item.isSeed && (offer.item.seasons & farm.Season)==0) { farm.Notify("These seeds are not sold this season."); return false; }
             if(Gold<offer.buyPrice) { farm.Notify("Not enough gold."); return false; }
             if(!farm.AddItem(offer.item)) return false;
             Gold-=offer.buyPrice; farm.Notify("Bought "+offer.item.label+"."); return true;
@@ -88,7 +89,7 @@ namespace EverythingGrows
                 var offer=activeProfile.offers[i]; if(offer==null || offer.item==null) continue;
                 float y=i*48; art.Icon(new Rect(4,y+2,40,40),art.ItemIndex(offer.item));
                 GUI.Label(new Rect(50,y+10,width-190,26),offer.item.label+"  |  "+offer.buyPrice+" G");
-                var previous=GUI.enabled; GUI.enabled=Gold>=offer.buyPrice && farm.InventoryCount<farm.Capacity;
+                var previous=GUI.enabled; GUI.enabled=Gold>=offer.buyPrice && farm.CanAddItem(offer.item) && (!offer.item.isSeed || (offer.item.seasons & farm.Season)!=0);
                 if(GUI.Button(new Rect(width-135,y+6,82,30),"Buy")) Buy(i);
                 GUI.enabled=previous;
             }

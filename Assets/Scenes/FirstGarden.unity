@@ -9032,6 +9032,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e02311caaa1ffe649b776be6668e35d3, type: 2}
   - {fileID: 11400000, guid: d3125b10bb2d97a40b95b42010f01445, type: 2}
   mapLayout: {fileID: 1098746508}
+  dayLengthSeconds: 300
 --- !u!4 &134020442
 Transform:
   m_ObjectHideFlags: 0
@@ -9086,6 +9087,21 @@ MonoBehaviour:
     - item: {fileID: 11400000, guid: 1b93343ea6cb4318a683e028a0760be6, type: 2}
       buyPrice: 30
       sellPrice: 15
+    - item: {fileID: 11400000, guid: 505cade78fbb48fca0e5aad2eab36585, type: 2}
+      buyPrice: 20
+      sellPrice: -1
+    - item: {fileID: 11400000, guid: b3d5c6fd6d404430a0724de5165c1df4, type: 2}
+      buyPrice: 50
+      sellPrice: -1
+    - item: {fileID: 11400000, guid: d2ccff6a0baa45518e65c606a09948ef, type: 2}
+      buyPrice: 80
+      sellPrice: -1
+    - item: {fileID: 11400000, guid: c3aa58bea29c409589bff6dcb7c9ed54, type: 2}
+      buyPrice: 50
+      sellPrice: -1
+    - item: {fileID: 11400000, guid: 175feaa65eca47209c2cd60e449880fa, type: 2}
+      buyPrice: 25
+      sellPrice: -1
 --- !u!1001 &135350168
 PrefabInstance:
   m_ObjectHideFlags: 0

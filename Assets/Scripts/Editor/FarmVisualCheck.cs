@@ -11,7 +11,7 @@ public static class FarmVisualCheck
         if(!Application.isBatchMode) throw new InvalidOperationException("Run in the isolated validation project.");
         PrototypeBuilder.CreateAndValidate();
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
-        var names=new[]{"Shovel","WateringCan","Stone","Cloud","InventorySlot"};
+        var names=new[]{"Hoe","WateringCan","Stone","Cloud","InventorySlot"};
         var data=new PlantDefinition[5];
         for(int i=0;i<data.Length;i++) data[i]=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/"+names[i]+".asset");
         var farm=new GameObject("Visual check").AddComponent<FarmGame>(); farm.Configure(data); farm.Initialize();

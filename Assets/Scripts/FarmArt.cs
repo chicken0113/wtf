@@ -29,7 +29,7 @@ namespace EverythingGrows
         {
             if(item.iconIndex>=0) return item.iconIndex;
             if (item.effect == GrowthEffect.Storage) return 8;
-            if (item.effect == GrowthEffect.Dig) return 4;
+            if (item.effect == GrowthEffect.Dig) return 22;
             if (item.effect == GrowthEffect.Produce) return 6;
             return item.name == "Cloud" ? 7 : 5;
         }
@@ -48,6 +48,14 @@ namespace EverythingGrows
             if(index==16 || index==17) { Box(14,3,4,9,brown); Box(8,11,16,3,index==17?gold:metal); Box(13,14,6,14,index==17?new Color(.65f,.92f,1):metal); Box(15,28,2,2,Color.white); }
             else if(index==18) { Box(21,4,2,24,metal); Box(9,7,3,18,brown); Box(12,4,5,3,brown); Box(12,25,5,3,brown); Box(17,7,3,18,brown); Box(5,15,24,2,gold); }
             else if(index==19) { Box(8,9,5,12,brown); Box(8,19,19,6,metal); Box(25,20,5,3,Color.gray); Box(15,13,7,3,Color.gray); }
+            else if(index==22) { Box(14,3,4,24,brown); Box(6,23,18,4,metal); Box(5,19,5,7,metal); }
+            else if(index==28) { Box(16,3,3,22,brown); Box(7,22,13,3,metal); Box(5,19,4,5,metal); Box(3,15,3,5,metal); }
+            else if(index==23) { Box(7,4,18,23,new Color(.85f,.71f,.43f)); Box(7,25,18,3,brown); Box(11,10,10,9,new Color(.35f,.6f,.23f)); Box(15,9,2,12,Color.white); }
+            else if(index>=24 && index<=27)
+            {
+                Color fruit=index==24?new Color(.95f,.8f,.4f):index==25?new Color(.65f,.45f,.25f):index==26?new Color(.9f,.2f,.15f):new Color(.92f,.92f,.75f);
+                Box(10,7,13,13,fruit); Box(12,5,9,3,fruit); Box(8,10,17,7,fruit); Box(14,20,3,6,new Color(.2f,.5f,.18f)); Box(9,23,8,3,new Color(.3f,.65f,.2f)); Box(17,25,7,3,new Color(.3f,.65f,.2f)); Box(11,14,3,4,fruit*1.15f);
+            }
             else { Color body=index==20?new Color(.46f,.76f,.29f):new Color(.7f,.4f,.72f); Box(5,6,22,13,body*.8f); Box(8,19,16,5,body); Box(3,8,26,8,body); Box(10,15,3,4,Color.white); Box(20,15,3,4,Color.white); Box(11,15,2,2,Color.black); Box(20,15,2,2,Color.black); Box(13,9,7,2,Color.black); }
             texture.SetPixels(pixels); texture.Apply(); generated.Add(texture);
             var result=Sprite.Create(texture,new Rect(0,0,32,32),new Vector2(.5f,.5f),32); sprites.Add(index,result); return result;

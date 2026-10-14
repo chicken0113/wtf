@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -25,7 +26,7 @@ public static class OpenFieldPlayCheck
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated batch project.");
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
-        var data=new PlantDefinition[5]; var names=new[]{"Shovel","WateringCan","Stone","Cloud","InventorySlot"};
+        var data=new PlantDefinition[5]; var names=new[]{"Hoe","WateringCan","Stone","Cloud","InventorySlot"};
         for(int i=0;i<5;i++) data[i]=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/"+names[i]+".asset");
         new GameObject("Play farm").AddComponent<FarmGame>().Configure(data);
         SessionState.SetBool(Key,true); SessionState.SetString(Key+"Error","");
@@ -48,8 +49,11 @@ public static class OpenFieldPlayCheck
         string error=SessionState.GetString(Key+"Error","");
         if(!string.IsNullOrEmpty(error)) { Finish(false,error); return; }
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
-        if(farm==null || farm.Combat==null || farm.Combat.EnemyCount!=6 || Camera.main==null) { Finish(false,"Runtime initialization failed"); return; }
-        if(farm.GetComponentsInChildren<SpriteRenderer>().Length<1600) { Finish(false,"Open field was not loaded"); return; }
+        if(farm==null || farm.Combat==null || Camera.main==null) { Finish(false,"Runtime initialization failed"); return; }
+        int expectedEnemies=farm.Layout!=null?farm.Layout.GetComponentsInChildren<EnemyPlacement>().Count(marker=>!farm.IsSafe(marker.transform.position)):6;
+        if(farm.Combat.EnemyCount!=expectedEnemies) { Finish(false,"Authored enemy count mismatch"); return; }
+        int expectedGround=farm.Layout!=null?farm.Layout.GetComponentsInChildren<FarmGround>().Length:1600;
+        if(farm.GetComponentsInChildren<SpriteRenderer>().Length<expectedGround) { Finish(false,"Open field was not loaded"); return; }
         if(farm.Shop!=null)
         {
             if(shopFrames==0)

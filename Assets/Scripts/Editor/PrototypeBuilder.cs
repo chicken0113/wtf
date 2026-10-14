@@ -10,7 +10,7 @@ public static class PrototypeBuilder
     public static void Create()
     {
         var definitions=new PlantDefinition[5];
-        var names=new[]{"Shovel","Watering Can","Stone","Cloud","Inventory Slot"};
+        var names=new[]{"Hoe","Watering Can","Stone","Cloud","Inventory Slot"};
         var effects=new[]{GrowthEffect.Dig,GrowthEffect.Water,GrowthEffect.Produce,GrowthEffect.Water,GrowthEffect.Storage};
         var colors=new[]{new Color(.75f,.7f,.55f),new Color(.3f,.7f,.9f),new Color(.55f,.57f,.6f),Color.white,new Color(.85f,.6f,.9f)};
         for(int i=0;i<5;i++)
@@ -39,7 +39,7 @@ public static class PrototypeBuilder
         Create();
         if(!Application.isBatchMode) throw new InvalidOperationException("Use batchmode for isolated checks.");
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
-        var definitions=new PlantDefinition[5]; var names=new[]{"Shovel","WateringCan","Stone","Cloud","InventorySlot"};
+        var definitions=new PlantDefinition[5]; var names=new[]{"Hoe","WateringCan","Stone","Cloud","InventorySlot"};
         for(int i=0;i<5;i++) definitions[i]=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/"+names[i]+".asset");
         var root=new GameObject("Validation Farm"); var farm=root.AddComponent<FarmGame>(); farm.Configure(definitions); farm.Initialize();
         void Check(bool value,string message) { if(!value) throw new Exception(message); }
@@ -60,8 +60,8 @@ public static class PrototypeBuilder
         farm.Water(Vector2.zero,1); farm.Tick(6); Check(farm.Capacity==7 && farm.StorageBonus==3,"Storage plant did not add storage");
         Check(farm.Uproot(Vector2Int.zero) && farm.Capacity==4 && farm.InventoryCount==1,"Uproot recovery and storage removal");
         Check(farm.RestoreSlot() && farm.Capacity==5 && farm.InventoryCount==0,"Inventory slot cannot be restored");
-        Check(farm.AddItem(definitions[0]) && farm.PlantSelected(Vector2Int.zero),"Shovel planting");
-        farm.Water(Vector2.zero,1); farm.Tick(6); Check(!farm.Till(Vector2Int.right),"Shovel did not dig adjacent soil");
+        Check(farm.AddItem(definitions[0]) && farm.PlantSelected(Vector2Int.zero),"Hoe planting");
+        farm.Water(Vector2.zero,1); farm.Tick(6); Check(!farm.Till(Vector2Int.right),"Hoe did not dig adjacent soil");
         Check(farm.AddItem(definitions[2]) && farm.PlantSelected(Vector2Int.right),"Production plant setup");
         farm.Water(Vector2.right,1); farm.Tick(14); Check(farm.Collect(Vector2Int.right),"Stone production");
         Check(farm.AddItem(definitions[3]) && farm.PlantSelected(Vector2Int.left),"Cloud planting");

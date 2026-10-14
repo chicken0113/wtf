@@ -60,7 +60,7 @@ public static class EditableMapBuilder
         var player=Prefab("PlayerSpawn",0,20,Color.white,null);
         var chaser=Prefab("ChaserSpawn",20,20,Color.white,root=>root.AddComponent<EnemyPlacement>());
         var spitter=Prefab("SpitterSpawn",21,20,Color.white,root=>root.AddComponent<EnemyPlacement>().ranged=true);
-        string[] names={"Shovel","WateringCan","Stone","Cloud","Sword","Bow"};
+        string[] names={"Hoe","WateringCan","Stone","Cloud","Sword","Bow"};
         var itemPrefabs=new GameObject[names.Length];
         for(int i=0;i<names.Length;i++)
         {

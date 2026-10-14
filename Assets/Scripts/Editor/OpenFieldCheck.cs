@@ -11,7 +11,7 @@ public static class OpenFieldCheck
         if(!Application.isBatchMode) throw new Exception("Use an isolated batch project.");
         PrototypeBuilder.CreateAndValidate();
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
-        var names=new[]{"Shovel","WateringCan","Stone","Cloud","InventorySlot"}; var data=new PlantDefinition[5];
+        var names=new[]{"Hoe","WateringCan","Stone","Cloud","InventorySlot"}; var data=new PlantDefinition[5];
         for(int i=0;i<5;i++) data[i]=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/"+names[i]+".asset");
         var farm=new GameObject("Open field check").AddComponent<FarmGame>(); farm.Configure(data); farm.Initialize();
         void Check(bool value,string text) { if(!value) throw new Exception(text); }

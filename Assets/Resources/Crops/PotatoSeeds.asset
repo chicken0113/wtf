@@ -10,12 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 70b7409dc1dd4ef5976e114eddf8ba00, type: 3}
-  m_Name: Shovel
+  m_Name: PotatoSeeds
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
-  label: Hoe
-  color: {r: 0.75, g: 0.7, b: 0.55, a: 1}
-  effect: 0
+  label: Potato Seeds
+  color: {r: 0.5, g: 0.8, b: 0.3, a: 1}
+  effect: 5
   growthSeconds: 6
-  effectRadius: 1.5
+  effectRadius: 1
   productionSeconds: 8
   storageBonus: 3
+  harvestResult: {fileID: 11400000, guid: a20490bf01574199a41e31d4a0efc504, type: 2}
+  transformed: 0
+  iconIndex: 23
+  sellPrice: 5
+  stackable: 1
+  isSeed: 1
+  growthDays: 6
+  regrowDays: 0
+  seasons: 1
+  ranged: 0
+  damage: 15
+  attackRange: 1.8
+  attackInterval: 0.45

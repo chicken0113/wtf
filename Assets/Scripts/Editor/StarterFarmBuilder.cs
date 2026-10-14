@@ -61,7 +61,7 @@ public static class StarterFarmBuilder
         if(!manager.npcs.Any(profile=>profile.id=="farm_merchant"))
         {
             var profile=new NpcProfile();
-            string[] names={"Shovel","WateringCan","Stone","Cloud","InventorySlot","Sword","Bow"}; int[] prices={15,15,5,25,40,25,30};
+            string[] names={"Hoe","WateringCan","Stone","Cloud","InventorySlot","Sword","Bow"}; int[] prices={15,15,5,25,40,25,30};
             for(int i=0;i<names.Length;i++)
             {
                 var item=AssetDatabase.LoadAssetAtPath<PlantDefinition>((i<5?"Assets/Settings/":"Assets/Resources/Equipment/")+names[i]+".asset");

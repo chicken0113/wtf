@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70b7409dc1dd4ef5976e114eddf8ba00, type: 3}
+  m_Name: Potato
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
+  label: Potato
+  color: {r: 0.5, g: 0.8, b: 0.3, a: 1}
+  effect: 5
+  growthSeconds: 6
+  effectRadius: 1
+  productionSeconds: 8
+  storageBonus: 3
+  harvestResult: {fileID: 0}
+  transformed: 0
+  iconIndex: 25
+  sellPrice: 80
+  stackable: 1
+  isSeed: 0
+  growthDays: 6
+  regrowDays: 0
+  seasons: 1
+  ranged: 0
+  damage: 15
+  attackRange: 1.8
+  attackInterval: 0.45

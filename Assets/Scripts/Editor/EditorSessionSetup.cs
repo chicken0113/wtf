@@ -36,7 +36,7 @@ public static class EditorSessionSetup
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play before setting up the scene.");
         var scene=SceneManager.GetActiveScene();
         if(!scene.IsValid() || !scene.isLoaded) throw new Exception("No active scene.");
-        string[] names={"Shovel","WateringCan","Stone","Cloud","InventorySlot"};
+        string[] names={"Hoe","WateringCan","Stone","Cloud","InventorySlot"};
         var definitions=names.Select(name=>AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/"+name+".asset")).ToArray();
         if(definitions.Any(data=>data==null)) throw new Exception("Plant definitions are missing.");
         Undo.IncrementCurrentGroup(); int group=Undo.GetCurrentGroup(); Undo.SetCurrentGroupName("Set up 2D farming scene");

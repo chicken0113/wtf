@@ -13,7 +13,8 @@ namespace EverythingGrows
         public Vector2 SpawnPosition => mapLayout!=null?mapLayout.Spawn:Vector2.zero;
         public bool IsSafe(Vector2 point) => SafeBounds.Contains(point);
         public void ConfigureMap(FarmMapLayout layout) => mapLayout=layout;
-        private readonly List<PlantDefinition> inventory = new();
+        private sealed class InventoryStack { public PlantDefinition item; public int count=1; public InventoryStack(PlantDefinition definition) { item=definition; } }
+        private readonly List<InventoryStack> inventory = new();
         private readonly Dictionary<Vector2Int, Plot> plots = new();
         private readonly List<Piece> pieces = new();
         private Sprite sprite;
@@ -22,11 +23,21 @@ namespace EverythingGrows
         private float walkTime, actionTime;
         private int facing;
         private bool showHelp, showMap;
+        [SerializeField,Min(30)] private float dayLengthSeconds=300;
+        private float dayElapsed;
+        public int Day { get; private set; } = 1;
+        public int Energy { get; private set; } = 100;
+        public CropSeason Season => (CropSeason)(1<<((Day-1)/28%4));
+        public int DayOfSeason => (Day-1)%28+1;
+        public float CropProgress(Vector2Int cell) => plots.TryGetValue(cell,out var plot)?plot.progress:0;
+        public bool IsWilted(Vector2Int cell) => plots.TryGetValue(cell,out var plot) && plot.wilted;
         private OpenFieldCombat combat;
         private NpcManager shop;
         public NpcManager Shop => shop;
-        public PlantDefinition InventoryItem(int index) => index>=0 && index<inventory.Count?inventory[index]:null;
-        public bool RemoveInventoryItem(int index) { if(index<0 || index>=inventory.Count) return false; inventory.RemoveAt(index); selected=Mathf.Clamp(selected,0,Capacity-1); return true; }
+        public PlantDefinition InventoryItem(int index) => index>=0 && index<inventory.Count?inventory[index].item:null;
+        public int InventoryQuantity(int index) => index>=0 && index<inventory.Count?inventory[index].count:0;
+        public bool CanAddItem(PlantDefinition item) => item!=null && (inventory.Count<Capacity || (item.stackable && inventory.Exists(stack=>stack.item==item)));
+        public bool RemoveInventoryItem(int index) { if(index<0 || index>=inventory.Count) return false; if(--inventory[index].count<=0) inventory.RemoveAt(index); selected=Mathf.Clamp(selected,0,Capacity-1); return true; }
         public OpenFieldCombat Combat => combat;
         public Vector2 PlayerPosition => player==null?Vector2.zero:(Vector2)player.position;
         public PlantDefinition SelectedItem => Held;
@@ -57,9 +68,9 @@ namespace EverythingGrows
         public int WorldPieceCount => pieces.Count;
         public bool IsMature(Vector2Int cell) => plots.TryGetValue(cell,out var plot) && plot.mature;
         public int StorageBonus { get { int result=0; foreach(var plot in plots.Values) if(plot.plant!=null && plot.mature && plot.plant.effect==GrowthEffect.Storage) result+=plot.plant.storageBonus; return result; } }
-        private PlantDefinition Held => selected < inventory.Count ? inventory[selected] : null;
+        private PlantDefinition Held => selected>=0 && selected < inventory.Count ? inventory[selected].item : null;
         private sealed class Piece { public PlantDefinition definition; public GameObject model; }
-        private sealed class Plot { public Vector2Int cell; public SpriteRenderer soil, model; public PlantDefinition plant; public bool wet, mature, ready; public float progress, production; }
+        private sealed class Plot { public Vector2Int cell; public SpriteRenderer soil, model; public PlantDefinition plant; public bool wet, mature, ready, wilted, regrowing; public int grownDays; public float progress, production; }
         public void Configure(PlantDefinition[] data) => definitions=data;
         private void Awake() { if(Application.isPlaying) Initialize(); }
         public void Initialize()
@@ -139,14 +150,19 @@ namespace EverythingGrows
         }
         public bool AddItem(PlantDefinition definition)
         {
-            if(definition==null || inventory.Count>=Capacity) { message="No space. Plant or drop an item first."; return false; }
-            inventory.Add(definition); selected=inventory.Count-1; return true;
+            if(!CanAddItem(definition)) { message="No space. Plant or drop an item first."; return false; }
+            if(definition.stackable)
+            {
+                int existing=inventory.FindIndex(stack=>stack.item==definition);
+                if(existing>=0) { inventory[existing].count++; selected=existing; return true; }
+            }
+            inventory.Add(new InventoryStack(definition)); selected=inventory.Count-1; return true;
         }
         public bool DetachSlot()
         {
             if(definitions==null || definitions.Length<5 || Capacity<=1 || inventory.Count+1>Capacity-1)
             { message="Keep the final slot and enough room to carry the detached slot."; return false; }
-            removedSlots++; inventory.Add(definitions[4]); selected=inventory.Count-1; message="A slot was detached. Your storage capacity decreased."; return true;
+            removedSlots++; inventory.Add(new InventoryStack(definitions[4])); selected=inventory.Count-1; message="A slot was detached. Your storage capacity decreased."; return true;
         }
         public bool DetachAt(Vector2 point)
         {
@@ -163,19 +179,23 @@ namespace EverythingGrows
         public bool RestoreSlot()
         {
             if(removedSlots<=0 || definitions==null || definitions.Length<5 || Held!=definitions[4]) return false;
-            inventory.RemoveAt(selected); removedSlots--; selected=Mathf.Min(selected,Capacity-1);
+            RemoveInventoryItem(selected); removedSlots--; selected=Mathf.Min(selected,Capacity-1);
             message="The detached slot was reattached to the inventory."; return true;
         }
         public bool PlantSelected(Vector2Int cell)
         {
             if(Held==null || !plots.TryGetValue(cell,out var plot) || plot.plant!=null) { message="Select an item and an empty tilled patch."; return false; }
             if(Held.transformed) { message="This item has already transformed. Use it instead of planting again."; return false; }
+            if(Held.isSeed && Held.harvestResult==null) { message="These seeds have no crop configured."; return false; }
+            if(Held.effect==GrowthEffect.Crop && !Held.isSeed && Held.harvestResult==null) { message="Plant seeds, not harvested vegetables."; return false; }
+            if(Held.isSeed && (Held.seasons & Season)==0) { message="These seeds cannot grow this season."; return false; }
+            plot.grownDays=0; plot.wilted=plot.regrowing=false;
             plot.plant=Held; plot.model=ArtDraw("Growing "+Held.label,cell,Vector2.one*.45f,12,Held.color,4);
-            inventory.RemoveAt(selected); selected=Mathf.Min(selected,Capacity-1); message="Planted. Water it and see what happens."; return true;
+            RemoveInventoryItem(selected); selected=Mathf.Min(selected,Capacity-1); message="Planted. Water it and see what happens."; return true;
         }
         public int Water(Vector2 point,float radius)
         {
-            int count=0; foreach(var plot in plots.Values) if(plot.plant!=null && Vector2.Distance(point,plot.cell)<=radius)
+            int count=0; foreach(var plot in plots.Values) if(Vector2.Distance(point,plot.cell)<=radius)
             { plot.wet=true; if(art.Available) plot.soil.sprite=art.Get(11); else plot.soil.color=new Color(.18f,.25f,.29f); count++; } return count;
         }
         public void Tick(float seconds)
@@ -184,7 +204,7 @@ namespace EverythingGrows
             var snapshot=new List<Plot>(plots.Values);
             foreach(var plot in snapshot)
             {
-                if(plot.plant==null) continue;
+                if(plot.plant==null || plot.plant.isSeed || plot.wilted) continue;
                 float activeSeconds=seconds;
                 if(!plot.mature && plot.wet)
                 {
@@ -210,6 +230,7 @@ namespace EverythingGrows
             if(!Inside(cell) || !Near(cell)) { message="Walk closer first."; return false; }
             if(plots.TryGetValue(cell,out var plot) && plot.plant!=null)
             {
+                if(plot.wilted) { message="Use a scythe to clear the dead crop."; return false; }
                 if(!plot.mature) { message=plot.wet?"Still growing. Wait before harvesting.":"Water this plant first."; return false; }
                 if(plot.plant.effect==GrowthEffect.Produce || plot.plant.harvestResult!=null) return Collect(cell);
                 return Uproot(cell);
@@ -221,6 +242,12 @@ namespace EverythingGrows
             if(!plots.TryGetValue(cell,out var plot)) return false;
             if(plot.mature && plot.plant!=null && plot.plant.harvestResult!=null)
             {
+                if(plot.plant.isSeed && plot.plant.regrowDays>0)
+                {
+                    if(!AddItem(plot.plant.harvestResult)) return false;
+                    plot.mature=false; plot.regrowing=true; plot.grownDays=0; plot.progress=0;
+                    message="Harvested. Keep watering for the next harvest."; return true;
+                }
                 bool harvested=Uproot(cell); if(harvested) message="Harvested "+Held.label+". Click to use it."; return harvested;
             }
             if(!plot.ready || !AddItem(plot.plant)) return false;
@@ -229,10 +256,52 @@ namespace EverythingGrows
         public bool Uproot(Vector2Int cell)
         {
             if(!plots.TryGetValue(cell,out var plot) || plot.plant==null) return false;
+            var item=plot.mature && plot.plant.harvestResult!=null?plot.plant.harvestResult:plot.plant;
+            int needed=item.stackable && inventory.Exists(stack=>stack.item==item)?0:1;
             int losing=plot.mature && plot.plant.effect==GrowthEffect.Storage ? plot.plant.storageBonus : 0;
-            if(inventory.Count+1>Mathf.Max(1,Capacity-losing)) { message="Free storage before uprooting this plant."; return false; }
-            var item=plot.mature && plot.plant.harvestResult!=null?plot.plant.harvestResult:plot.plant; plot.plant=null; plot.mature=false; plot.ready=false; plot.progress=plot.production=0;
-            Remove(plot.model.gameObject); plot.model=null; inventory.Add(item); selected=inventory.Count-1; message="Uprooted. You can plant it elsewhere."; return true;
+            if(inventory.Count+needed>Mathf.Max(1,Capacity-losing)) { message="Free storage before uprooting this plant."; return false; }
+            plot.plant=null; plot.mature=false; plot.ready=false; plot.progress=plot.production=0; plot.grownDays=0; plot.regrowing=plot.wilted=false;
+            Remove(plot.model.gameObject); plot.model=null; AddItem(item); message="Uprooted. You can plant it elsewhere."; return true;
+        }
+        public void AdvanceDay()
+        {
+            foreach(var plot in plots.Values)
+            {
+                if(plot.plant!=null && plot.plant.isSeed && !plot.wilted && !plot.mature && plot.wet)
+                {
+                    plot.grownDays++;
+                    int needed=Mathf.Max(1,plot.regrowing?plot.plant.regrowDays:plot.plant.growthDays);
+                    plot.progress=Mathf.Min(1,(float)plot.grownDays/needed); plot.mature=plot.progress>=1;
+                    plot.model.transform.localScale=Vector3.one*Mathf.Lerp(.45f,1,plot.progress);
+                    if(art.Available) plot.model.sprite=art.Get(plot.mature?art.ItemIndex(plot.plant.harvestResult):12);
+                }
+                plot.wet=false; if(art.Available) plot.soil.sprite=art.Get(10);
+            }
+            Day++; dayElapsed=0; Energy=100;
+            foreach(var plot in plots.Values) if(plot.plant!=null && plot.plant.isSeed && (plot.plant.seasons & Season)==0)
+            { plot.wilted=true; plot.mature=false; plot.model.color=new Color(.45f,.32f,.2f); }
+            message=Season+" day "+DayOfSeason+". Water your crops today.";
+        }
+        public bool ClearDeadCrop(Vector2Int cell)
+        {
+            if(!plots.TryGetValue(cell,out var plot) || !plot.wilted) return false;
+            Remove(plot.model.gameObject); plot.model=null; plot.plant=null; plot.wilted=plot.regrowing=plot.mature=false; plot.progress=0; plot.grownDays=0; return true;
+        }
+        public bool UseTool(Vector2Int cell)
+        {
+            if(Held==null) { message="Select a hoe or watering can."; return false; }
+            if(Held.effect==GrowthEffect.Scythe) return ClearDeadCrop(cell);
+            if(Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water) return false;
+            if(Energy<2) { message="Too tired. Sleep at the house."; return false; }
+            bool used=Held.effect==GrowthEffect.Dig?Till(cell):Water(cell,.1f)>0;
+            if(used) { Energy-=2; actionTime=.25f; } return used;
+        }
+        private FarmBuilding NearbyHouse()
+        {
+            if(mapLayout==null) return null;
+            foreach(var house in mapLayout.GetComponentsInChildren<FarmBuilding>())
+                if(Vector2.Distance(PlayerPosition,house.transform.TransformPoint(house.offset-Vector2.up*(house.footprint.y*.5f+.6f)))<1.1f) return house;
+            return null;
         }
         private void Remove(GameObject root) { root.SetActive(false); if(Application.isPlaying) Destroy(root); else DestroyImmediate(root); }
         private Vector2 MousePoint => view.ScreenToWorldPoint(Input.mousePosition);
@@ -250,6 +319,7 @@ namespace EverythingGrows
         private void Update()
         {
             if(player==null) return;
+            dayElapsed+=Time.deltaTime; if(dayElapsed>=dayLengthSeconds) AdvanceDay();
             if(shop!=null && shop.IsOpen)
             {
                 Tick(Time.deltaTime); combat.TickCombat(Time.deltaTime); shop.CheckDistance();
@@ -268,8 +338,9 @@ namespace EverythingGrows
             if(wheel!=0) selected=(selected+(wheel>0?-1:1)+Capacity)%Capacity;
             Tick(Time.deltaTime);
             if(Input.GetKeyDown(KeyCode.R)) RestoreSlot();
-            if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; inventory.RemoveAt(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }
+            if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; RemoveInventoryItem(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }
             if(Input.GetKeyDown(KeyCode.E) && shop!=null && shop.OpenNearby()) { plantingPreview.enabled=false; return; }
+            if(Input.GetKeyDown(KeyCode.E) && NearbyHouse()!=null) { AdvanceDay(); return; }
             UpdatePlantingPreview();
             if(OverUI()) return;
             var point=MousePoint; var cell=MouseCell;
@@ -280,18 +351,16 @@ namespace EverythingGrows
             {
                 if(PieceAt(point)!=null) DetachAt(point);
                 else if(plots.TryGetValue(cell,out var planted) && planted.plant!=null)
-                { if(!planted.mature) Uproot(cell); else message="Press E to harvest."; }
+                { if(planted.plant.isSeed) message="E: harvest ripe crops. Scythe: clear dead crops."; else if(!planted.mature) Uproot(cell); else message="Press E to harvest."; }
             }
             if(Input.GetMouseButtonDown(0))
             {
                 if(Held==null) message="Select a hoe to till soil.";
-                else if(Held.effect==GrowthEffect.Dig) Till(cell);
-                else if(Held.effect==GrowthEffect.Water) Water(point,Held.effectRadius);
+                else if(Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe) UseTool(cell);
                 else if(Held.effect!=GrowthEffect.Weapon) message="This item has no direct use. Press E to plant it.";
                 actionTime=.25f;
             }
-            if(Input.GetKeyDown(KeyCode.Space)) { Water(point,.7f); actionTime=.25f; }
-            if(Input.GetKeyDown(KeyCode.F) && Held!=null) { if(Held.effect==GrowthEffect.Dig) Till(cell); else if(Held.effect==GrowthEffect.Water) Water(point,Held.effectRadius); }
+            if(Input.GetKeyDown(KeyCode.F)) UseTool(cell);
             if(Input.GetKeyDown(KeyCode.E)) InteractPlot(cell);
         }
         private void LateUpdate()
@@ -333,12 +402,12 @@ namespace EverythingGrows
             titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
             smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
             Panel(new Rect(10,10,520,showHelp?174:62),new Color(.48f,.3f,.17f,.95f));
-            GUI.Label(new Rect(22,16,495,24),"EVERYTHING GROWS  |  E: plant / harvest  |  H: help",titleStyle);
+            GUI.Label(new Rect(22,16,495,24),Season+" "+DayOfSeason+"  |  Energy "+Energy+" / 100  |  H: help",titleStyle);
             GUI.Label(new Rect(22,39,495,28),message);
             if(showHelp)
             {
                 GUI.Label(new Rect(22,70,425,22),"WASD move | Click: use / attack | E: plant / harvest");
-                GUI.Label(new Rect(22,92,425,22),"RMB: take / cancel growing plant | Space: water | Q: drop");
+                GUI.Label(new Rect(22,92,425,22),"RMB: take | E: plant / harvest / shop / sleep | Q: drop");
                 GUI.Label(new Rect(22,114,495,22),"1-9 / wheel select | RMB slot detach | R restore slot");
                 GUI.Label(new Rect(22,136,495,22),"Weapon + click: attack | Shift: dodge | E: harvest grown weapon");
             }
@@ -346,19 +415,21 @@ namespace EverythingGrows
             {
                 Rect rect=SlotRect(i);
                 Panel(rect,i==selected?new Color(.85f,.64f,.3f):new Color(.55f,.36f,.2f));
-                if(i<inventory.Count && art.Available) art.Icon(new Rect(rect.x+6,rect.y+5,40,40),art.ItemIndex(inventory[i]));
-                else if(i<inventory.Count) GUI.Label(rect,inventory[i].label,smallStyle);
+                if(i<inventory.Count && art.Available) art.Icon(new Rect(rect.x+6,rect.y+5,40,40),art.ItemIndex(inventory[i].item));
+                else if(i<inventory.Count) GUI.Label(rect,inventory[i].item.label,smallStyle);
                 GUI.Label(new Rect(rect.x+4,rect.y+1,16,16),(i+1).ToString());
-                if(shop!=null && shop.IsOpen && i<inventory.Count) GUI.Label(new Rect(rect.x,rect.y+35,rect.width,16),shop.SalePrice(inventory[i])+" G",smallStyle);
+                if(InventoryQuantity(i)>1) GUI.Label(new Rect(rect.x+26,rect.y+1,24,16),InventoryQuantity(i).ToString(),smallStyle);
+                if(shop!=null && shop.IsOpen && i<inventory.Count) GUI.Label(new Rect(rect.x,rect.y+35,rect.width,16),shop.SalePrice(inventory[i].item)+" G",smallStyle);
                 if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
                 { if(Event.current.button==0) selected=i; else if(Event.current.button==1) { if(shop!=null && shop.IsOpen) shop.Sell(i); else DetachSlot(); } Event.current.Use(); break; }
             }
             GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+" - click: use | E: plant / harvest":"Empty hands - select a hoe",smallStyle);
+            if(NearbyHouse()!=null) GUI.Label(new Rect(Screen.width/2-100,Screen.height-130,200,22),"E: sleep until tomorrow",smallStyle);
             if(showMap) DrawMap();
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
                 Vector3 position=view.WorldToScreenPoint((Vector2)plot.cell+Vector2.up*.6f);
-                string status=plot.mature?(plot.ready || plot.plant.harvestResult!=null?"E: HARVEST":plot.plant.effect.ToString()):!plot.wet?"Needs water":Mathf.RoundToInt(plot.progress*100)+"%";
+                string status=plot.wilted?"DEAD - scythe":plot.mature?(plot.ready || plot.plant.harvestResult!=null?"E: HARVEST":plot.plant.effect.ToString()):!plot.wet?"Needs water":plot.plant.isSeed?plot.grownDays+" / "+(plot.regrowing?plot.plant.regrowDays:plot.plant.growthDays)+" days":Mathf.RoundToInt(plot.progress*100)+"%";
                 GUI.Label(new Rect(position.x-70,Screen.height-position.y,140,28),plot.plant.label+" "+status);
                 if(!plot.mature)
                 {
