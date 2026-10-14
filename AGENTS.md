@@ -6,4 +6,4 @@
 - Protect essential input and the final inventory slot. Existing held items must never be silently deleted when capacity changes.
 - Keep .meta files, preserve user scene changes, and use an isolated Unity batch check for destructive validation.
 - Remote: https://github.com/chicken0113/wtf.git. Do not use the older what-the-farm remote.
-- Develop slowly in small milestones. Focus on detaching and farming first; combat is a future direction. No crafting, assembly or building system, no fixed ending, and do not add exploration/business management as pillars.
+- Develop slowly in small milestones. Focus on the connected farming and open-field combat prototype. Combat occurs directly in the shared field, without encounter selection menus or separate entry scenes. No crafting, assembly or building system, no fixed ending, and do not add exploration/business management as pillars.

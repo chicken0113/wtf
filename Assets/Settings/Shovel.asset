@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70b7409dc1dd4ef5976e114eddf8ba00, type: 3}
   m_Name: Shovel
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
-  label: Shovel
+  label: Hoe
   color: {r: 0.75, g: 0.7, b: 0.55, a: 1}
   effect: 0
   growthSeconds: 6

@@ -52,7 +52,7 @@ public static class PrototypeBuilder
         Check(farm.Till(new Vector2Int(2,2)) && farm.PlantSelected(new Vector2Int(2,2)),"Second planting");
         UnityEngine.Object.DestroyImmediate(root);
         root=new GameObject("Result validation"); farm=root.AddComponent<FarmGame>(); farm.Configure(definitions); farm.Initialize();
-        Check(farm.WorldPieceCount==4 && farm.DetachAt(new Vector2(4,3)) && farm.WorldPieceCount==3,"Background cloud was not actually removed");
+        Check(farm.WorldPieceCount==6 && farm.DetachAt(new Vector2(4,3)) && farm.WorldPieceCount==5,"Background cloud was not actually removed");
         Check(farm.Till(new Vector2Int(4,3)) && farm.PlantSelected(new Vector2Int(4,3)),"Background planting");
         Check(farm.DetachSlot() && farm.Capacity==4 && farm.InventoryCount==1,"UI slot removal does not reduce actual storage");
         Check(farm.Till(Vector2Int.zero) && farm.PlantSelected(Vector2Int.zero),"Slot planting");
