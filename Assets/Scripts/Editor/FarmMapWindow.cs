@@ -76,10 +76,12 @@ public sealed class FarmMapWindow : EditorWindow
         }
         if(EditorApplication.isPlayingOrWillChangePlaymode && painting) SetPainting(false);
     }
-    private void Choose(GameObject value)
+    internal void Choose(GameObject value)
     {
-        SetPainting(false); prefab=value;
+        EndStroke(); prefab=value;
+        if(prefab==null) SetPainting(false);
         if(prefab!=null) { var category=MapPlacement.CategoryOf(prefab); scale=category==MapPlacement.Category.Items?.8f:category==MapPlacement.Category.EnemySpawns?1.2f:1; }
+        SceneView.RepaintAll(); Repaint();
     }
     private void Select(Transform target)
     {
