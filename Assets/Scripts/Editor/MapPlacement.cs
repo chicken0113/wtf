@@ -5,9 +5,10 @@ using EverythingGrows;
 
 public static class MapPlacement
 {
-    public enum Category { Ground, Paths, Decoration, Items, EnemySpawns }
+    public enum Category { Ground, Paths, Decoration, Items, EnemySpawns, Npcs }
     public static Category CategoryOf(GameObject prefab)
     {
+        if(prefab.GetComponent<ShopNpc>()!=null) return Category.Npcs;
         if(prefab.GetComponent<FarmGround>()!=null) return Category.Ground;
         if(prefab.GetComponent<FarmItemPlacement>()!=null) return Category.Items;
         if(prefab.GetComponent<EnemyPlacement>()!=null) return Category.EnemySpawns;
@@ -21,6 +22,12 @@ public static class MapPlacement
         {
             var root=new GameObject(category.ToString()); root.transform.SetParent(map.transform,false);
             Undo.RegisterCreatedObjectUndo(root,"Create map layer"); group=root.transform;
+        }
+        if(!group.gameObject.activeSelf)
+        {
+            // Keep hidden test objects hidden while allowing new scene placements.
+            foreach(Transform child in group) { Undo.RecordObject(child.gameObject,"Preserve hidden map object"); child.gameObject.SetActive(false); }
+            Undo.RecordObject(group.gameObject,"Enable map layer"); group.gameObject.SetActive(true);
         }
         var placed=(GameObject)PrefabUtility.InstantiatePrefab(prefab,group);
         placed.transform.position=new Vector3(point.x,point.y,0); placed.transform.localScale=Vector3.one*Mathf.Max(.05f,scale);

@@ -23,11 +23,27 @@ namespace EverythingGrows
         private int facing;
         private bool showHelp, showMap;
         private OpenFieldCombat combat;
+        private NpcManager shop;
+        public NpcManager Shop => shop;
+        public PlantDefinition InventoryItem(int index) => index>=0 && index<inventory.Count?inventory[index]:null;
+        public bool RemoveInventoryItem(int index) { if(index<0 || index>=inventory.Count) return false; inventory.RemoveAt(index); selected=Mathf.Clamp(selected,0,Capacity-1); return true; }
         public OpenFieldCombat Combat => combat;
         public Vector2 PlayerPosition => player==null?Vector2.zero:(Vector2)player.position;
         public PlantDefinition SelectedItem => Held;
         public void Notify(string text) => message=text;
-        public void MovePlayer(Vector2 point) { if(player!=null) player.position=new Vector3(Mathf.Clamp(point.x,WorldBounds.xMin+.5f,WorldBounds.xMax-.5f),Mathf.Clamp(point.y,WorldBounds.yMin+.5f,WorldBounds.yMax-.5f),0); }
+        public void MovePlayer(Vector2 point)
+        {
+            if(player==null) return;
+            point=new Vector2(Mathf.Clamp(point.x,WorldBounds.xMin+.5f,WorldBounds.xMax-.5f),Mathf.Clamp(point.y,WorldBounds.yMin+.5f,WorldBounds.yMax-.5f));
+            var buildings=mapLayout!=null?mapLayout.GetComponentsInChildren<FarmBuilding>():System.Array.Empty<FarmBuilding>();
+            bool Blocked(Vector2 candidate) { foreach(var building in buildings) if(building.Blocks(candidate)) return true; return false; }
+            if(Blocked(point))
+            {
+                Vector2 horizontal=new Vector2(point.x,player.position.y),vertical=new Vector2(player.position.x,point.y);
+                point=!Blocked(horizontal)?horizontal:!Blocked(vertical)?vertical:(Vector2)player.position;
+            }
+            player.position=new Vector3(point.x,point.y,0);
+        }
         public void DropCombatMaterial(Vector2 point,bool ranged) { var item=Resources.Load<PlantDefinition>("Equipment/"+(ranged?"Bow":"Sword")); if(item!=null) Spawn(item,point); }
         private GUIStyle titleStyle, smallStyle;
         private Camera view;
@@ -81,9 +97,12 @@ namespace EverythingGrows
                 foreach(var placement in mapLayout.GetComponentsInChildren<FarmItemPlacement>())
                     if(placement.item!=null) Spawn(placement.item,placement.transform.position,new Vector2(Mathf.Abs(placement.transform.lossyScale.x),Mathf.Abs(placement.transform.lossyScale.y)));
                 mapLayout.HideMarkers();
+                if(mapLayout.showSafeMarkers)
+                {
                 var safe=SafeBounds;
                 for(float x=safe.xMin;x<=safe.xMax;x+=2) { Draw("Safe marker",new Vector2(x,safe.yMin),new Vector2(.12f,.18f),Color.yellow,-80); Draw("Safe marker",new Vector2(x,safe.yMax),new Vector2(.12f,.18f),Color.yellow,-80); }
                 for(float y=safe.yMin;y<=safe.yMax;y+=2) { Draw("Safe marker",new Vector2(safe.xMin,y),new Vector2(.12f,.18f),Color.yellow,-80); Draw("Safe marker",new Vector2(safe.xMax,y),new Vector2(.12f,.18f),Color.yellow,-80); }
+                }
             }
             else
             {
@@ -92,6 +111,8 @@ namespace EverythingGrows
             if(sword!=null) Spawn(sword,new Vector2(-1,1)); if(bow!=null) Spawn(bow,new Vector2(1,1));
             }
             combat=gameObject.AddComponent<OpenFieldCombat>(); combat.Initialize(this);
+            shop=GetComponent<NpcManager>(); if(shop!=null) shop.Initialize(this);
+            if(mapLayout!=null) foreach(var ground in mapLayout.GetComponentsInChildren<FarmGround>()) if(ground.GetComponent<StartingPlot>()!=null) Till(Vector2Int.RoundToInt(ground.transform.position));
             message="RMB: take item. E: plant / harvest. Click: use / attack. Walk outside to fight.";
         }
         private SpriteRenderer Draw(string label,Vector2 position,Vector2 size,Color color,int order)
@@ -221,7 +242,7 @@ namespace EverythingGrows
         private bool OverUI()
         {
             Vector2 point=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
-            if(new Rect(10,10,520,showHelp?174:62).Contains(point) || new Rect(Screen.width-230,10,220,78).Contains(point)) return true;
+            if((shop!=null && shop.IsOpen) || new Rect(Screen.width-230,94,220,30).Contains(point) || new Rect(10,10,520,showHelp?174:62).Contains(point) || new Rect(Screen.width-230,10,220,78).Contains(point)) return true;
             if(showMap && new Rect(Screen.width/2-170,Screen.height/2-120,340,240).Contains(point)) return true;
             for(int i=0;i<Capacity;i++) if(SlotRect(i).Contains(point)) return true;
             return false;
@@ -229,6 +250,12 @@ namespace EverythingGrows
         private void Update()
         {
             if(player==null) return;
+            if(shop!=null && shop.IsOpen)
+            {
+                Tick(Time.deltaTime); combat.TickCombat(Time.deltaTime); shop.CheckDistance();
+                if(Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.E)) shop.Close();
+                plantingPreview.enabled=false; return;
+            }
             Vector2 move=new Vector2(Input.GetKey(KeyCode.D)?1:Input.GetKey(KeyCode.A)?-1:0,Input.GetKey(KeyCode.W)?1:Input.GetKey(KeyCode.S)?-1:0);
             if(Input.GetKeyDown(KeyCode.LeftShift)) combat.Roll(move.sqrMagnitude>0?move:MousePoint-PlayerPosition);
             if(!combat.IsRolling) MovePlayer(PlayerPosition+Vector2.ClampMagnitude(move,1)*3.8f*Time.deltaTime);
@@ -242,6 +269,7 @@ namespace EverythingGrows
             Tick(Time.deltaTime);
             if(Input.GetKeyDown(KeyCode.R)) RestoreSlot();
             if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; inventory.RemoveAt(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }
+            if(Input.GetKeyDown(KeyCode.E) && shop!=null && shop.OpenNearby()) { plantingPreview.enabled=false; return; }
             UpdatePlantingPreview();
             if(OverUI()) return;
             var point=MousePoint; var cell=MouseCell;
@@ -321,8 +349,9 @@ namespace EverythingGrows
                 if(i<inventory.Count && art.Available) art.Icon(new Rect(rect.x+6,rect.y+5,40,40),art.ItemIndex(inventory[i]));
                 else if(i<inventory.Count) GUI.Label(rect,inventory[i].label,smallStyle);
                 GUI.Label(new Rect(rect.x+4,rect.y+1,16,16),(i+1).ToString());
+                if(shop!=null && shop.IsOpen && i<inventory.Count) GUI.Label(new Rect(rect.x,rect.y+35,rect.width,16),shop.SalePrice(inventory[i])+" G",smallStyle);
                 if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
-                { if(Event.current.button==0) selected=i; else if(Event.current.button==1) DetachSlot(); Event.current.Use(); break; }
+                { if(Event.current.button==0) selected=i; else if(Event.current.button==1) { if(shop!=null && shop.IsOpen) shop.Sell(i); else DetachSlot(); } Event.current.Use(); break; }
             }
             GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+" - click: use | E: plant / harvest":"Empty hands - till soil",smallStyle);
             if(showMap) DrawMap();

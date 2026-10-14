@@ -1,5 +1,24 @@
 # Everything Grows — 농사 + 오픈필드 전투 시제품
 
+## 초기 농장과 NPC 상점
+
+`Assets/Scenes/StarterFarm.unity`는 바로 열어 플레이할 수 있는 초기 농장 샘플입니다. 현재 씬에 적용하려면 Tools > Everything Grows > Set up starter farm and shop을 사용합니다.
+현재 농장은 집 한 채, 5×3칸의 경작된 밭, 집 옆 상인으로 구성합니다. 기존 테스트용 길과 바닥 아이템 계층은 비활성 상태로 보관합니다.
+상인 가까이에서 **E**를 누르면 상점이 열립니다. **Buy**로 구매하고, 상점이 열린 동안 **핫바 아이템 우클릭**으로 한 개씩 판매합니다. 이때 우클릭은 인벤토리 칸을 뜯지 않습니다.
+**E / Esc / Close**로 닫습니다. 시작 골드는 기본 100이며 재고는 제한 없이 구매 가능합니다. 골드 또는 인벤토리 공간이 부족하면 구매하지 않습니다.
+
+**Tools > Everything Grows > NPC manager**에서 현재 씬의 NPC별 설정을 수정합니다.
+
+- Starting Gold: 플레이 시작 골드.
+- Npcs: NPC 프로필 목록. Id는 씬의 ShopNpc > Npc Id와 일치시킵니다.
+- Offers: NPC별 판매 물품과 Buy Price, Sell Price. Sell Price가 -1이면 아이템 기본 판매가를 사용합니다.
+- 모든 아이템 기본 판매가: 상점 목록에 없는 아이템도 포함하여 설정합니다. 성장한 엑스칼리버/총도 판매할 수 있습니다.
+- NPC 설정과 가격 저장: 씬 설정과 아이템 자산을 저장합니다. 설정은 Play 밖에서 수정합니다.
+
+NPC 추가는 맵 배치 창의 Npcs > Merchant 프리팹으로 합니다. NPC마다 고유한 Id와 프로필을 지정하면 서로 다른 상점을 사용할 수 있습니다.
+집은 Farmhouse 프리팹으로 직접 이동·배치할 수 있습니다. 현재 내부 진입 기능은 없으며 하단 몸체 영역은 이동과 경작을 막습니다.
+StartingPlot이 붙은 바닥은 Play 때 경작된 밭으로 초기화합니다. 새로 만든 집 이미지의 생성 기록은 Docs/ART.md에 있습니다.
+
 작업 폴더: `C:/Users/MSI/wtf`. Unity 6000.3.25f1, 2D 탑뷰, Built-in 렌더링.
 현재 열린 `Assets/Scenes/FirstGarden.unity`에 편집용 맵을 연결했습니다. 이 씬에서 직접 배치하고 Play합니다. `EditableField.unity`는 동일한 기본 배치를 가진 별도 샘플입니다. 씬에 저장된 `EditableMap` 배치를 그대로 사용합니다. 배치가 없는 초기 샘플만 실행 시 기본 필드를 생성합니다.
 

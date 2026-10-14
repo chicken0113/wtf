@@ -18,9 +18,9 @@ public static class EditorSessionSetup
     {
         if(EditorApplication.isCompiling || EditorApplication.isUpdating || !File.Exists(Request)) return;
         string mode=File.ReadAllText(Request).Trim();
-        if((mode=="setup" || mode=="map") && EditorApplication.isPlayingOrWillChangePlaymode) return;
+        if((mode=="setup" || mode=="map" || mode=="starterfarm") && EditorApplication.isPlayingOrWillChangePlaymode) return;
         File.Delete(Request);
-        try { if(mode=="setup") SetupCurrent(); else if(mode=="map") EditableMapBuilder.Setup(); else if(mode!="status") throw new Exception("Unknown request"); WriteStatus(mode=="setup"?"SETUP_SUCCESS":mode=="map"?"MAP_SUCCESS":"STATUS",null); }
+        try { if(mode=="setup") SetupCurrent(); else if(mode=="map") EditableMapBuilder.Setup(); else if(mode=="starterfarm") StarterFarmBuilder.Setup(); else if(mode!="status") throw new Exception("Unknown request"); WriteStatus(mode=="setup"?"SETUP_SUCCESS":mode=="map"?"MAP_SUCCESS":mode=="starterfarm"?"STARTER_FARM_SUCCESS":"STATUS",null); }
         catch(Exception error) { Debug.LogException(error); WriteStatus("ERROR",error.ToString()); }
     }
     static T FindInScene<T>(Scene scene) where T:Component => scene.GetRootGameObjects().SelectMany(root=>root.GetComponentsInChildren<T>(true)).FirstOrDefault();

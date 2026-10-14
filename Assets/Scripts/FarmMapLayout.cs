@@ -6,6 +6,7 @@ namespace EverythingGrows
         public MapArea worldBounds;
         public MapArea safeArea;
         public Transform playerSpawn;
+        public bool showSafeMarkers=true;
         private FarmGround[] grounds;
         public Rect World => worldBounds!=null?worldBounds.Bounds:new Rect(-24.5f,-16.5f,49,33);
         public Rect Safe => safeArea!=null?safeArea.Bounds:new Rect(-6.5f,-4.5f,13,9);
@@ -13,6 +14,7 @@ namespace EverythingGrows
         public bool CanFarm(Vector2 point)
         {
             if(!World.Contains(point)) return false;
+            foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(building.Blocks(point)) return false;
             grounds ??= GetComponentsInChildren<FarmGround>();
             foreach(var ground in grounds) if(ground!=null && ground.gameObject.activeInHierarchy && ground.canFarm && ground.Bounds.Contains(point)) return true;
             return false;

@@ -16,6 +16,7 @@ namespace EverythingGrows
         public PlantDefinition harvestResult;
         public bool transformed;
         public int iconIndex = -1;
+        [Min(0)] public int sellPrice = 5;
         [Header("Combat")]
         public bool ranged;
         [Min(1)] public float damage = 15;

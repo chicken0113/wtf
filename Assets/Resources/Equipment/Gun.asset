@@ -22,6 +22,7 @@ MonoBehaviour:
   harvestResult: {fileID: 0}
   transformed: 1
   iconIndex: 19
+  sellPrice: 70
   ranged: 1
   damage: 22
   attackRange: 10

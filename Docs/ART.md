@@ -1,5 +1,11 @@
 # 첫 농장 픽셀 그래픽
 
+## 초기 농장 집
+
+2026-10-15 내장 imagegen으로 새로 생성한 집 스프라이트: `Assets/Resources/FarmHouse.png`. 투명 배경이며 기존 게임 이미지는 사용하지 않았다. `Farmhouse.prefab`에서 Scene 배치에 사용한다.
+
+최종 프롬프트: One original pixel art sprite of a small cozy wooden farmhouse for a top-down 2D farming game, overhead oblique front view. Wide red terracotta pitched roof, small chimney, warm cream plaster and timber walls, centered wooden front door, two blue glass windows and tiny porch. Entire house visible, centered, transparent background, no surrounding grass or scenery, no text, no watermarks, no existing game assets. Hard square pixel edges and restrained earthy palette, visually consistent with a straw-hat farmer sprite. House wider than tall, intended to occupy about 5 by 4 world tiles.
+
 생성 방식: Codex 내장 imagegen. 새로 생성한 임시 이미지이며 스타듀밸리 원본 이미지는 사용하지 않았다.
 프로젝트 원본: `Assets/Resources/FarmAtlas.png`. 투명 배경, 4×4 배열, Point 필터, 무압축, 밉맵 없음.
 행 순서: 캐릭터 아래/위/왼쪽/오른쪽; 삽/물뿌리개/돌/구름; 보관 칸/잔디/흙/젖은 흙; 새싹/나무/꽃/돌 식물.

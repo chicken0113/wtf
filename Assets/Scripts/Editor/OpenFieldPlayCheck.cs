@@ -9,6 +9,7 @@ public static class OpenFieldPlayCheck
 {
     const string Key="WtfOpenFieldPlayCheck";
     static double deadline;
+    static int shopFrames;
     static OpenFieldPlayCheck()
     {
         if(Application.isBatchMode && SessionState.GetBool(Key,false))
@@ -49,6 +50,17 @@ public static class OpenFieldPlayCheck
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
         if(farm==null || farm.Combat==null || farm.Combat.EnemyCount!=6 || Camera.main==null) { Finish(false,"Runtime initialization failed"); return; }
         if(farm.GetComponentsInChildren<SpriteRenderer>().Length<1600) { Finish(false,"Open field was not loaded"); return; }
+        if(farm.Shop!=null)
+        {
+            if(shopFrames==0)
+            {
+                var npc=farm.GetComponentInChildren<ShopNpc>();
+                farm.MovePlayer(npc.transform.position-Vector3.up);
+                int gold=farm.Shop.Gold;
+                if(!farm.Shop.Open(npc) || !farm.Shop.Buy(0) || !farm.Shop.Sell(0) || farm.Shop.Gold>=gold) { Finish(false,"Runtime shop transaction failed"); return; }
+            }
+            if(shopFrames++<5) return;
+        }
         Finish(true,"OPEN_FIELD_PLAY_SUCCESS: runtime Awake, Update, camera and enemies.");
     }
     static void Finish(bool success,string message)
