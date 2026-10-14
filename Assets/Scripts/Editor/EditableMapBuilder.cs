@@ -22,6 +22,10 @@ public static class EditableMapBuilder
         if(index>=16) AssetDatabase.CreateAsset(sprite.texture,"Assets/Art/MapSprites/Texture"+index+".asset");
         AssetDatabase.CreateAsset(sprite,path); return sprite;
     }
+    public static Sprite PreviewIcon(int index)
+    {
+        EnsureFolder("Assets/Art/MapSprites"); art ??= new FarmArt(); return Icon(index);
+    }
     static GameObject Prefab(string name,int icon,int order,Color color,Action<GameObject> configure)
     {
         string path=Folder+"/"+name+".prefab";
