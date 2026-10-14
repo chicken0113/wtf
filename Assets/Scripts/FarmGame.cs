@@ -14,7 +14,7 @@ namespace EverythingGrows
         private SpriteRenderer farmer, heldModel;
         private float walkTime, actionTime;
         private int facing;
-        private bool plantingMode, showHelp, showMap;
+        private bool showHelp, showMap;
         private OpenFieldCombat combat;
         public OpenFieldCombat Combat => combat;
         public Vector2 PlayerPosition => player==null?Vector2.zero:(Vector2)player.position;
@@ -69,7 +69,7 @@ namespace EverythingGrows
             var sword=Resources.Load<PlantDefinition>("Equipment/Sword"); var bow=Resources.Load<PlantDefinition>("Equipment/Bow");
             if(sword!=null) Spawn(sword,new Vector2(-1,1)); if(bow!=null) Spawn(bow,new Vector2(1,1));
             combat=gameObject.AddComponent<OpenFieldCombat>(); combat.Initialize(this);
-            message="Take sword / bow with RMB. Tab: plant. Water, then E: harvest. Walk outside to fight.";
+            message="RMB: take item. E: plant / harvest. Click: use / attack. Walk outside to fight.";
         }
         private SpriteRenderer Draw(string label,Vector2 position,Vector2 size,Color color,int order)
         {
@@ -161,12 +161,23 @@ namespace EverythingGrows
                 }
             }
         }
+        public bool InteractPlot(Vector2Int cell)
+        {
+            if(!Inside(cell) || !Near(cell)) { message="Walk closer first."; return false; }
+            if(plots.TryGetValue(cell,out var plot) && plot.plant!=null)
+            {
+                if(!plot.mature) { message=plot.wet?"Still growing. Wait before harvesting.":"Water this plant first."; return false; }
+                if(plot.plant.effect==GrowthEffect.Produce || plot.plant.harvestResult!=null) return Collect(cell);
+                return Uproot(cell);
+            }
+            return PlantSelected(cell);
+        }
         public bool Collect(Vector2Int cell)
         {
             if(!plots.TryGetValue(cell,out var plot)) return false;
             if(plot.mature && plot.plant!=null && plot.plant.harvestResult!=null)
             {
-                bool harvested=Uproot(cell); if(harvested) message="Harvested "+Held.label+". Tab: tool mode, click: attack."; return harvested;
+                bool harvested=Uproot(cell); if(harvested) message="Harvested "+Held.label+". Click to use it."; return harvested;
             }
             if(!plot.ready || !AddItem(plot.plant)) return false;
             plot.ready=false; plot.production=0; message="Collected a new "+plot.plant.label+"."; return true;
@@ -203,7 +214,6 @@ namespace EverythingGrows
             AnimateFarmer(move);
             if(Input.GetKeyDown(KeyCode.H)) showHelp=!showHelp;
             if(Input.GetKeyDown(KeyCode.M)) showMap=!showMap;
-            if(Input.GetKeyDown(KeyCode.Tab)) plantingMode=!plantingMode;
             float wheel=Input.mouseScrollDelta.y;
             if(wheel!=0) selected=(selected+(wheel>0?-1:1)+Capacity)%Capacity;
             Tick(Time.deltaTime);
@@ -212,21 +222,26 @@ namespace EverythingGrows
             UpdatePlantingPreview();
             if(OverUI()) return;
             var point=MousePoint; var cell=MouseCell;
-            if(!plantingMode && Held!=null && Held.effect==GrowthEffect.Weapon && Input.GetMouseButton(0))
+            if(Held!=null && Held.effect==GrowthEffect.Weapon && Input.GetMouseButton(0))
                 if(combat.Attack(Held,point)) actionTime=.25f;
-            if(!Near(point)) { if(Input.GetMouseButtonDown(1) || (Input.GetMouseButtonDown(0) && (plantingMode || Held==null || Held.effect!=GrowthEffect.Weapon))) message="Walk closer first."; return; }
-            if(Input.GetMouseButtonDown(1)) { if(PieceAt(point)!=null) DetachAt(point); else Uproot(cell); }
+            if(!Near(point)) { if(Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(1) || (Input.GetMouseButtonDown(0) && (Held==null || Held.effect!=GrowthEffect.Weapon))) message="Walk closer first."; return; }
+            if(Input.GetMouseButtonDown(1))
+            {
+                if(PieceAt(point)!=null) DetachAt(point);
+                else if(plots.TryGetValue(cell,out var planted) && planted.plant!=null)
+                { if(!planted.mature) Uproot(cell); else message="Press E to harvest."; }
+            }
             if(Input.GetMouseButtonDown(0))
             {
                 if(Held==null) Till(cell);
-                else if(plantingMode || (Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water && Held.effect!=GrowthEffect.Weapon)) PlantSelected(cell);
                 else if(Held.effect==GrowthEffect.Dig) Till(cell);
                 else if(Held.effect==GrowthEffect.Water) Water(point,Held.effectRadius);
+                else if(Held.effect!=GrowthEffect.Weapon) message="This item has no direct use. Press E to plant it.";
                 actionTime=.25f;
             }
             if(Input.GetKeyDown(KeyCode.Space)) { Water(point,.7f); actionTime=.25f; }
             if(Input.GetKeyDown(KeyCode.F) && Held!=null) { if(Held.effect==GrowthEffect.Dig) Till(cell); else if(Held.effect==GrowthEffect.Water) Water(point,Held.effectRadius); }
-            if(Input.GetKeyDown(KeyCode.E)) Collect(cell);
+            if(Input.GetKeyDown(KeyCode.E)) InteractPlot(cell);
         }
         private void LateUpdate()
         {
@@ -238,7 +253,7 @@ namespace EverythingGrows
         {
             walkTime+=Time.deltaTime; actionTime=Mathf.Max(0,actionTime-Time.deltaTime);
             bool walking=move.sqrMagnitude>0;
-            if(Held!=null && Held.effect==GrowthEffect.Weapon && !plantingMode) move=MousePoint-PlayerPosition;
+            if(Held!=null && Held.effect==GrowthEffect.Weapon) move=MousePoint-PlayerPosition;
             if(move.sqrMagnitude>0) facing=Mathf.Abs(move.x)>Mathf.Abs(move.y)?(move.x<0?2:3):(move.y>0?1:0);
             if(art.Available) farmer.sprite=art.Get(facing);
             // Sort by feet position so walking behind plants hides the farmer correctly.
@@ -266,12 +281,12 @@ namespace EverythingGrows
             titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
             smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
             Panel(new Rect(10,10,520,showHelp?174:62),new Color(.48f,.3f,.17f,.95f));
-            GUI.Label(new Rect(22,16,495,24),"EVERYTHING GROWS  |  "+(plantingMode?"PLANT MODE":"TOOL MODE")+"  |  H: help",titleStyle);
+            GUI.Label(new Rect(22,16,495,24),"EVERYTHING GROWS  |  E: plant / harvest  |  H: help",titleStyle);
             GUI.Label(new Rect(22,39,495,28),message);
             if(showHelp)
             {
-                GUI.Label(new Rect(22,70,425,22),"WASD move | Click use tool | Tab switch planting mode");
-                GUI.Label(new Rect(22,92,425,22),"RMB take / uproot | Space water | E collect | Q drop");
+                GUI.Label(new Rect(22,70,425,22),"WASD move | Click: use / attack | E: plant / harvest");
+                GUI.Label(new Rect(22,92,425,22),"RMB: take / cancel growing plant | Space: water | Q: drop");
                 GUI.Label(new Rect(22,114,495,22),"1-9 / wheel select | RMB slot detach | R restore slot");
                 GUI.Label(new Rect(22,136,495,22),"Weapon + click: attack | Shift: dodge | E: harvest grown weapon");
             }
@@ -285,7 +300,7 @@ namespace EverythingGrows
                 if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
                 { if(Event.current.button==0) selected=i; else if(Event.current.button==1) DetachSlot(); Event.current.Use(); break; }
             }
-            GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+(plantingMode?" - plant":" - use"):"Empty hands - till soil",smallStyle);
+            GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+" - click: use | E: plant / harvest":"Empty hands - till soil",smallStyle);
             if(showMap) DrawMap();
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
@@ -315,10 +330,11 @@ namespace EverythingGrows
         private void UpdatePlantingPreview()
         {
             var cell=MouseCell;
-            plantingPreview.enabled=!OverUI() && Inside(cell) && !(Held!=null && Held.effect==GrowthEffect.Weapon && !plantingMode);
+            plantingPreview.enabled=!OverUI() && Inside(cell);
             plantingPreview.transform.position=new Vector3(cell.x,cell.y,0);
-            bool toolMode=Held!=null && !plantingMode && (Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water);
-            bool possible=(Held==null || !Held.transformed) && Near(MousePoint) && (Held==null || (toolMode && Held.effect==GrowthEffect.Dig)?!plots.ContainsKey(cell):toolMode?plots.ContainsKey(cell):plots.TryGetValue(cell,out var plot) && plot.plant==null);
+            plots.TryGetValue(cell,out var plot);
+            bool harvest=plot!=null && plot.plant!=null && plot.mature && (plot.plant.effect!=GrowthEffect.Produce || plot.ready);
+            bool possible=Near(MousePoint) && (harvest || (Held==null?plot==null:!Held.transformed && plot!=null && plot.plant==null));
             plantingPreview.color=possible?new Color(.4f,.9f,.5f,.35f):new Color(.95f,.3f,.25f,.35f);
         }
     }
