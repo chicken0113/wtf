@@ -2,7 +2,6 @@ using UnityEngine;
 namespace EverythingGrows
 {
     public enum GrowthEffect { Dig, Water, Produce, Storage, Weapon, Crop, Scythe }
-    [System.Flags] public enum CropSeason { Spring=1, Summer=2, Fall=4, Winter=8, All=15 }
     [CreateAssetMenu(menuName="Everything Grows/Plant Definition")]
     public sealed class PlantDefinition : ScriptableObject
     {
@@ -23,7 +22,6 @@ namespace EverythingGrows
         public bool stackable;
         [Min(1)] public int growthDays=4;
         [Min(0)] public int regrowDays;
-        public CropSeason seasons=CropSeason.All;
         [Header("Combat")]
         public bool ranged;
         [Min(1)] public float damage = 15;

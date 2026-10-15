@@ -47,20 +47,19 @@ public static class DailyFarmingSetup
         for(int i=0;i<3;i++) { farm.Water(new Vector2(0,-2),.1f); farm.AdvanceDay(); }
         Check(farm.IsMature(new Vector2Int(0,-2)) && farm.InteractPlot(new Vector2Int(0,-2)) && farm.SelectedItem==seed.harvestResult,"Single harvest crop failed");
         Check(!farm.InteractPlot(new Vector2Int(0,-2)),"Vegetable replanted as seed");
-        Check(farm.AddItem(tomato) && !farm.InteractPlot(new Vector2Int(0,-2)),"Out of season planting allowed");
-        while(farm.Season!=CropSeason.Summer) farm.AdvanceDay();
+        Check(farm.AddItem(tomato),"Tomato seed unavailable");
         farm.Water(new Vector2(0,-2),.1f); Check(farm.InteractPlot(new Vector2Int(0,-2)),"Pre-watered planting failed");
         for(int i=0;i<11;i++) { farm.Water(new Vector2(0,-2),.1f); farm.AdvanceDay(); }
         Check(farm.InteractPlot(new Vector2Int(0,-2)) && !farm.IsMature(new Vector2Int(0,-2)),"Regrow harvest removed crop");
         for(int i=0;i<4;i++) { farm.Water(new Vector2(0,-2),.1f); farm.AdvanceDay(); }
         Check(farm.IsMature(new Vector2Int(0,-2)),"Regrow interval ignored");
-        while(farm.Season!=CropSeason.Fall) farm.AdvanceDay(); Check(farm.IsWilted(new Vector2Int(0,-2)),"Season change did not kill crop");
-        Check(farm.ClearDeadCrop(new Vector2Int(0,-2)),"Dead crop clearing failed");
+        for(int i=0;i<112;i++) farm.AdvanceDay();
+        Check(farm.IsMature(new Vector2Int(0,-2)) && !farm.IsWilted(new Vector2Int(0,-2)),"Crop wilted as days advanced");
+        Check(farm.Uproot(new Vector2Int(0,-2)),"Crop recovery failed");
         farm.AddItem(AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset"));
         Check(farm.UseTool(new Vector2Int(5,-2)) && farm.Energy==98,"Hoe or energy cost failed");
         farm.AdvanceDay(); Check(farm.Energy==100,"Sleep did not restore energy");
         Check(farm.Shop.npcs[0].offers.Any(offer=>offer.item==seed),"Seeds missing from merchant");
-        while(farm.Season!=CropSeason.Spring) farm.AdvanceDay();
         while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
         Check(!farm.UseTool(new Vector2Int(5,-1)),"Bare hands can till soil");
         Check(farm.AddItem(seed) && farm.AddItem(seed) && farm.InventoryCount==1 && farm.InventoryQuantity(0)==2,"Seeds do not stack");
@@ -71,7 +70,7 @@ public static class DailyFarmingSetup
         int seedIndex=farm.Shop.npcs[0].offers.FindIndex(offer=>offer.item==seed); int gold=farm.Shop.Gold;
         Check(farm.Shop.Buy(seedIndex) && farm.InventoryQuantity(0)==2 && farm.Shop.Gold==gold-20,"Full inventory cannot buy into an existing stack");
         Check(farm.Shop.Sell(0) && farm.InventoryQuantity(0)==1 && farm.Shop.Gold==gold-15,"Selling removed entire stack or paid incorrectly");
-        Debug.Log("DAILY_FARM_VALIDATION_SUCCESS: seeds, daily water, growth nights, season, harvest, regrowth, hoe and energy.");
+        Debug.Log("DAILY_FARM_VALIDATION_SUCCESS: seeds, daily water, growth nights, unrestricted days, harvest, regrowth, hoe and energy.");
     }
 }
 [InitializeOnLoad]

@@ -27,7 +27,6 @@ MonoBehaviour:
   isSeed: 1
   growthDays: 11
   regrowDays: 4
-  seasons: 2
   ranged: 0
   damage: 15
   attackRange: 1.8

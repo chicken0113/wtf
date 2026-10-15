@@ -27,8 +27,6 @@ namespace EverythingGrows
         private float dayElapsed;
         public int Day { get; private set; } = 1;
         public int Energy { get; private set; } = 100;
-        public CropSeason Season => (CropSeason)(1<<((Day-1)/28%4));
-        public int DayOfSeason => (Day-1)%28+1;
         public float CropProgress(Vector2Int cell) => plots.TryGetValue(cell,out var plot)?plot.progress:0;
         public bool IsWilted(Vector2Int cell) => plots.TryGetValue(cell,out var plot) && plot.wilted;
         private OpenFieldCombat combat;
@@ -188,7 +186,6 @@ namespace EverythingGrows
             if(Held.transformed) { message="This item has already transformed. Use it instead of planting again."; return false; }
             if(Held.isSeed && Held.harvestResult==null) { message="These seeds have no crop configured."; return false; }
             if(Held.effect==GrowthEffect.Crop && !Held.isSeed && Held.harvestResult==null) { message="Plant seeds, not harvested vegetables."; return false; }
-            if(Held.isSeed && (Held.seasons & Season)==0) { message="These seeds cannot grow this season."; return false; }
             plot.grownDays=0; plot.wilted=plot.regrowing=false;
             plot.plant=Held; plot.model=ArtDraw("Growing "+Held.label,cell,Vector2.one*.45f,12,Held.color,4);
             RemoveInventoryItem(selected); selected=Mathf.Min(selected,Capacity-1); message="Planted. Water it and see what happens."; return true;
@@ -278,9 +275,7 @@ namespace EverythingGrows
                 plot.wet=false; if(art.Available) plot.soil.sprite=art.Get(10);
             }
             Day++; dayElapsed=0; Energy=100;
-            foreach(var plot in plots.Values) if(plot.plant!=null && plot.plant.isSeed && (plot.plant.seasons & Season)==0)
-            { plot.wilted=true; plot.mature=false; plot.model.color=new Color(.45f,.32f,.2f); }
-            message=Season+" day "+DayOfSeason+". Water your crops today.";
+            message="Day "+Day+". Water your crops today.";
         }
         public bool ClearDeadCrop(Vector2Int cell)
         {
@@ -402,7 +397,7 @@ namespace EverythingGrows
             titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
             smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
             Panel(new Rect(10,10,520,showHelp?174:62),new Color(.48f,.3f,.17f,.95f));
-            GUI.Label(new Rect(22,16,495,24),Season+" "+DayOfSeason+"  |  Energy "+Energy+" / 100  |  H: help",titleStyle);
+            GUI.Label(new Rect(22,16,495,24),"Day "+Day+"  |  Energy "+Energy+" / 100  |  H: help",titleStyle);
             GUI.Label(new Rect(22,39,495,28),message);
             if(showHelp)
             {
