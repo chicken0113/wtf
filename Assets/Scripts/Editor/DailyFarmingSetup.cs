@@ -7,7 +7,7 @@ using EverythingGrows;
 
 public static class DailyFarmingSetup
 {
-    [MenuItem("Tools/Everything Grows/Set up daily crop farming")]
+    [MenuItem("Tools/Everything Grows/Set up crop farming")]
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play first.");
@@ -40,25 +40,24 @@ public static class DailyFarmingSetup
         var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"); var tomato=Resources.Load<PlantDefinition>("Crops/TomatoSeeds");
         farm.MovePlayer(new Vector2(0,-2));
         Check(farm.AddItem(seed) && farm.InteractPlot(new Vector2Int(0,-2)),"Seed planting");
-        farm.Tick(100); Check(farm.CropProgress(new Vector2Int(0,-2))==0,"Crop grew in real time");
-        farm.AdvanceDay(); Check(farm.CropProgress(new Vector2Int(0,-2))==0,"Dry crop grew");
-        farm.Water(new Vector2(0,-2),.1f); farm.AdvanceDay(); Check(farm.CropProgress(new Vector2Int(0,-2))==.25f,"Watered night did not grow crop");
-        farm.AdvanceDay(); Check(farm.CropProgress(new Vector2Int(0,-2))==.25f,"Water did not reset overnight");
-        for(int i=0;i<3;i++) { farm.Water(new Vector2(0,-2),.1f); farm.AdvanceDay(); }
-        Check(farm.IsMature(new Vector2Int(0,-2)) && farm.InteractPlot(new Vector2Int(0,-2)) && farm.SelectedItem==seed.harvestResult,"Single harvest crop failed");
+        farm.Tick(seed.growthSeconds*2); Check(farm.CropProgress(new Vector2Int(0,-2))==0,"Dry crop grew");
+        farm.Water(new Vector2(0,-2),.1f); farm.Tick(seed.growthSeconds*.5f);
+        Check(Mathf.Approximately(farm.CropProgress(new Vector2Int(0,-2)),.5f),"Timed crop progress incorrect");
+        farm.Tick(seed.growthSeconds*.5f);
+        Check(farm.IsMature(new Vector2Int(0,-2)) && farm.InteractPlot(new Vector2Int(0,-2)) && farm.SelectedItem==seed.harvestResult,"Timed harvest failed");
         Check(!farm.InteractPlot(new Vector2Int(0,-2)),"Vegetable replanted as seed");
         Check(farm.AddItem(tomato),"Tomato seed unavailable");
         farm.Water(new Vector2(0,-2),.1f); Check(farm.InteractPlot(new Vector2Int(0,-2)),"Pre-watered planting failed");
-        for(int i=0;i<11;i++) { farm.Water(new Vector2(0,-2),.1f); farm.AdvanceDay(); }
+        farm.Tick(tomato.growthSeconds);
         Check(farm.InteractPlot(new Vector2Int(0,-2)) && !farm.IsMature(new Vector2Int(0,-2)),"Regrow harvest removed crop");
-        for(int i=0;i<4;i++) { farm.Water(new Vector2(0,-2),.1f); farm.AdvanceDay(); }
-        Check(farm.IsMature(new Vector2Int(0,-2)),"Regrow interval ignored");
-        for(int i=0;i<112;i++) farm.AdvanceDay();
-        Check(farm.IsMature(new Vector2Int(0,-2)) && !farm.IsWilted(new Vector2Int(0,-2)),"Crop wilted as days advanced");
+        farm.Tick(tomato.regrowSeconds*2); Check(farm.CropProgress(new Vector2Int(0,-2))==0,"Regrowth did not require water");
+        farm.Water(new Vector2(0,-2),.1f); farm.Tick(tomato.regrowSeconds*.5f);
+        Check(Mathf.Approximately(farm.CropProgress(new Vector2Int(0,-2)),.5f),"Regrowth seconds ignored");
+        farm.Tick(tomato.regrowSeconds*.5f); Check(farm.IsMature(new Vector2Int(0,-2)),"Regrowth did not finish");
+        farm.Tick(10000); Check(farm.IsMature(new Vector2Int(0,-2)),"Mature crop did not remain harvestable");
         Check(farm.Uproot(new Vector2Int(0,-2)),"Crop recovery failed");
         farm.AddItem(AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset"));
-        Check(farm.UseTool(new Vector2Int(5,-2)) && farm.Energy==98,"Hoe or energy cost failed");
-        farm.AdvanceDay(); Check(farm.Energy==100,"Sleep did not restore energy");
+        Check(farm.UseTool(new Vector2Int(5,-2)),"Hoe failed");
         Check(farm.Shop.npcs[0].offers.Any(offer=>offer.item==seed),"Seeds missing from merchant");
         while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
         Check(!farm.UseTool(new Vector2Int(5,-1)),"Bare hands can till soil");
@@ -70,7 +69,7 @@ public static class DailyFarmingSetup
         int seedIndex=farm.Shop.npcs[0].offers.FindIndex(offer=>offer.item==seed); int gold=farm.Shop.Gold;
         Check(farm.Shop.Buy(seedIndex) && farm.InventoryQuantity(0)==2 && farm.Shop.Gold==gold-20,"Full inventory cannot buy into an existing stack");
         Check(farm.Shop.Sell(0) && farm.InventoryQuantity(0)==1 && farm.Shop.Gold==gold-15,"Selling removed entire stack or paid incorrectly");
-        Debug.Log("DAILY_FARM_VALIDATION_SUCCESS: seeds, daily water, growth nights, unrestricted days, harvest, regrowth, hoe and energy.");
+        Debug.Log("DAILY_FARM_VALIDATION_SUCCESS: seeds, water, timed growth, harvest, timed regrowth, hoe and stacks.");
     }
 }
 [InitializeOnLoad]

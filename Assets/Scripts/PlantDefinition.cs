@@ -17,11 +17,10 @@ namespace EverythingGrows
         public bool transformed;
         public int iconIndex = -1;
         [Min(0)] public int sellPrice = 5;
-        [Header("Daily crop farming")]
+        [Header("Crop farming")]
         public bool isSeed;
         public bool stackable;
-        [Min(1)] public int growthDays=4;
-        [Min(0)] public int regrowDays;
+        [Min(0)] public float regrowSeconds;
         [Header("Combat")]
         public bool ranged;
         [Min(1)] public float damage = 15;

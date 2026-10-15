@@ -24,8 +24,7 @@ MonoBehaviour:
   iconIndex: 28
   sellPrice: 10
   isSeed: 0
-  growthDays: 4
-  regrowDays: 0
+  regrowSeconds: 0
   ranged: 0
   damage: 15
   attackRange: 1.8

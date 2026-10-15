@@ -15,7 +15,7 @@ MonoBehaviour:
   label: Cauliflower Seeds
   color: {r: 0.5, g: 0.8, b: 0.3, a: 1}
   effect: 5
-  growthSeconds: 6
+  growthSeconds: 60
   effectRadius: 1
   productionSeconds: 8
   storageBonus: 3
@@ -25,8 +25,7 @@ MonoBehaviour:
   sellPrice: 5
   stackable: 1
   isSeed: 1
-  growthDays: 12
-  regrowDays: 0
+  regrowSeconds: 0
   ranged: 0
   damage: 15
   attackRange: 1.8

@@ -23,10 +23,6 @@ namespace EverythingGrows
         private float walkTime, actionTime;
         private int facing;
         private bool showHelp, showMap;
-        [SerializeField,Min(30)] private float dayLengthSeconds=300;
-        private float dayElapsed;
-        public int Day { get; private set; } = 1;
-        public int Energy { get; private set; } = 100;
         public float CropProgress(Vector2Int cell) => plots.TryGetValue(cell,out var plot)?plot.progress:0;
         public bool IsWilted(Vector2Int cell) => plots.TryGetValue(cell,out var plot) && plot.wilted;
         private OpenFieldCombat combat;
@@ -68,7 +64,7 @@ namespace EverythingGrows
         public int StorageBonus { get { int result=0; foreach(var plot in plots.Values) if(plot.plant!=null && plot.mature && plot.plant.effect==GrowthEffect.Storage) result+=plot.plant.storageBonus; return result; } }
         private PlantDefinition Held => selected>=0 && selected < inventory.Count ? inventory[selected].item : null;
         private sealed class Piece { public PlantDefinition definition; public GameObject model; }
-        private sealed class Plot { public Vector2Int cell; public SpriteRenderer soil, model; public PlantDefinition plant; public bool wet, mature, ready, wilted, regrowing; public int grownDays; public float progress, production; }
+        private sealed class Plot { public Vector2Int cell; public SpriteRenderer soil, model; public PlantDefinition plant; public bool wet, mature, ready, wilted, regrowing; public float progress, production; }
         public void Configure(PlantDefinition[] data) => definitions=data;
         private void Awake() { if(Application.isPlaying) Initialize(); }
         public void Initialize()
@@ -186,7 +182,7 @@ namespace EverythingGrows
             if(Held.transformed) { message="This item has already transformed. Use it instead of planting again."; return false; }
             if(Held.isSeed && Held.harvestResult==null) { message="These seeds have no crop configured."; return false; }
             if(Held.effect==GrowthEffect.Crop && !Held.isSeed && Held.harvestResult==null) { message="Plant seeds, not harvested vegetables."; return false; }
-            plot.grownDays=0; plot.wilted=plot.regrowing=false;
+            plot.wilted=plot.regrowing=false;
             plot.plant=Held; plot.model=ArtDraw("Growing "+Held.label,cell,Vector2.one*.45f,12,Held.color,4);
             RemoveInventoryItem(selected); selected=Mathf.Min(selected,Capacity-1); message="Planted. Water it and see what happens."; return true;
         }
@@ -201,13 +197,14 @@ namespace EverythingGrows
             var snapshot=new List<Plot>(plots.Values);
             foreach(var plot in snapshot)
             {
-                if(plot.plant==null || plot.plant.isSeed || plot.wilted) continue;
+                if(plot.plant==null || plot.wilted) continue;
                 float activeSeconds=seconds;
                 if(!plot.mature && plot.wet)
                 {
-                    float remaining=(1-plot.progress)*Mathf.Max(.1f,plot.plant.growthSeconds);
+                    float duration=Mathf.Max(.1f,plot.regrowing?plot.plant.regrowSeconds:plot.plant.growthSeconds);
+                    float remaining=(1-plot.progress)*duration;
                     activeSeconds=Mathf.Max(0,seconds-remaining);
-                    plot.progress=Mathf.Min(1,plot.progress+seconds/Mathf.Max(.1f,plot.plant.growthSeconds));
+                    plot.progress=Mathf.Min(1,plot.progress+seconds/duration);
                     plot.model.transform.localScale=Vector3.one*Mathf.Lerp(.45f,1f,plot.progress);
                     if(plot.progress>=1) { plot.mature=true; if(art.Available) plot.model.sprite=art.Get(plot.plant.harvestResult!=null?art.ItemIndex(plot.plant.harvestResult):plot.plant.effect==GrowthEffect.Produce?15:art.ItemIndex(plot.plant)); message=plot.plant.label+" grew into a new function."; }
                 }
@@ -239,11 +236,13 @@ namespace EverythingGrows
             if(!plots.TryGetValue(cell,out var plot)) return false;
             if(plot.mature && plot.plant!=null && plot.plant.harvestResult!=null)
             {
-                if(plot.plant.isSeed && plot.plant.regrowDays>0)
+                if(plot.plant.isSeed && plot.plant.regrowSeconds>0)
                 {
                     if(!AddItem(plot.plant.harvestResult)) return false;
-                    plot.mature=false; plot.regrowing=true; plot.grownDays=0; plot.progress=0;
-                    message="Harvested. Keep watering for the next harvest."; return true;
+                    plot.mature=false; plot.regrowing=true; plot.progress=0; plot.wet=false;
+                    plot.model.transform.localScale=Vector3.one*.45f;
+                    if(art.Available) { plot.model.sprite=art.Get(12); plot.soil.sprite=art.Get(10); }
+                    message="Harvested. Water again for the next harvest."; return true;
                 }
                 bool harvested=Uproot(cell); if(harvested) message="Harvested "+Held.label+". Click to use it."; return harvested;
             }
@@ -257,46 +256,21 @@ namespace EverythingGrows
             int needed=item.stackable && inventory.Exists(stack=>stack.item==item)?0:1;
             int losing=plot.mature && plot.plant.effect==GrowthEffect.Storage ? plot.plant.storageBonus : 0;
             if(inventory.Count+needed>Mathf.Max(1,Capacity-losing)) { message="Free storage before uprooting this plant."; return false; }
-            plot.plant=null; plot.mature=false; plot.ready=false; plot.progress=plot.production=0; plot.grownDays=0; plot.regrowing=plot.wilted=false;
+            plot.plant=null; plot.mature=false; plot.ready=false; plot.progress=plot.production=0; plot.regrowing=plot.wilted=false;
             Remove(plot.model.gameObject); plot.model=null; AddItem(item); message="Uprooted. You can plant it elsewhere."; return true;
-        }
-        public void AdvanceDay()
-        {
-            foreach(var plot in plots.Values)
-            {
-                if(plot.plant!=null && plot.plant.isSeed && !plot.wilted && !plot.mature && plot.wet)
-                {
-                    plot.grownDays++;
-                    int needed=Mathf.Max(1,plot.regrowing?plot.plant.regrowDays:plot.plant.growthDays);
-                    plot.progress=Mathf.Min(1,(float)plot.grownDays/needed); plot.mature=plot.progress>=1;
-                    plot.model.transform.localScale=Vector3.one*Mathf.Lerp(.45f,1,plot.progress);
-                    if(art.Available) plot.model.sprite=art.Get(plot.mature?art.ItemIndex(plot.plant.harvestResult):12);
-                }
-                plot.wet=false; if(art.Available) plot.soil.sprite=art.Get(10);
-            }
-            Day++; dayElapsed=0; Energy=100;
-            message="Day "+Day+". Water your crops today.";
         }
         public bool ClearDeadCrop(Vector2Int cell)
         {
             if(!plots.TryGetValue(cell,out var plot) || !plot.wilted) return false;
-            Remove(plot.model.gameObject); plot.model=null; plot.plant=null; plot.wilted=plot.regrowing=plot.mature=false; plot.progress=0; plot.grownDays=0; return true;
+            Remove(plot.model.gameObject); plot.model=null; plot.plant=null; plot.wilted=plot.regrowing=plot.mature=false; plot.progress=0; return true;
         }
         public bool UseTool(Vector2Int cell)
         {
             if(Held==null) { message="Select a hoe or watering can."; return false; }
             if(Held.effect==GrowthEffect.Scythe) return ClearDeadCrop(cell);
             if(Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water) return false;
-            if(Energy<2) { message="Too tired. Sleep at the house."; return false; }
             bool used=Held.effect==GrowthEffect.Dig?Till(cell):Water(cell,.1f)>0;
-            if(used) { Energy-=2; actionTime=.25f; } return used;
-        }
-        private FarmBuilding NearbyHouse()
-        {
-            if(mapLayout==null) return null;
-            foreach(var house in mapLayout.GetComponentsInChildren<FarmBuilding>())
-                if(Vector2.Distance(PlayerPosition,house.transform.TransformPoint(house.offset-Vector2.up*(house.footprint.y*.5f+.6f)))<1.1f) return house;
-            return null;
+            if(used) actionTime=.25f; return used;
         }
         private void Remove(GameObject root) { root.SetActive(false); if(Application.isPlaying) Destroy(root); else DestroyImmediate(root); }
         private Vector2 MousePoint => view.ScreenToWorldPoint(Input.mousePosition);
@@ -314,7 +288,6 @@ namespace EverythingGrows
         private void Update()
         {
             if(player==null) return;
-            dayElapsed+=Time.deltaTime; if(dayElapsed>=dayLengthSeconds) AdvanceDay();
             if(shop!=null && shop.IsOpen)
             {
                 Tick(Time.deltaTime); combat.TickCombat(Time.deltaTime); shop.CheckDistance();
@@ -335,7 +308,6 @@ namespace EverythingGrows
             if(Input.GetKeyDown(KeyCode.R)) RestoreSlot();
             if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; RemoveInventoryItem(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }
             if(Input.GetKeyDown(KeyCode.E) && shop!=null && shop.OpenNearby()) { plantingPreview.enabled=false; return; }
-            if(Input.GetKeyDown(KeyCode.E) && NearbyHouse()!=null) { AdvanceDay(); return; }
             UpdatePlantingPreview();
             if(OverUI()) return;
             var point=MousePoint; var cell=MouseCell;
@@ -397,12 +369,12 @@ namespace EverythingGrows
             titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
             smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
             Panel(new Rect(10,10,520,showHelp?174:62),new Color(.48f,.3f,.17f,.95f));
-            GUI.Label(new Rect(22,16,495,24),"Day "+Day+"  |  Energy "+Energy+" / 100  |  H: help",titleStyle);
+            GUI.Label(new Rect(22,16,495,24),"Farm  |  H: help",titleStyle);
             GUI.Label(new Rect(22,39,495,28),message);
             if(showHelp)
             {
                 GUI.Label(new Rect(22,70,425,22),"WASD move | Click: use / attack | E: plant / harvest");
-                GUI.Label(new Rect(22,92,425,22),"RMB: take | E: plant / harvest / shop / sleep | Q: drop");
+                GUI.Label(new Rect(22,92,425,22),"RMB: take | E: plant / harvest / shop | Q: drop");
                 GUI.Label(new Rect(22,114,495,22),"1-9 / wheel select | RMB slot detach | R restore slot");
                 GUI.Label(new Rect(22,136,495,22),"Weapon + click: attack | Shift: dodge | E: harvest grown weapon");
             }
@@ -419,12 +391,11 @@ namespace EverythingGrows
                 { if(Event.current.button==0) selected=i; else if(Event.current.button==1) { if(shop!=null && shop.IsOpen) shop.Sell(i); else DetachSlot(); } Event.current.Use(); break; }
             }
             GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+" - click: use | E: plant / harvest":"Empty hands - select a hoe",smallStyle);
-            if(NearbyHouse()!=null) GUI.Label(new Rect(Screen.width/2-100,Screen.height-130,200,22),"E: sleep until tomorrow",smallStyle);
             if(showMap) DrawMap();
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
                 Vector3 position=view.WorldToScreenPoint((Vector2)plot.cell+Vector2.up*.6f);
-                string status=plot.wilted?"DEAD - scythe":plot.mature?(plot.ready || plot.plant.harvestResult!=null?"E: HARVEST":plot.plant.effect.ToString()):!plot.wet?"Needs water":plot.plant.isSeed?plot.grownDays+" / "+(plot.regrowing?plot.plant.regrowDays:plot.plant.growthDays)+" days":Mathf.RoundToInt(plot.progress*100)+"%";
+                string status=plot.wilted?"DEAD - scythe":plot.mature?(plot.ready || plot.plant.harvestResult!=null?"E: HARVEST":plot.plant.effect.ToString()):!plot.wet?"Needs water":Mathf.RoundToInt(plot.progress*100)+"%";
                 GUI.Label(new Rect(position.x-70,Screen.height-position.y,140,28),plot.plant.label+" "+status);
                 if(!plot.mature)
                 {
