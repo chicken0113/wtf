@@ -29,6 +29,7 @@ public static class PersistencePlayCheck
         EditorSceneManager.OpenScene(Origin);
         foreach(var marker in UnityEngine.Object.FindObjectsByType<MapArrivalPoint>(FindObjectsSortMode.None)) UnityEngine.Object.DestroyImmediate(marker.gameObject);
         foreach(var marker in UnityEngine.Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None)) UnityEngine.Object.DestroyImmediate(marker.gameObject);
+        UnityEngine.Object.FindFirstObjectByType<FarmGame>().Layout.combatSchedule=FarmMapLayout.CombatSchedule.NightOnly;
         MapSaveAuthoring.PrepareCurrentMap();
         var arrival=new GameObject("Farm return").AddComponent<MapArrivalPoint>(); arrival.arrivalId="farm_entry"; arrival.transform.position=new Vector2(0,-4);
         var exit=new GameObject("Farm exit").AddComponent<MapExit>(); exit.destinationScene=Destination; exit.arrivalId="test_entry"; exit.transform.position=new Vector2(4,-4);

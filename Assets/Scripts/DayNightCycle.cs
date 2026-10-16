@@ -16,8 +16,10 @@ namespace EverythingGrows
         public float CycleSeconds => Day+Dusk+Night+Dawn;
         public Phase CurrentPhase => Elapsed<Day?Phase.Daylight:Elapsed<Day+Dusk?Phase.Dusk:Elapsed<Day+Dusk+Night?Phase.Night:Phase.Dawn;
         public bool ShopsOpen => CurrentPhase==Phase.Daylight;
-        public bool MonstersActive => CurrentPhase==Phase.Dusk || CurrentPhase==Phase.Night;
-        public float Darkness => Settings.nightDarkness*(CurrentPhase==Phase.Daylight?0:CurrentPhase==Phase.Dusk?Mathf.SmoothStep(0,1,(Elapsed-Day)/Dusk):CurrentPhase==Phase.Night?1:1-Mathf.SmoothStep(0,1,(Elapsed-Day-Dusk-Night)/Dawn));
+        public bool MonstersActive => farm.Layout!=null && farm.Layout.combatSchedule!=FarmMapLayout.CombatSchedule.NightOnly
+            ? farm.Layout.combatSchedule==FarmMapLayout.CombatSchedule.Always
+            : CurrentPhase==Phase.Dusk || CurrentPhase==Phase.Night;
+        public float Darkness => (farm.Layout!=null && !farm.Layout.dayNightLighting?0:Settings.nightDarkness)*(CurrentPhase==Phase.Daylight?0:CurrentPhase==Phase.Dusk?Mathf.SmoothStep(0,1,(Elapsed-Day)/Dusk):CurrentPhase==Phase.Night?1:1-Mathf.SmoothStep(0,1,(Elapsed-Day-Dusk-Night)/Dawn));
         public void Initialize(FarmGame owner)
         {
             if(farm!=null) return;
@@ -33,7 +35,9 @@ namespace EverythingGrows
         {
             if(Settings==null || seconds<=0 || farm.Combat.IsGameOver) return;
             var previous=CurrentPhase; Elapsed=Mathf.Repeat(Elapsed+seconds,CycleSeconds); Apply();
-            if(previous!=CurrentPhase) farm.Notify(CurrentPhase==Phase.Daylight?"Daylight. Merchants are visiting.":CurrentPhase==Phase.Dusk?"Evening. Merchants left; monsters are appearing.":CurrentPhase==Phase.Night?"Night. Watch for monsters outside the farm.":"Dawn. Monsters are disappearing.");
+            if(previous!=CurrentPhase && farm.Layout!=null && farm.Layout.combatSchedule!=FarmMapLayout.CombatSchedule.NightOnly)
+                farm.Notify(CurrentPhase==Phase.Daylight?"Daylight.":CurrentPhase==Phase.Dusk?"Evening.":CurrentPhase==Phase.Night?"Night.":"Dawn.");
+            else if(previous!=CurrentPhase) farm.Notify(CurrentPhase==Phase.Daylight?"Daylight. Merchants are visiting.":CurrentPhase==Phase.Dusk?"Evening. Merchants left; monsters are appearing.":CurrentPhase==Phase.Night?"Night. Watch for monsters outside the farm.":"Dawn. Monsters are disappearing.");
         }
         void Apply()
         {

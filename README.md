@@ -143,3 +143,7 @@ Tab으로 인벤토리를 열고 닫으며 보유 골드는 인벤토리 안에�
 ## 이동과 장애물
 
 벽·바위 등에 MapObstacle을 붙여 이동과 탄환을 막습니다. 씬 배치와 판정 설정은 [MOVEMENT_AND_OBSTACLES.md](Docs/MOVEMENT_AND_OBSTACLES.md)를 참고하세요.
+
+## 전투 테스트 맵
+
+농장의 청록색 입구에서 E로 CombatTest 맵에 들어갑니다. 기둥·엄폐물과 근접·원거리 몬스터를 배치했습니다. [플레이 및 씬 편집 방법](Docs/COMBAT_TEST_MAP.md)을 참고하세요.

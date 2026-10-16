@@ -11,7 +11,7 @@ namespace EverythingGrows
         public Rect WorldBounds => mapLayout!=null?mapLayout.World:new Rect(-24.5f,-16.5f,49,33);
         public Rect SafeBounds => mapLayout!=null?mapLayout.Safe:new Rect(-6.5f,-4.5f,13,9);
         public Vector2 SpawnPosition => mapLayout!=null?mapLayout.Spawn:Vector2.zero;
-        public bool IsSafe(Vector2 point) => SafeBounds.Contains(point);
+        public bool IsSafe(Vector2 point) => (mapLayout!=null && mapLayout.combatSchedule==FarmMapLayout.CombatSchedule.Peaceful) || SafeBounds.Contains(point);
         public void ConfigureMap(FarmMapLayout layout) => mapLayout=layout;
         private sealed class InventoryStack { public PlantDefinition item; public int count=1; public InventoryStack(PlantDefinition definition) { item=definition; } }
         private readonly List<InventoryStack> inventory = new();

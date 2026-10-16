@@ -3,6 +3,10 @@ namespace EverythingGrows
 {
     public sealed class FarmMapLayout : MonoBehaviour
     {
+        public enum CombatSchedule { NightOnly, Peaceful, Always }
+        [Tooltip("Peaceful: no enemies. Always: enemies remain active regardless of time.")]
+        public CombatSchedule combatSchedule=CombatSchedule.NightOnly;
+        public bool dayNightLighting=true;
         public MapArea worldBounds;
         public MapArea safeArea;
         public Transform playerSpawn;

@@ -10,7 +10,9 @@ public static class HeartHarvestCheck
     {
         if(!Application.isBatchMode) throw new Exception("Use an isolated batch project.");
         EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
-        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false);
+        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
+        // Exercise damage/night behavior in a temporary fixture; the real farm stays peaceful.
+        farm.Layout.combatSchedule=FarmMapLayout.CombatSchedule.NightOnly; farm.Initialize(false);
         var combat=farm.Combat;
         void Check(bool ok,string message) { if(!ok) throw new Exception(message); }
         var heart=Resources.Load<PlantDefinition>("Equipment/Heart");
