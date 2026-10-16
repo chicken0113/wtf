@@ -77,7 +77,7 @@ public static class StarterFarmBuilder
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated batch project.");
         EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity"); Setup();
-        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(); var shop=farm.Shop;
+        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false); var shop=farm.Shop;
         var npc=farm.GetComponentInChildren<ShopNpc>();
         void Check(bool ok,string reason) { if(!ok) throw new Exception(reason); }
         Check(farm.GetComponentsInChildren<FarmBuilding>().Length==1 && npc!=null,"House / NPC missing");

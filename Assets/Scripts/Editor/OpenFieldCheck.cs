@@ -13,7 +13,7 @@ public static class OpenFieldCheck
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
         var names=new[]{"Hoe","WateringCan","Stone","Cloud","InventorySlot"}; var data=new PlantDefinition[5];
         for(int i=0;i<5;i++) data[i]=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/"+names[i]+".asset");
-        var farm=new GameObject("Open field check").AddComponent<FarmGame>(); farm.Configure(data); farm.Initialize(); farm.Cycle.Tick(farm.Cycle.Settings.daylightSeconds);
+        var farm=new GameObject("Open field check").AddComponent<FarmGame>(); farm.Configure(data); farm.Initialize(false); farm.Cycle.Tick(farm.Cycle.Settings.daylightSeconds);
         void Check(bool value,string text) { if(!value) throw new Exception(text); }
         var sword=Resources.Load<PlantDefinition>("Equipment/Sword"); var bow=Resources.Load<PlantDefinition>("Equipment/Bow");
         Check(sword!=null && bow!=null && sword.harvestResult!=null && bow.harvestResult!=null,"Weapon data missing");

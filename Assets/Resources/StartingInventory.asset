@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67430746936148f088787ceb69ecd9be, type: 3}
+  m_Name: StartingInventory
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.StartingInventory
+  items:
+  - item: {fileID: 11400000, guid: 79ab0160a68f41644902c89a95e1c883, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: f3cff79bd35c4454186574d552c12aba, type: 2}
+    quantity: 1
+  - item: {fileID: 11400000, guid: 505cade78fbb48fca0e5aad2eab36585, type: 2}
+    quantity: 10
+  - item: {fileID: 11400000, guid: 175feaa65eca47209c2cd60e449880fa, type: 2}
+    quantity: 1

@@ -14,7 +14,7 @@ public static class FarmVisualCheck
         var names=new[]{"Hoe","WateringCan","Stone","Cloud","InventorySlot"};
         var data=new PlantDefinition[5];
         for(int i=0;i<data.Length;i++) data[i]=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/"+names[i]+".asset");
-        var farm=new GameObject("Visual check").AddComponent<FarmGame>(); farm.Configure(data); farm.Initialize();
+        var farm=new GameObject("Visual check").AddComponent<FarmGame>(); farm.Configure(data); farm.Initialize(false);
         for(int x=-1;x<=1;x++) for(int y=1;y<=2;y++) farm.Till(new Vector2Int(x,y));
         farm.AddItem(data[2]); farm.PlantSelected(new Vector2Int(-1,1)); farm.Water(new Vector2(-1,1),.1f); farm.Tick(6);
         farm.AddItem(data[1]); farm.PlantSelected(new Vector2Int(1,1)); farm.Water(new Vector2(1,1),.1f); farm.Tick(3);

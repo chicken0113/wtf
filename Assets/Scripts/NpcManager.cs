@@ -74,7 +74,6 @@ namespace EverythingGrows
         private void OnGUI()
         {
             if(farm==null || farm.Combat.IsGameOver) return;
-            GUI.Box(new Rect(Screen.width-230,94,220,30),"Gold: "+Gold);
             if(!IsOpen)
             {
                 foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) if(CanTrade && npc.IsVisiting && Vector2.Distance(farm.PlayerPosition,npc.transform.position)<=npc.interactionRange)
@@ -84,11 +83,11 @@ namespace EverythingGrows
                 }
                 return;
             }
-            float width=Mathf.Min(500,Screen.width-24),height=Mathf.Min(350,Screen.height-200);
-            Rect panel=new Rect((Screen.width-width)*.5f,80,width,height);
-            GUI.Box(panel,activeProfile.displayName+"   |   Gold "+Gold);
+            float width=Mathf.Min(400,Screen.width*.46f),height=Mathf.Min(350,Screen.height-120);
+            Rect panel=new Rect(Screen.width*.5f-width-8,farm.InventoryPanelRect.y,width,height);
+            GUI.Box(panel,activeProfile.displayName);
             if(GUI.Button(new Rect(panel.xMax-65,panel.y+4,56,24),"Close")) { Close(); return; }
-            GUI.Label(new Rect(panel.x+12,panel.y+29,width-24,22),"Buy here. Right-click your inventory below to sell. E / Esc: close.");
+            GUI.Label(new Rect(panel.x+12,panel.y+29,width-24,22),"RMB item: sell | Tab / E / Esc: close");
             Rect viewport=new Rect(panel.x+10,panel.y+58,width-20,height-68);
             scroll=GUI.BeginScrollView(viewport,scroll,new Rect(0,0,width-40,activeProfile.offers.Count*48));
             for(int i=0;i<activeProfile.offers.Count;i++)

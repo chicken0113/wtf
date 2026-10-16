@@ -41,7 +41,7 @@ public static class PrototypeBuilder
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
         var definitions=new PlantDefinition[5]; var names=new[]{"Hoe","WateringCan","Stone","Cloud","InventorySlot"};
         for(int i=0;i<5;i++) definitions[i]=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/"+names[i]+".asset");
-        var root=new GameObject("Validation Farm"); var farm=root.AddComponent<FarmGame>(); farm.Configure(definitions); farm.Initialize();
+        var root=new GameObject("Validation Farm"); var farm=root.AddComponent<FarmGame>(); farm.Configure(definitions); farm.Initialize(false);
         void Check(bool value,string message) { if(!value) throw new Exception(message); }
         Check(farm.Capacity==5 && farm.InventoryCount==0,"Initial storage");
         Check(farm.DetachAt(new Vector2(-3,0)),"Tool pickup");
@@ -51,7 +51,7 @@ public static class PrototypeBuilder
         Check(!farm.PlantSelected(new Vector2Int(0,1)) && farm.InventoryCount==1,"Occupied planting consumed item");
         Check(farm.Till(new Vector2Int(2,2)) && farm.PlantSelected(new Vector2Int(2,2)),"Second planting");
         UnityEngine.Object.DestroyImmediate(root);
-        root=new GameObject("Result validation"); farm=root.AddComponent<FarmGame>(); farm.Configure(definitions); farm.Initialize();
+        root=new GameObject("Result validation"); farm=root.AddComponent<FarmGame>(); farm.Configure(definitions); farm.Initialize(false);
         Check(farm.WorldPieceCount==6 && farm.DetachAt(new Vector2(4,3)) && farm.WorldPieceCount==5,"Background cloud was not actually removed");
         Check(farm.Till(new Vector2Int(4,3)) && farm.PlantSelected(new Vector2Int(4,3)),"Background planting");
         Check(farm.DetachSlot() && farm.Capacity==4 && farm.InventoryCount==1,"UI slot removal does not reduce actual storage");

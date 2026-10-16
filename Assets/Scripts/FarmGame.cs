@@ -22,7 +22,22 @@ namespace EverythingGrows
         private SpriteRenderer farmer, heldModel;
         private float walkTime, actionTime;
         private int facing;
-        private bool showHelp, showMap;
+        private bool showMap, showInventory;
+        private Vector2 inventoryScroll;
+        public bool InventoryOpen => showInventory || (shop!=null && shop.IsOpen);
+        public int Gold => shop!=null?shop.Gold:0;
+        public void SetInventoryOpen(bool open) { showInventory=open; }
+        public Rect InventoryPanelRect
+        {
+            get
+            {
+                float width=Mathf.Min(460,Screen.width-24);
+                bool trading=shop!=null && shop.IsOpen;
+                if(trading) width=Mathf.Min(400,Screen.width*.46f);
+                float height=Mathf.Min(Screen.height-100,Mathf.Max(230,116+Mathf.CeilToInt(Capacity/5f)*58));
+                return new Rect(trading?Screen.width*.5f+8:(Screen.width-width)*.5f,Mathf.Max(60,(Screen.height-height)*.5f),width,height);
+            }
+        }
         public float CropProgress(Vector2Int cell) => plots.TryGetValue(cell,out var plot)?plot.progress:0;
         public bool IsWilted(Vector2Int cell) => plots.TryGetValue(cell,out var plot) && plot.wilted;
         public DayNightCycle Cycle { get; private set; }
@@ -68,7 +83,7 @@ namespace EverythingGrows
         private sealed class Plot { public Vector2Int cell; public SpriteRenderer soil, model; public PlantDefinition plant; public bool wet, mature, ready, wilted, regrowing; public float progress, production; }
         public void Configure(PlantDefinition[] data) => definitions=data;
         private void Awake() { if(Application.isPlaying) Initialize(); }
-        public void Initialize()
+        public void Initialize(bool grantStartingItems=true)
         {
             if(player!=null) return;
             if(mapLayout==null) mapLayout=GetComponentInChildren<FarmMapLayout>();
@@ -120,6 +135,14 @@ namespace EverythingGrows
             shop=GetComponent<NpcManager>(); if(shop!=null) shop.Initialize(this);
             Cycle=GetComponent<DayNightCycle>(); if(Cycle==null) Cycle=gameObject.AddComponent<DayNightCycle>(); Cycle.Initialize(this);
             if(mapLayout!=null) foreach(var ground in mapLayout.GetComponentsInChildren<FarmGround>()) if(ground.GetComponent<StartingPlot>()!=null) Till(Vector2Int.RoundToInt(ground.transform.position));
+            if(grantStartingItems)
+            {
+                var loadout=Resources.Load<StartingInventory>("StartingInventory");
+                if(loadout!=null && loadout.items!=null) foreach(var entry in loadout.items)
+                    if(entry!=null && entry.item!=null) for(int i=0;i<Mathf.Max(1,entry.quantity);i++)
+                        if(!AddItem(entry.item)) Spawn(entry.item,SpawnPosition+Vector2.down*.6f);
+                selected=0;
+            }
             message="RMB: take item. E: plant / harvest. Click: use / attack. Walk outside to fight.";
         }
         private SpriteRenderer Draw(string label,Vector2 position,Vector2 size,Color color,int order)
@@ -338,7 +361,7 @@ namespace EverythingGrows
         private bool OverUI()
         {
             Vector2 point=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
-            if((shop!=null && shop.IsOpen) || new Rect(Screen.width-230,94,220,30).Contains(point) || new Rect(10,10,520,showHelp?174:62).Contains(point) || (combat!=null && combat.HudRect.Contains(point))) return true;
+            if(InventoryOpen || (combat!=null && combat.HudRect.Contains(point))) return true;
             if(showMap && new Rect(Screen.width/2-170,Screen.height/2-120,340,240).Contains(point)) return true;
             for(int i=0;i<Capacity;i++) if(SlotRect(i).Contains(point)) return true;
             return false;
@@ -348,13 +371,18 @@ namespace EverythingGrows
             if(player==null) return;
             if(combat.IsGameOver) { plantingPreview.enabled=false; return; }
             Cycle.Tick(Time.deltaTime);
+            if(Input.GetKeyDown(KeyCode.Tab))
+            {
+                bool next=!InventoryOpen; if(!next) shop?.Close(); SetInventoryOpen(next);
+            }
+            if(Input.GetKeyDown(KeyCode.Escape) && InventoryOpen) { shop?.Close(); SetInventoryOpen(false); }
             var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
             int hoveredHeart=combat.HeartAt(guiMouse);
             if(Input.GetKeyDown(KeyCode.E) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
-            if(shop!=null && shop.IsOpen)
+            if(InventoryOpen)
             {
-                Tick(Time.deltaTime); combat.TickCombat(Time.deltaTime); shop.CheckDistance();
-                if(Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.E)) shop.Close();
+                Tick(Time.deltaTime); combat.TickCombat(Time.deltaTime); shop?.CheckDistance();
+                if(Input.GetKeyDown(KeyCode.E) && shop!=null && shop.IsOpen) { shop.Close(); SetInventoryOpen(false); }
                 plantingPreview.enabled=false; return;
             }
             Vector2 move=new Vector2(Input.GetKey(KeyCode.D)?1:Input.GetKey(KeyCode.A)?-1:0,Input.GetKey(KeyCode.W)?1:Input.GetKey(KeyCode.S)?-1:0);
@@ -363,7 +391,6 @@ namespace EverythingGrows
             combat.TickCombat(Time.deltaTime);
             for(int i=0;i<Mathf.Min(9,Capacity);i++) if(Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1+i))) selected=i;
             AnimateFarmer(move);
-            if(Input.GetKeyDown(KeyCode.H)) showHelp=!showHelp;
             if(Input.GetKeyDown(KeyCode.M)) showMap=!showMap;
             float wheel=Input.mouseScrollDelta.y;
             if(wheel!=0) selected=(selected+(wheel>0?-1:1)+Capacity)%Capacity;
@@ -434,16 +461,7 @@ namespace EverythingGrows
             if(player==null || combat.IsGameOver) return;
             titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
             smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
-            Panel(new Rect(10,10,520,showHelp?174:62),new Color(.48f,.3f,.17f,.95f));
-            GUI.Label(new Rect(22,16,495,24),Cycle.CurrentPhase+"  |  "+(Cycle.ShopsOpen?"Merchants visiting":"Shops closed")+"  |  H: help",titleStyle);
-            GUI.Label(new Rect(22,39,495,28),message);
-            if(showHelp)
-            {
-                GUI.Label(new Rect(22,70,425,22),"WASD move | Click: use / attack | E: plant / harvest");
-                GUI.Label(new Rect(22,92,425,22),"RMB: take | E: plant / harvest / shop | Q: drop");
-                GUI.Label(new Rect(22,114,495,22),"1-9 / wheel select | RMB slot detach | R restore slot");
-                GUI.Label(new Rect(22,136,495,22),"Weapon + click: attack | Shift: dodge | E: harvest grown weapon");
-            }
+            if(InventoryOpen) { DrawInventoryWindow(); return; }
             for(int i=0;i<Capacity;i++)
             {
                 Rect rect=SlotRect(i);
@@ -456,9 +474,6 @@ namespace EverythingGrows
                 if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
                 { if(Event.current.button==0) selected=i; else if(Event.current.button==1) { if(shop!=null && shop.IsOpen) shop.Sell(i); else DetachSlot(); } Event.current.Use(); break; }
             }
-            GUI.Label(new Rect(Screen.width/2-150,Screen.height-100,300,22),Held!=null?Held.label+" - click: use | E: plant / harvest":"Empty hands - select a hoe",smallStyle);
-            if(!OverUI()) foreach(var building in GetComponentsInChildren<FarmBuilding>())
-                if(building.Contains(MousePoint) && Near(MousePoint)) { GUI.Label(new Rect(Screen.width/2-150,Screen.height-130,300,24),"E: harvest house",smallStyle); break; }
             if(showMap) DrawMap();
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
@@ -474,6 +489,32 @@ namespace EverythingGrows
                 }
             }
             foreach(var piece in pieces) if(piece.model!=null) { var position=view.WorldToScreenPoint(piece.model.transform.position); GUI.Label(new Rect(position.x-50,Screen.height-position.y+12,100,22),piece.definition.label); }
+        }
+        private void DrawInventoryWindow()
+        {
+            var panel=InventoryPanelRect; Panel(panel,new Color(.48f,.3f,.17f,.98f));
+            GUI.Label(new Rect(panel.x+16,panel.y+10,panel.width-70,28),"Inventory",titleStyle);
+            if(GUI.Button(new Rect(panel.xMax-42,panel.y+8,30,26),"X")) { shop?.Close(); SetInventoryOpen(false); return; }
+            GUI.Label(new Rect(panel.x+16,panel.y+40,panel.width-32,24),"Gold: "+Gold+" G");
+            var viewport=new Rect(panel.x+12,panel.y+76,panel.width-24,panel.height-90);
+            int columns=Mathf.Max(1,Mathf.Min(5,Mathf.FloorToInt((viewport.width-18)/58)));
+            var content=new Rect(0,0,viewport.width-18,Mathf.CeilToInt(Capacity/(float)columns)*58);
+            inventoryScroll=GUI.BeginScrollView(viewport,inventoryScroll,content);
+            for(int i=0;i<Capacity;i++)
+            {
+                var rect=new Rect(i%columns*58,i/columns*58,52,52);
+                Panel(rect,i==selected?new Color(.85f,.64f,.3f):new Color(.55f,.36f,.2f));
+                if(i<inventory.Count) art.ItemIcon(new Rect(rect.x+6,rect.y+5,40,40),inventory[i].item);
+                if(InventoryQuantity(i)>1) GUI.Label(new Rect(rect.x+27,rect.y+2,24,18),InventoryQuantity(i).ToString(),smallStyle);
+                if(shop!=null && shop.IsOpen && i<inventory.Count) GUI.Label(new Rect(rect.x,rect.y+34,52,18),shop.SalePrice(inventory[i].item)+" G",smallStyle);
+                if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
+                {
+                    if(Event.current.button==0) selected=i;
+                    else if(Event.current.button==1) { if(shop!=null && shop.IsOpen) shop.Sell(i); else DetachSlot(); }
+                    Event.current.Use(); break;
+                }
+            }
+            GUI.EndScrollView();
         }
         private void DrawMap()
         {

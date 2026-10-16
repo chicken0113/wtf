@@ -39,6 +39,39 @@ public static class OpenFieldPlayCheck
         SessionState.SetBool(Key,true); SessionState.SetString(Key+"Error","");
         EditorApplication.isPlaying=true;
     }
+    public static void RunInventory()
+    {
+        SessionState.SetBool(Key+"InventoryMode",true); RunAuthored();
+    }
+    static void CheckInventoryUi(FarmGame farm)
+    {
+        try
+        {
+            if(shopFrames==0)
+            {
+                if(farm.InventoryCount!=4 || farm.InventoryItem(0).effect!=GrowthEffect.Dig || farm.InventoryItem(1).effect!=GrowthEffect.Water || !farm.InventoryItem(2).isSeed || farm.InventoryQuantity(2)!=10 || farm.InventoryItem(3).effect!=GrowthEffect.Scythe) throw new Exception("Starting kit incorrect");
+                if(farm.InventoryOpen || farm.Combat.HudRect.x>30 || farm.Combat.HudRect.y>30 || farm.Combat.HudRect.height>40) throw new Exception("Default HUD incorrect");
+            }
+            if(shopFrames==10)
+            {
+                farm.SetInventoryOpen(true); if(!farm.InventoryOpen || farm.Gold!=farm.Shop.Gold) throw new Exception("Inventory gold unavailable");
+            }
+            if(shopFrames==20)
+            {
+                var npc=farm.GetComponentInChildren<ShopNpc>(); farm.MovePlayer(npc.transform.position-Vector3.up);
+                if(!farm.Shop.Open(npc)) throw new Exception("Merchant cannot open alongside inventory");
+            }
+            if(shopFrames++<30) return;
+            int gold=farm.Gold;
+            if(!farm.Shop.Buy(0) || !farm.Shop.Sell(0) || farm.Gold>=gold) throw new Exception("Inventory shop transactions incorrect");
+            farm.Shop.Close(); farm.SetInventoryOpen(false);
+            if(farm.InventoryOpen) throw new Exception("Inventory did not close");
+            farm.SetInventoryOpen(true); int before=farm.InventoryQuantity(2); farm.Initialize();
+            if(farm.InventoryQuantity(2)!=before) throw new Exception("Starter kit granted twice");
+            Finish(true,"INVENTORY_UI_PLAY_SUCCESS: starter kit, hearts position, inventory toggle, gold, shop, single grant.");
+        }
+        catch(Exception error) { Finish(false,error.ToString()); }
+    }
     static void Tick()
     {
         if(!EditorApplication.isPlaying || Time.timeSinceLevelLoad<2)
@@ -55,6 +88,7 @@ public static class OpenFieldPlayCheck
         if(farm.Combat.EnemyCount!=expectedEnemies) { Finish(false,"Authored enemy count mismatch"); return; }
         int expectedGround=farm.Layout!=null?farm.Layout.GetComponentsInChildren<FarmGround>().Length:1600;
         if(farm.GetComponentsInChildren<SpriteRenderer>().Length<expectedGround) { Finish(false,"Open field was not loaded"); return; }
+        if(SessionState.GetBool(Key+"InventoryMode",false)) { CheckInventoryUi(farm); return; }
         if(farm.Shop!=null)
         {
             if(shopFrames==0)

@@ -11,7 +11,7 @@ public static class HousePlantingCheck
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated validation.");
         EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
-        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize();
+        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false);
         void Check(bool ok,string message) { if(!ok) throw new Exception(message); }
         var original=farm.GetComponentInChildren<FarmBuilding>();
         var originalVisual=original.GetComponentInChildren<SpriteRenderer>(); float originalWidth=originalVisual.bounds.size.x;

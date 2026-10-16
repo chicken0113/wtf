@@ -100,7 +100,7 @@ public static class EditableMapBuilder
         var item=map.GetComponentsInChildren<FarmItemPlacement>().First(); item.transform.position=new Vector3(3,2,0);
         map.playerSpawn.position=new Vector3(2,1,0); map.safeArea.transform.position=new Vector3(3,1,0);
         var enemy=map.GetComponentsInChildren<EnemyPlacement>().First(); UnityEngine.Object.DestroyImmediate(enemy.gameObject);
-        farm.Initialize();
+        farm.Initialize(false);
         void Check(bool condition,string message) { if(!condition) throw new Exception(message); }
         Check(farm.PlayerPosition==new Vector2(2,1),"Player spawn ignored");
         Check(farm.WorldPieceCount==6 && farm.DetachAt(new Vector2(3,2)),"Authored items ignored or duplicated");

@@ -11,7 +11,7 @@ public static class DayNightCheck
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated validation.");
         EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
-        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize();
+        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false);
         void Check(bool ok,string message) { if(!ok) throw new Exception(message); }
         var cycle=farm.Cycle; var settings=cycle.Settings; var shop=farm.Shop;
         var npc=farm.GetComponentInChildren<ShopNpc>(); var renderer=npc.GetComponent<SpriteRenderer>();

@@ -35,7 +35,7 @@ public static class DailyFarmingSetup
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated project.");
         EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity"); Apply();
-        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize();
+        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false);
         void Check(bool ok,string reason) { if(!ok) throw new Exception(reason); }
         var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"); var tomato=Resources.Load<PlantDefinition>("Crops/TomatoSeeds");
         farm.MovePlayer(new Vector2(0,-2));

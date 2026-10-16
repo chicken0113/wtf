@@ -21,8 +21,8 @@ namespace EverythingGrows
         public bool IsGameOver { get; private set; }
         public float MaxHealth => HeartCount*healthPerHeart;
         public float Health { get; private set; } = 100;
-        public Rect HudRect => new Rect(Screen.width-230,10,220,78);
-        public Rect HeartRect(int index) => new Rect(HudRect.x+12+index*38,HudRect.y+22,32,28);
+        public Rect HudRect => new Rect(14,14,HeartCount*38,32);
+        public Rect HeartRect(int index) => new Rect(HudRect.x+2+index*38,HudRect.y+2,32,28);
         public int HeartAt(Vector2 guiPoint)
         {
             for(int i=0;i<HeartCount;i++) if(HeartRect(i).Contains(guiPoint)) return i;
@@ -218,7 +218,6 @@ namespace EverythingGrows
         private void OnGUI()
         {
             if(farm==null) return;
-            GUI.Box(HudRect,IsSafe(farm.PlayerPosition)?"FARM / SAFE":nightActive?"WILD FIELD / COMBAT":"WILD FIELD / DAYLIGHT");
             var previousColor=GUI.color;
             for(int i=0;i<HeartCount;i++)
             {
@@ -231,9 +230,6 @@ namespace EverythingGrows
                 }
             }
             GUI.color=previousColor;
-            int hovered=HeartAt(Event.current.mousePosition);
-            GUI.Label(new Rect(Screen.width-265,60,260,24),hovered>=0?(HeartCount>1?"E: harvest one heart":"E: harvest last heart (GAME OVER)"):
-                "HP "+Mathf.CeilToInt(Health)+" / "+Mathf.CeilToInt(MaxHealth)+"  |  Defeated "+Kills);
             if(IsGameOver)
             {
                 int previousDepth=GUI.depth; GUI.depth=-100;
