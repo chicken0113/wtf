@@ -35,13 +35,13 @@ public static class HousePlantingCheck
         farm.Water(cell,.1f); farm.Tick(house.growthSeconds);
         Check(farm.IsMature(cell) && visual.bounds.size.x<=1 && farm.Capacity==5 && visual.GetComponent<FarmBuilding>()==null,"Growth automatically installed house");
         Check(farm.InteractPlot(cell) && farm.SelectedItem==upgraded && farm.GetComponentsInChildren<FarmBuilding>().Length==0,"Upgraded house did not enter inventory");
-        Check(farm.PlaceHouse(cell) && farm.InventoryCount==0 && farm.Capacity==10,"Manual house installation failed");
+        Check(farm.PlaceHouse(cell) && farm.InventoryCount==0 && farm.Capacity==5,"Manual house installation failed");
         var building=farm.GetComponentInChildren<FarmBuilding>();
         Check(building!=null && building.HarvestItem==upgraded && building.GetComponent<SpriteRenderer>().bounds.size.x>originalWidth,"Installed upgrade missing");
         Snapshot("HouseUpgraded.png");
         while(farm.AddItem(hoe)) {}
         pieces=farm.WorldPieceCount;
-        Check(farm.HarvestBuildingAt(cell) && farm.Capacity==5 && farm.InventoryCount==5 && farm.WorldPieceCount==pieces+6,"House capacity overflow lost items");
+        Check(farm.HarvestBuildingAt(cell) && farm.Capacity==5 && farm.InventoryCount==5 && farm.WorldPieceCount==pieces+1,"Full inventory house harvest lost items or changed capacity");
         Check(farm.GetComponentsInChildren<FarmBuilding>().Length==0,"Harvested house remained installed");
         while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
         farm.AddItem(upgraded); farm.MovePlayer(new Vector2(7,-5));
@@ -60,7 +60,7 @@ public static class HousePlantingCheck
         farm.Water(cell,.1f); farm.Tick(tomato.growthSeconds); pieces=farm.WorldPieceCount;
         Check(farm.InteractPlot(cell) && !farm.IsMature(cell) && farm.WorldPieceCount==pieces+1,"Full inventory regrowing crop did not drop");
         farm.Water(cell,.1f); farm.Tick(tomato.regrowSeconds); Check(farm.IsMature(cell),"Dropped harvest broke regrowth");
-        Debug.Log("HOUSE_PLANTING_SUCCESS: inventory/drop harvests, compact buried house, no automatic installation, manual placement, overlap protection, storage overflow and crop regrowth.");
+        Debug.Log("HOUSE_PLANTING_SUCCESS: inventory/drop harvests, compact buried house, no automatic installation, manual placement, overlap protection, unchanged inventory capacity and crop regrowth.");
     }
     public static void Regression()
     {

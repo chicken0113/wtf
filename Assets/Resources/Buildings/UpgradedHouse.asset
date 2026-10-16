@@ -18,7 +18,7 @@ MonoBehaviour:
   growthSeconds: 15
   effectRadius: 1
   productionSeconds: 8
-  storageBonus: 5
+  storageBonus: 0
   harvestResult: {fileID: 0}
   transformed: 1
   iconIndex: -1

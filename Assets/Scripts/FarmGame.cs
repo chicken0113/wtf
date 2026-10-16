@@ -83,7 +83,6 @@ namespace EverythingGrows
             {
                 int result=0;
                 foreach(var plot in plots.Values) if(plot.plant!=null && plot.mature && plot.plant.effect==GrowthEffect.Storage) result+=MatureItem(plot).storageBonus;
-                foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(building.HarvestItem!=null) result+=building.HarvestItem.storageBonus;
                 return result;
             }
         }
