@@ -56,7 +56,7 @@ namespace EverythingGrows
         {
             if(player==null) return;
             point=new Vector2(Mathf.Clamp(point.x,WorldBounds.xMin+.5f,WorldBounds.xMax-.5f),Mathf.Clamp(point.y,WorldBounds.yMin+.5f,WorldBounds.yMax-.5f));
-            var buildings=mapLayout!=null?mapLayout.GetComponentsInChildren<FarmBuilding>():System.Array.Empty<FarmBuilding>();
+            var buildings=GetComponentsInChildren<FarmBuilding>();
             bool Blocked(Vector2 candidate) { foreach(var building in buildings) if(building.Blocks(candidate)) return true; return false; }
             if(Blocked(point))
             {
@@ -77,7 +77,16 @@ namespace EverythingGrows
         public int RemovedSlots => removedSlots;
         public int WorldPieceCount => pieces.Count;
         public bool IsMature(Vector2Int cell) => plots.TryGetValue(cell,out var plot) && plot.mature;
-        public int StorageBonus { get { int result=0; foreach(var plot in plots.Values) if(plot.plant!=null && plot.mature && (plot.plant.effect==GrowthEffect.Storage || plot.plant.effect==GrowthEffect.House)) result+=MatureItem(plot).storageBonus; return result; } }
+        public int StorageBonus
+        {
+            get
+            {
+                int result=0;
+                foreach(var plot in plots.Values) if(plot.plant!=null && plot.mature && plot.plant.effect==GrowthEffect.Storage) result+=MatureItem(plot).storageBonus;
+                foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(building.HarvestItem!=null) result+=building.HarvestItem.storageBonus;
+                return result;
+            }
+        }
         private PlantDefinition Held => selected>=0 && selected < inventory.Count ? inventory[selected].item : null;
         private sealed class Piece { public PlantDefinition definition; public GameObject model; }
         private sealed class Plot { public Vector2Int cell; public SpriteRenderer soil, model; public PlantDefinition plant; public bool wet, mature, ready, wilted, regrowing; public float progress, production; }
@@ -165,7 +174,11 @@ namespace EverythingGrows
             renderer.transform.localScale=new Vector3((size??Vector2.one*.8f).x/longest,(size??Vector2.one*.8f).y/longest,1);
             pieces.Add(new Piece { definition=definition,model=renderer.gameObject });
         }
-        private bool Inside(Vector2Int cell) => mapLayout!=null?mapLayout.CanFarm(cell):cell.x>=-23 && cell.x<=23 && cell.y>=-15 && cell.y<=15;
+        private bool Inside(Vector2Int cell)
+        {
+            foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(building.Blocks(cell)) return false;
+            return mapLayout!=null?mapLayout.CanFarm(cell):cell.x>=-23 && cell.x<=23 && cell.y>=-15 && cell.y<=15;
+        }
         public bool Till(Vector2Int cell)
         {
             if(!Inside(cell) || plots.ContainsKey(cell)) return false;
@@ -180,6 +193,21 @@ namespace EverythingGrows
                 if(existing>=0) { inventory[existing].count++; selected=existing; return true; }
             }
             inventory.Add(new InventoryStack(definition)); selected=inventory.Count-1; return true;
+        }
+        public bool ReceiveHarvest(PlantDefinition item)
+        {
+            if(item==null) return false;
+            if(AddItem(item)) { message="Harvested "+item.label+"."; return true; }
+            Spawn(item,PlayerPosition+Vector2.down*.65f); message="Inventory full. Harvest dropped at your feet."; return true;
+        }
+        private void DropOverflow()
+        {
+            int dropped=0;
+            while(inventory.Count>Capacity)
+            {
+                int index=inventory.Count-1; var item=inventory[index].item; int count=inventory[index].count;
+                for(int i=0;i<count;i++) { RemoveInventoryItem(index); Spawn(item,PlayerPosition+Vector2.down*.65f+Vector2.right*(dropped++%3)*.12f); }
+            }
         }
         public bool DetachSlot()
         {
@@ -223,32 +251,40 @@ namespace EverythingGrows
             var source=art.ItemSprite(item);
             plot.model.sprite=plot.mature?source:art.BuriedSprite(item); plot.model.color=Color.white;
             float longest=Mathf.Max(source.bounds.size.x,source.bounds.size.y);
-            float size=plot.mature?item.matureDisplaySize:Mathf.Min(1,plot.plant.plantedDisplaySize)*Mathf.Lerp(.8f,1,plot.progress);
+            float size=plot.mature?(item.effect==GrowthEffect.House?Mathf.Min(1,item.plantedDisplaySize):item.matureDisplaySize):Mathf.Min(1,plot.plant.plantedDisplaySize)*Mathf.Lerp(.8f,1,plot.progress);
             plot.model.transform.localScale=Vector3.one*(size/Mathf.Max(.01f,longest));
             float height=source.bounds.size.y*size/Mathf.Max(.01f,longest);
             plot.model.transform.position=(Vector2)plot.cell+Vector2.up*(plot.mature?height*.5f-.18f:-.18f);
-            if(plot.mature && item.effect==GrowthEffect.House && plot.model.GetComponent<FarmBuilding>()==null)
-            {
-                // A grown house remains functional in the world until harvested.
-                if(mapLayout!=null) plot.model.transform.SetParent(mapLayout.transform,true);
-                var building=plot.model.gameObject.AddComponent<FarmBuilding>(); building.item=item;
-                float worldScale=plot.model.transform.lossyScale.x;
-                building.footprint=new Vector2(size*.85f,height*.32f)/worldScale;
-                building.offset=new Vector2(0,-height*.34f)/worldScale;
-                // Move out of the newly grown footprint if it encloses the player.
-                if(building.Blocks(PlayerPosition))
-                    for(int ring=1;ring<=8;ring++)
-                    {
-                        bool moved=false;
-                        for(int x=-ring;x<=ring && !moved;x++) for(int y=-ring;y<=ring;y++)
-                        {
-                            var candidate=(Vector2)plot.cell+new Vector2(x,y);
-                            if(!WorldBounds.Contains(candidate) || building.Blocks(candidate)) continue;
-                            var before=PlayerPosition; MovePlayer(candidate); moved=PlayerPosition!=before; if(moved) break;
-                        }
-                        if(moved) break;
-                    }
-            }
+        }
+        private Rect HouseFootprint(PlantDefinition item,Vector2 point)
+        {
+            var source=art.ItemSprite(item); float height=item.matureDisplaySize*source.bounds.size.y/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
+            return new Rect(point+new Vector2(-item.matureDisplaySize*.425f,-.18f),new Vector2(item.matureDisplaySize*.85f,height*.32f));
+        }
+        public bool CanPlaceHouse(PlantDefinition item,Vector2 point)
+        {
+            if(item==null || item.effect!=GrowthEffect.House || combat.IsGameOver || !Near(point)) return false;
+            var footprint=HouseFootprint(item,point);
+            var source=art.ItemSprite(item); float height=item.matureDisplaySize*source.bounds.size.y/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
+            var visual=new Rect(point+new Vector2(-item.matureDisplaySize*.5f,-.18f),new Vector2(item.matureDisplaySize,height));
+            if(!WorldBounds.Contains(visual.min) || !WorldBounds.Contains(visual.max) || footprint.Contains(PlayerPosition)) return false;
+            foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(footprint.Overlaps(building.WorldFootprint)) return false;
+            foreach(var plot in plots.Values) if(plot.plant!=null && footprint.Overlaps(new Rect((Vector2)plot.cell-Vector2.one*.4f,Vector2.one*.8f))) return false;
+            foreach(var npc in GetComponentsInChildren<ShopNpc>()) if(npc.IsVisiting && footprint.Contains(npc.transform.position)) return false;
+            return true;
+        }
+        public bool PlaceHouse(Vector2 point)
+        {
+            var item=Held;
+            if(!CanPlaceHouse(item,point)) { message="Cannot install here. Keep the footprint clear and stand outside it."; return false; }
+            var source=art.ItemSprite(item); float scale=item.matureDisplaySize/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
+            float height=source.bounds.size.y*scale;
+            var renderer=Draw("Placed "+item.label,point+Vector2.up*(height*.5f-.18f),Vector2.one*scale,Color.white,10); renderer.sprite=source;
+            if(mapLayout!=null) renderer.transform.SetParent(mapLayout.transform,true);
+            var building=renderer.gameObject.AddComponent<FarmBuilding>(); building.item=item;
+            building.footprint=new Vector2(item.matureDisplaySize*.85f,height*.32f)/scale;
+            building.offset=new Vector2(0,-height*.34f)/scale;
+            RemoveInventoryItem(selected); message="House installed."; return true;
         }
         public bool HarvestBuildingAt(Vector2 point)
         {
@@ -257,8 +293,8 @@ namespace EverythingGrows
             {
                 if(!building.Contains(point)) continue;
                 foreach(var plot in plots.Values) if(plot.model!=null && plot.model.gameObject==building.gameObject) return Uproot(plot.cell);
-                if(!AddItem(building.HarvestItem)) return false;
-                Remove(building.gameObject); message="Harvested the house. Plant and water it to upgrade."; return true;
+                var item=building.HarvestItem;
+                Remove(building.gameObject); DropOverflow(); return ReceiveHarvest(item);
             }
             return false;
         }
@@ -314,26 +350,23 @@ namespace EverythingGrows
             {
                 if(plot.plant.isSeed && plot.plant.regrowSeconds>0)
                 {
-                    if(!AddItem(plot.plant.harvestResult)) return false;
+                    if(!ReceiveHarvest(plot.plant.harvestResult)) return false;
                     plot.mature=false; plot.regrowing=true; plot.progress=0; plot.wet=false;
                     UpdatePlantVisual(plot);
                     if(art.Available) plot.soil.sprite=art.Get(10);
                     message="Harvested. Water again for the next harvest."; return true;
                 }
-                bool harvested=Uproot(cell); if(harvested) message="Harvested "+Held.label+". Click to use it."; return harvested;
+                return Uproot(cell);
             }
-            if(!plot.ready || !AddItem(plot.plant)) return false;
+            if(!plot.ready || !ReceiveHarvest(plot.plant)) return false;
             plot.ready=false; plot.production=0; message="Collected a new "+plot.plant.label+"."; return true;
         }
         public bool Uproot(Vector2Int cell)
         {
             if(!plots.TryGetValue(cell,out var plot) || plot.plant==null) return false;
             var item=plot.mature && plot.plant.harvestResult!=null?plot.plant.harvestResult:plot.plant;
-            int needed=item.stackable && inventory.Exists(stack=>stack.item==item)?0:1;
-            int losing=plot.mature && (plot.plant.effect==GrowthEffect.Storage || plot.plant.effect==GrowthEffect.House) ? MatureItem(plot).storageBonus : 0;
-            if(inventory.Count+needed>Mathf.Max(1,Capacity-losing)) { message="Free storage before uprooting this plant."; return false; }
             plot.plant=null; plot.mature=false; plot.ready=false; plot.progress=plot.production=0; plot.regrowing=plot.wilted=false;
-            Remove(plot.model.gameObject); plot.model=null; AddItem(item); message="Uprooted. You can plant it elsewhere."; return true;
+            Remove(plot.model.gameObject); plot.model=null; DropOverflow(); return ReceiveHarvest(item);
         }
         public bool ClearDeadCrop(Vector2Int cell)
         {
@@ -343,6 +376,7 @@ namespace EverythingGrows
         public bool UseTool(Vector2Int cell)
         {
             if(Held==null) { message="Select a hoe or watering can."; return false; }
+            if(Held.effect==GrowthEffect.House) return PlaceHouse(cell);
             if(Held.effect==GrowthEffect.Heart)
             {
                 if(!combat.RestoreHeart()) return false;
@@ -414,7 +448,7 @@ namespace EverythingGrows
             if(Input.GetMouseButtonDown(0))
             {
                 if(Held==null) message="Select a hoe to till soil.";
-                else if(Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe || Held.effect==GrowthEffect.Heart) UseTool(cell);
+                else if(Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe || Held.effect==GrowthEffect.Heart || Held.effect==GrowthEffect.House) UseTool(cell);
                 else if(Held.effect!=GrowthEffect.Weapon) message="This item has no direct use. Press E to plant it.";
                 actionTime=.25f;
             }
@@ -531,6 +565,15 @@ namespace EverythingGrows
         private void UpdatePlantingPreview()
         {
             var cell=MouseCell;
+            if(Held!=null && Held.effect==GrowthEffect.House)
+            {
+                var source=art.ItemSprite(Held); float scale=Held.matureDisplaySize/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
+                plantingPreview.sprite=source; plantingPreview.transform.localScale=Vector3.one*scale;
+                plantingPreview.transform.position=(Vector2)cell+Vector2.up*(source.bounds.size.y*scale*.5f-.18f);
+                plantingPreview.sortingOrder=100; plantingPreview.enabled=!OverUI();
+                plantingPreview.color=CanPlaceHouse(Held,cell)?new Color(.4f,1,.5f,.5f):new Color(1,.3f,.25f,.5f); return;
+            }
+            plantingPreview.sprite=sprite; plantingPreview.transform.localScale=Vector3.one*.95f; plantingPreview.sortingOrder=-2;
             plantingPreview.enabled=!OverUI() && Inside(cell);
             plantingPreview.transform.position=new Vector3(cell.x,cell.y,0);
             plots.TryGetValue(cell,out var plot);

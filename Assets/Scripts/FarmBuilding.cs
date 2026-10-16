@@ -14,6 +14,15 @@ namespace EverythingGrows
         public Vector2 footprint=new Vector2(4.5f,1.8f);
         public Vector2 offset=new Vector2(0,-.8f);
         private void LateUpdate() { foreach(var renderer in GetComponentsInChildren<SpriteRenderer>()) renderer.sortingOrder=30-Mathf.RoundToInt(transform.TransformPoint(offset-Vector2.up*footprint.y*.5f).y*10); }
+        public Rect WorldFootprint
+        {
+            get
+            {
+                var bounds=new Bounds(transform.TransformPoint(offset),Vector3.zero);
+                for(int x=-1;x<=1;x+=2) for(int y=-1;y<=1;y+=2) bounds.Encapsulate(transform.TransformPoint(offset+new Vector2(footprint.x*x,footprint.y*y)*.5f));
+                return new Rect(bounds.min,bounds.size);
+            }
+        }
         public bool Blocks(Vector2 point)
         {
             Vector2 local=transform.InverseTransformPoint(point);

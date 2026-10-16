@@ -39,14 +39,14 @@ namespace EverythingGrows
             if(IsGameOver || index<0 || index>=HeartCount) return false;
             var heart=Resources.Load<PlantDefinition>("Equipment/Heart");
             if(heart==null) { farm.Notify("Heart item data is missing."); return false; }
-            if(!farm.AddItem(heart)) return false;
+            if(!farm.ReceiveHarvest(heart)) return false;
             removedHearts++; Health=Mathf.Min(Health,MaxHealth);
             if(HeartCount==0)
             {
                 IsGameOver=true; rollTime=0; farm.Shop?.Close();
                 farm.Notify("Game over. You harvested your last heart."); return true;
             }
-            farm.Notify("One heart harvested into your inventory. Maximum HP decreased."); return true;
+            farm.Notify("One heart harvested. Maximum HP decreased."); return true;
         }
         public bool RestoreHeart()
         {

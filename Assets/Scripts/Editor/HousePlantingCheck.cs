@@ -19,33 +19,48 @@ public static class HousePlantingCheck
         farm.MovePlayer(point-Vector2.up*.6f);
         var hoe=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset");
         while(farm.AddItem(hoe)) {}
-        Check(!farm.HarvestBuildingAt(point) && original.gameObject.activeInHierarchy,"Full inventory destroyed house");
+        int pieces=farm.WorldPieceCount;
+        Check(farm.HarvestBuildingAt(point) && (original==null || !original.gameObject.activeInHierarchy) && farm.WorldPieceCount==pieces+1,"Full inventory house harvest did not drop");
+        Check(farm.GetComponentsInChildren<FarmBuilding>().Length==0,"Harvest auto-installed a house");
         while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
-        Check(farm.HarvestBuildingAt(point) && (original==null || !original.gameObject.activeInHierarchy),"Original house did not detach");
+        Check(farm.DetachAt(farm.PlayerPosition+Vector2.down*.65f),"Dropped house cannot be picked up");
         var house=Resources.Load<PlantDefinition>("Buildings/House"); var upgraded=house.harvestResult;
         Check(farm.SelectedItem==house && upgraded!=null,"House upgrade data missing");
         var cell=new Vector2Int(1,-2); farm.MovePlayer(new Vector2(1,-4));
         Check(farm.PlantSelected(cell),"House cannot be planted");
         var visual=farm.GetComponentsInChildren<SpriteRenderer>().First(r=>r.name=="Growing House");
-        Check(visual.sprite.texture==house.itemSprite.texture && visual.sprite.rect.height<house.itemSprite.rect.height,"Buried house appearance is wrong");
-        Check(Mathf.Max(visual.bounds.size.x,visual.bounds.size.y)<=1,"Planted house too large");
+        Check(visual.sprite.texture==house.itemSprite.texture && visual.sprite.rect.height<house.itemSprite.rect.height && visual.bounds.size.x<=1,"Buried house appearance incorrect");
         Snapshot("HousePlanted.png");
         farm.Tick(house.growthSeconds); Check(!farm.IsMature(cell),"Dry house grew");
         farm.Water(cell,.1f); farm.Tick(house.growthSeconds);
-        Check(farm.IsMature(cell) && visual.bounds.size.x>originalWidth && farm.Capacity==10,"Larger house or storage upgrade missing");
-        var building=visual.GetComponent<FarmBuilding>();
-        Check(building!=null && building.HarvestItem==upgraded && building.Blocks(building.transform.TransformPoint(building.offset)),"Grown house has no footprint");
+        Check(farm.IsMature(cell) && visual.bounds.size.x<=1 && farm.Capacity==5 && visual.GetComponent<FarmBuilding>()==null,"Growth automatically installed house");
+        Check(farm.InteractPlot(cell) && farm.SelectedItem==upgraded && farm.GetComponentsInChildren<FarmBuilding>().Length==0,"Upgraded house did not enter inventory");
+        Check(farm.PlaceHouse(cell) && farm.InventoryCount==0 && farm.Capacity==10,"Manual house installation failed");
+        var building=farm.GetComponentInChildren<FarmBuilding>();
+        Check(building!=null && building.HarvestItem==upgraded && building.GetComponent<SpriteRenderer>().bounds.size.x>originalWidth,"Installed upgrade missing");
         Snapshot("HouseUpgraded.png");
         while(farm.AddItem(hoe)) {}
-        Check(!farm.Uproot(cell) && farm.Capacity==10,"Harvest silently removed occupied storage slots");
-        while(farm.InventoryCount>4) farm.RemoveInventoryItem(0);
-        Check(farm.Uproot(cell) && farm.SelectedItem==upgraded && farm.Capacity==5,"House harvesting did not remove its storage function");
-        Check(farm.PlantSelected(cell),"Upgraded house cannot be relocated"); farm.Tick(upgraded.growthSeconds);
-        Check(farm.IsMature(cell) && farm.Capacity==10,"Relocated house lost upgrade");
-        var hoeCell=new Vector2Int(-1,-3); farm.AddItem(hoe); Check(farm.PlantSelected(hoeCell),"Hoe planting failed");
-        var hoeVisual=farm.GetComponentsInChildren<SpriteRenderer>().First(r=>r.name=="Growing Hoe");
-        usingArt(hoeVisual,hoe);
-        Debug.Log("HOUSE_PLANTING_SUCCESS: detach, original removal, compact buried items, timed upgrade, storage, capacity protection and relocation.");
+        pieces=farm.WorldPieceCount;
+        Check(farm.HarvestBuildingAt(cell) && farm.Capacity==5 && farm.InventoryCount==5 && farm.WorldPieceCount==pieces+6,"House capacity overflow lost items");
+        Check(farm.GetComponentsInChildren<FarmBuilding>().Length==0,"Harvested house remained installed");
+        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        farm.AddItem(upgraded); farm.MovePlayer(new Vector2(7,-5));
+        Check(farm.PlaceHouse(new Vector2(7,-3)),"House cannot be installed elsewhere");
+        farm.AddItem(house); int carried=farm.InventoryCount;
+        Check(!farm.PlaceHouse(new Vector2(7,-3)) && farm.InventoryCount==carried,"Overlapping placement consumed house");
+        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        farm.MovePlayer(new Vector2(1,-4));
+        var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"); farm.AddItem(seed); farm.PlantSelected(cell);
+        while(farm.AddItem(hoe)) {}
+        farm.Water(cell,.1f); farm.Tick(seed.growthSeconds); pieces=farm.WorldPieceCount;
+        Check(farm.InteractPlot(cell) && !farm.IsMature(cell) && farm.WorldPieceCount==pieces+1,"Full inventory crop did not drop");
+        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        var tomato=Resources.Load<PlantDefinition>("Crops/TomatoSeeds"); farm.AddItem(tomato); farm.PlantSelected(cell);
+        while(farm.AddItem(hoe)) {}
+        farm.Water(cell,.1f); farm.Tick(tomato.growthSeconds); pieces=farm.WorldPieceCount;
+        Check(farm.InteractPlot(cell) && !farm.IsMature(cell) && farm.WorldPieceCount==pieces+1,"Full inventory regrowing crop did not drop");
+        farm.Water(cell,.1f); farm.Tick(tomato.regrowSeconds); Check(farm.IsMature(cell),"Dropped harvest broke regrowth");
+        Debug.Log("HOUSE_PLANTING_SUCCESS: inventory/drop harvests, compact buried house, no automatic installation, manual placement, overlap protection, storage overflow and crop regrowth.");
     }
     public static void Regression()
     {
