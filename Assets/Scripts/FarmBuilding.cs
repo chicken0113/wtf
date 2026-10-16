@@ -4,6 +4,8 @@ namespace EverythingGrows
     public sealed class FarmBuilding : MonoBehaviour
     {
         public PlantDefinition item;
+        [HideInInspector] public bool runtimePlaced;
+        [HideInInspector] public Vector2 placementAnchor;
         public PlantDefinition HarvestItem => item!=null?item:Resources.Load<PlantDefinition>("Buildings/House");
         public bool Contains(Vector2 point)
         {

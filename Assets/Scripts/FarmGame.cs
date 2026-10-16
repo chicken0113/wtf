@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace EverythingGrows
 {
-    public sealed class FarmGame : MonoBehaviour
+    public sealed partial class FarmGame : MonoBehaviour
     {
         [SerializeField] private PlantDefinition[] definitions;
         [SerializeField] private FarmMapLayout mapLayout;
@@ -25,7 +25,7 @@ namespace EverythingGrows
         private bool showMap, showInventory;
         private Vector2 inventoryScroll;
         public bool InventoryOpen => showInventory || (shop!=null && shop.IsOpen);
-        public int Gold => shop!=null?shop.Gold:0;
+        public int Gold => shop!=null?shop.Gold:carriedGold;
         public void SetInventoryOpen(bool open) { showInventory=open; }
         public Rect InventoryPanelRect
         {
@@ -81,7 +81,7 @@ namespace EverythingGrows
         {
             get
             {
-                int result=0;
+                int result=GameSession.RemoteStorageBonus(gameObject.scene.path);
                 foreach(var plot in plots.Values) if(plot.plant!=null && plot.mature && plot.plant.effect==GrowthEffect.Storage) result+=MatureItem(plot).storageBonus;
                 return result;
             }
@@ -152,6 +152,8 @@ namespace EverythingGrows
                 selected=0;
             }
             message="RMB: take item. E: plant / harvest. Click: use / attack. Walk outside to fight.";
+            foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(!building.runtimePlaced) authoredBuildingKeys[building]=MapObjectId.Key(building);
+            if(Application.isPlaying && grantStartingItems) GameSession.Bind(this);
         }
         private SpriteRenderer Draw(string label,Vector2 position,Vector2 size,Color color,int order)
         {
@@ -276,14 +278,18 @@ namespace EverythingGrows
         {
             var item=Held;
             if(!CanPlaceHouse(item,point)) { message="Cannot install here. Keep the footprint clear and stand outside it."; return false; }
+            CreateInstalledHouse(item,point);
+            RemoveInventoryItem(selected); message="House installed."; return true;
+        }
+        private FarmBuilding CreateInstalledHouse(PlantDefinition item,Vector2 point)
+        {
             var source=art.ItemSprite(item); float scale=item.matureDisplaySize/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
             float height=source.bounds.size.y*scale;
             var renderer=Draw("Placed "+item.label,point+Vector2.up*(height*.5f-.18f),Vector2.one*scale,Color.white,10); renderer.sprite=source;
             if(mapLayout!=null) renderer.transform.SetParent(mapLayout.transform,true);
-            var building=renderer.gameObject.AddComponent<FarmBuilding>(); building.item=item;
+            var building=renderer.gameObject.AddComponent<FarmBuilding>(); building.item=item; building.runtimePlaced=true; building.placementAnchor=point;
             building.footprint=new Vector2(item.matureDisplaySize*.85f,height*.32f)/scale;
-            building.offset=new Vector2(0,-height*.34f)/scale;
-            RemoveInventoryItem(selected); message="House installed."; return true;
+            building.offset=new Vector2(0,-height*.34f)/scale; return building;
         }
         public bool HarvestBuildingAt(Vector2 point)
         {
@@ -293,6 +299,7 @@ namespace EverythingGrows
                 if(!building.Contains(point)) continue;
                 foreach(var plot in plots.Values) if(plot.model!=null && plot.model.gameObject==building.gameObject) return Uproot(plot.cell);
                 var item=building.HarvestItem;
+                if(!building.runtimePlaced) removedMapObjects.Add(AuthoredKey(building));
                 Remove(building.gameObject); DropOverflow(); return ReceiveHarvest(item);
             }
             return false;
@@ -402,7 +409,9 @@ namespace EverythingGrows
         private void Update()
         {
             if(player==null) return;
-            if(combat.IsGameOver) { plantingPreview.enabled=false; return; }
+            if(combat.IsGameOver || GameSession.Busy || !string.IsNullOrEmpty(GameSession.LastError)) { plantingPreview.enabled=false; return; }
+            if(MapExit.TryInteract(this)) { plantingPreview.enabled=false; return; }
+            GameSession.AdvanceTime(Time.deltaTime);
             Cycle.Tick(Time.deltaTime);
             if(Input.GetKeyDown(KeyCode.Tab))
             {

@@ -48,6 +48,12 @@ namespace EverythingGrows
             }
             farm.Notify("One heart harvested. Maximum HP decreased."); return true;
         }
+        public int RemovedHearts => removedHearts;
+        public void RestorePlayerState(float health,int heartsRemoved,int kills,bool gameOver)
+        {
+            removedHearts=Mathf.Clamp(heartsRemoved,0,startingHearts); Health=Mathf.Clamp(health,0,MaxHealth); Kills=Mathf.Max(0,kills);
+            IsGameOver=gameOver || HeartCount==0; invulnerability=1; rollTime=0;
+        }
         public bool RestoreHeart()
         {
             if(IsGameOver) return false;

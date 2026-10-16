@@ -28,6 +28,7 @@ namespace EverythingGrows
             shadeSprite=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2); shade.sprite=shadeSprite;
             Apply();
         }
+        public void RestoreElapsed(float elapsed) { Elapsed=Mathf.Repeat(Mathf.Max(0,elapsed),CycleSeconds); Apply(); }
         public void Tick(float seconds)
         {
             if(Settings==null || seconds<=0 || farm.Combat.IsGameOver) return;

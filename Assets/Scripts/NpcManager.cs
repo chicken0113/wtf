@@ -33,6 +33,7 @@ namespace EverythingGrows
             if(!visiting) Close();
         }
         public void Initialize(FarmGame owner) { if(farm!=null) return; farm=owner; Gold=Mathf.Max(0,startingGold); art=new FarmArt(); }
+        public void RestoreGold(int gold) { Gold=Mathf.Max(0,gold); }
         public bool Open(ShopNpc npc)
         {
             if(!CanTrade || npc==null || !npc.IsVisiting || !npc.isActiveAndEnabled || Vector2.Distance(farm.PlayerPosition,npc.transform.position)>npc.interactionRange) return false;
