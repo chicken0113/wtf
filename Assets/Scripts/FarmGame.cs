@@ -25,6 +25,7 @@ namespace EverythingGrows
         private bool showHelp, showMap;
         public float CropProgress(Vector2Int cell) => plots.TryGetValue(cell,out var plot)?plot.progress:0;
         public bool IsWilted(Vector2Int cell) => plots.TryGetValue(cell,out var plot) && plot.wilted;
+        public DayNightCycle Cycle { get; private set; }
         private OpenFieldCombat combat;
         private NpcManager shop;
         public NpcManager Shop => shop;
@@ -117,6 +118,7 @@ namespace EverythingGrows
             }
             combat=gameObject.AddComponent<OpenFieldCombat>(); combat.Initialize(this);
             shop=GetComponent<NpcManager>(); if(shop!=null) shop.Initialize(this);
+            Cycle=GetComponent<DayNightCycle>(); if(Cycle==null) Cycle=gameObject.AddComponent<DayNightCycle>(); Cycle.Initialize(this);
             if(mapLayout!=null) foreach(var ground in mapLayout.GetComponentsInChildren<FarmGround>()) if(ground.GetComponent<StartingPlot>()!=null) Till(Vector2Int.RoundToInt(ground.transform.position));
             message="RMB: take item. E: plant / harvest. Click: use / attack. Walk outside to fight.";
         }
@@ -345,6 +347,7 @@ namespace EverythingGrows
         {
             if(player==null) return;
             if(combat.IsGameOver) { plantingPreview.enabled=false; return; }
+            Cycle.Tick(Time.deltaTime);
             var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
             int hoveredHeart=combat.HeartAt(guiMouse);
             if(Input.GetKeyDown(KeyCode.E) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
@@ -432,7 +435,7 @@ namespace EverythingGrows
             titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
             smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
             Panel(new Rect(10,10,520,showHelp?174:62),new Color(.48f,.3f,.17f,.95f));
-            GUI.Label(new Rect(22,16,495,24),"Farm  |  H: help",titleStyle);
+            GUI.Label(new Rect(22,16,495,24),Cycle.CurrentPhase+"  |  "+(Cycle.ShopsOpen?"Merchants visiting":"Shops closed")+"  |  H: help",titleStyle);
             GUI.Label(new Rect(22,39,495,28),message);
             if(showHelp)
             {

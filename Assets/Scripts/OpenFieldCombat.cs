@@ -10,6 +10,7 @@ namespace EverythingGrows
         private Sprite square;
         private float attackCooldown, invulnerability, rollTime, rollCooldown, quietTime;
         private Vector2 rollDirection;
+        private bool nightActive;
         private readonly List<Enemy> enemies=new();
         private readonly List<Shot> shots=new();
         private readonly List<Flash> flashes=new();
@@ -48,7 +49,7 @@ namespace EverythingGrows
             removedHearts--; Health=Mathf.Min(MaxHealth,Health+healthPerHeart); return true;
         }
         public int Kills { get; private set; }
-        public int EnemyCount { get { int n=0; foreach(var enemy in enemies) if(enemy.health>0) n++; return n; } }
+        public int EnemyCount { get { int n=0; foreach(var enemy in enemies) if(nightActive && enemy.health>0) n++; return n; } }
         public bool IsRolling => rollTime>0;
         public static bool Safe(Vector2 point) => Mathf.Abs(point.x)<=6.5f && Mathf.Abs(point.y)<=4.5f;
         private bool IsSafe(Vector2 point) => farm.IsSafe(point);
@@ -82,7 +83,20 @@ namespace EverythingGrows
         {
             if(IsSafe(point)) return;
             var enemy=new Enemy { home=point,ranged=ranged,model=Draw(ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,Color.white,ranged?21:20),warning=Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
-            enemy.warning.enabled=false; enemies.Add(enemy);
+            enemy.model.enabled=nightActive; enemy.warning.enabled=false; enemies.Add(enemy);
+        }
+        public void SetNightActive(bool active)
+        {
+            if(nightActive==active) return;
+            nightActive=active;
+            foreach(var enemy in enemies)
+            {
+                enemy.windup=0; enemy.warning.enabled=false;
+                if(active) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.cooldown=1; enemy.respawn=0; }
+                enemy.model.enabled=active && enemy.health>0;
+            }
+            if(!active) for(int i=shots.Count-1;i>=0;i--) if(shots[i].hostile)
+            { Remove(shots[i].model.gameObject); shots.RemoveAt(i); }
         }
         public bool Roll(Vector2 direction)
         {
@@ -102,7 +116,7 @@ namespace EverythingGrows
                 foreach(var enemy in enemies)
                 {
                     Vector2 offset=(Vector2)enemy.model.transform.position-farm.PlayerPosition;
-                    if(enemy.health>0 && offset.magnitude<=weapon.attackRange+.35f && (offset.magnitude<.35f || Vector2.Dot(direction,offset.normalized)>.35f)) Hit(enemy,weapon.damage,direction);
+                    if(nightActive && enemy.health>0 && offset.magnitude<=weapon.attackRange+.35f && (offset.magnitude<.35f || Vector2.Dot(direction,offset.normalized)>.35f)) Hit(enemy,weapon.damage,direction);
                 }
             }
             return true;
@@ -146,6 +160,7 @@ namespace EverythingGrows
             if(IsSafe(farm.PlayerPosition) && quietTime>2) Health=Mathf.Min(MaxHealth,Health+seconds*14);
             foreach(var enemy in enemies)
             {
+                if(!nightActive) continue;
                 if(enemy.health<=0)
                 {
                     enemy.respawn-=seconds;
@@ -187,7 +202,7 @@ namespace EverythingGrows
                     if(IsSafe(end)) hit=true;
                     else if(SegmentDistance(start,end,farm.PlayerPosition)<.35f) { DamagePlayer(shot.damage); hit=true; }
                 }
-                else foreach(var enemy in enemies) if(enemy.health>0 && SegmentDistance(start,end,enemy.model.transform.position)<.5f)
+                else foreach(var enemy in enemies) if(nightActive && enemy.health>0 && SegmentDistance(start,end,enemy.model.transform.position)<.5f)
                 { Hit(enemy,shot.damage,shot.velocity.normalized); hit=true; break; }
                 shot.model.transform.position=end;
                 if(hit || shot.life<=0) { Remove(shot.model.gameObject); shots.RemoveAt(i); }
@@ -203,7 +218,7 @@ namespace EverythingGrows
         private void OnGUI()
         {
             if(farm==null) return;
-            GUI.Box(HudRect,IsSafe(farm.PlayerPosition)?"FARM / SAFE":"WILD FIELD / COMBAT");
+            GUI.Box(HudRect,IsSafe(farm.PlayerPosition)?"FARM / SAFE":nightActive?"WILD FIELD / COMBAT":"WILD FIELD / DAYLIGHT");
             var previousColor=GUI.color;
             for(int i=0;i<HeartCount;i++)
             {
@@ -231,7 +246,7 @@ namespace EverythingGrows
                 GUI.depth=previousDepth; return;
             }
             var camera=Camera.main;
-            foreach(var enemy in enemies) if(enemy.health>0 && Vector2.Distance(farm.PlayerPosition,enemy.model.transform.position)<7)
+            foreach(var enemy in enemies) if(nightActive && enemy.health>0 && Vector2.Distance(farm.PlayerPosition,enemy.model.transform.position)<7)
             {
                 var point=camera.WorldToScreenPoint(enemy.model.transform.position+Vector3.up*.7f);
                 if(point.z<0) continue;

@@ -51,6 +51,7 @@ public static class OpenFieldPlayCheck
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
         if(farm==null || farm.Combat==null || Camera.main==null) { Finish(false,"Runtime initialization failed"); return; }
         int expectedEnemies=farm.Layout!=null?farm.Layout.GetComponentsInChildren<EnemyPlacement>().Count(marker=>!farm.IsSafe(marker.transform.position)):6;
+        if(!farm.Cycle.MonstersActive) expectedEnemies=0;
         if(farm.Combat.EnemyCount!=expectedEnemies) { Finish(false,"Authored enemy count mismatch"); return; }
         int expectedGround=farm.Layout!=null?farm.Layout.GetComponentsInChildren<FarmGround>().Length:1600;
         if(farm.GetComponentsInChildren<SpriteRenderer>().Length<expectedGround) { Finish(false,"Open field was not loaded"); return; }

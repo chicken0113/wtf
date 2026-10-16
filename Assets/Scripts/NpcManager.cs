@@ -24,19 +24,27 @@ namespace EverythingGrows
         private NpcProfile activeProfile;
         private Vector2 scroll;
         public int Gold { get; private set; }
-        public bool IsOpen => activeNpc!=null && activeProfile!=null;
+        public bool CanTrade => farm!=null && !farm.Combat.IsGameOver && (farm.Cycle==null || farm.Cycle.ShopsOpen);
+        public bool IsOpen => CanTrade && activeNpc!=null && activeNpc.IsVisiting && activeProfile!=null;
+        public void UpdateAvailability()
+        {
+            bool visiting=CanTrade;
+            foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) npc.SetVisiting(visiting);
+            if(!visiting) Close();
+        }
         public void Initialize(FarmGame owner) { if(farm!=null) return; farm=owner; Gold=Mathf.Max(0,startingGold); art=new FarmArt(); }
         public bool Open(ShopNpc npc)
         {
-            if(farm==null || npc==null || !npc.isActiveAndEnabled || Vector2.Distance(farm.PlayerPosition,npc.transform.position)>npc.interactionRange) return false;
+            if(!CanTrade || npc==null || !npc.IsVisiting || !npc.isActiveAndEnabled || Vector2.Distance(farm.PlayerPosition,npc.transform.position)>npc.interactionRange) return false;
             var profile=npcs.Find(entry=>entry!=null && entry.id==npc.npcId); if(profile==null) { farm.Notify("This NPC has no shop profile."); return false; }
             activeNpc=npc; activeProfile=profile; scroll=Vector2.zero; return true;
         }
         public bool OpenNearby()
         {
+            if(!CanTrade) return false;
             ShopNpc nearest=null; float distance=float.PositiveInfinity;
             foreach(var npc in farm.GetComponentsInChildren<ShopNpc>())
-            { float d=Vector2.Distance(farm.PlayerPosition,npc.transform.position); if(npc.isActiveAndEnabled && d<=npc.interactionRange && d<distance) { nearest=npc; distance=d; } }
+            { float d=Vector2.Distance(farm.PlayerPosition,npc.transform.position); if(npc.IsVisiting && npc.isActiveAndEnabled && d<=npc.interactionRange && d<distance) { nearest=npc; distance=d; } }
             return Open(nearest);
         }
         public void Close() { activeNpc=null; activeProfile=null; }
@@ -69,7 +77,7 @@ namespace EverythingGrows
             GUI.Box(new Rect(Screen.width-230,94,220,30),"Gold: "+Gold);
             if(!IsOpen)
             {
-                foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) if(Vector2.Distance(farm.PlayerPosition,npc.transform.position)<=npc.interactionRange)
+                foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) if(CanTrade && npc.IsVisiting && Vector2.Distance(farm.PlayerPosition,npc.transform.position)<=npc.interactionRange)
                 {
                     var position=Camera.main.WorldToScreenPoint(npc.transform.position+Vector3.up*.7f);
                     GUI.Label(new Rect(position.x-60,Screen.height-position.y,120,24),"E: open shop");
