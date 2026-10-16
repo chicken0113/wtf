@@ -86,7 +86,7 @@ namespace EverythingGrows
             for(int i=0;i<activeProfile.offers.Count;i++)
             {
                 var offer=activeProfile.offers[i]; if(offer==null || offer.item==null) continue;
-                float y=i*48; art.Icon(new Rect(4,y+2,40,40),art.ItemIndex(offer.item));
+                float y=i*48; art.ItemIcon(new Rect(4,y+2,40,40),offer.item);
                 GUI.Label(new Rect(50,y+10,width-190,26),offer.item.label+"  |  "+offer.buyPrice+" G");
                 var previous=GUI.enabled; GUI.enabled=Gold>=offer.buyPrice && farm.CanAddItem(offer.item);
                 if(GUI.Button(new Rect(width-135,y+6,82,30),"Buy")) Buy(i);

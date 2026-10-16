@@ -9,6 +9,7 @@ namespace EverythingGrows
         private readonly Texture2D atlas = Resources.Load<Texture2D>("FarmAtlas");
         private readonly Dictionary<int, Sprite> sprites = new();
         private readonly List<Texture2D> generated = new();
+        private readonly Dictionary<Sprite,Sprite> buriedSprites = new();
         public bool Available => atlas != null;
         public Sprite Get(int index)
         {
@@ -24,6 +25,22 @@ namespace EverythingGrows
                 sprites.Add(index,result);
             }
             return result;
+        }
+        public Sprite ItemSprite(PlantDefinition item) => item.itemSprite!=null?item.itemSprite:Get(ItemIndex(item));
+        public Sprite BuriedSprite(PlantDefinition item)
+        {
+            var source=ItemSprite(item); if(source==null) return null;
+            if(buriedSprites.TryGetValue(source,out var result)) return result;
+            var rect=source.rect; rect.y+=rect.height*.3f; rect.height*=.7f;
+            result=Sprite.Create(source.texture,rect,new Vector2(.5f,0),source.pixelsPerUnit);
+            buriedSprites[source]=result; return result;
+        }
+        public void ItemIcon(Rect area,PlantDefinition item)
+        {
+            var source=ItemSprite(item); if(source==null) return;
+            var rect=source.rect; float scale=Mathf.Min(area.width/rect.width,area.height/rect.height);
+            var fit=new Rect(area.center.x-rect.width*scale*.5f,area.center.y-rect.height*scale*.5f,rect.width*scale,rect.height*scale);
+            GUI.DrawTextureWithTexCoords(fit,source.texture,new Rect(rect.x/source.texture.width,rect.y/source.texture.height,rect.width/source.texture.width,rect.height/source.texture.height));
         }
         public int ItemIndex(PlantDefinition item)
         {
@@ -71,7 +88,8 @@ namespace EverythingGrows
             foreach (var value in sprites.Values)
                 if (Application.isPlaying) Object.Destroy(value); else Object.DestroyImmediate(value);
             foreach(var texture in generated) if(Application.isPlaying) Object.Destroy(texture); else Object.DestroyImmediate(texture);
-            generated.Clear(); sprites.Clear();
+            foreach(var value in buriedSprites.Values) if(Application.isPlaying) Object.Destroy(value); else Object.DestroyImmediate(value);
+            buriedSprites.Clear(); generated.Clear(); sprites.Clear();
         }
     }
 }

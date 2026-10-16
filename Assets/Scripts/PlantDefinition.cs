@@ -1,7 +1,7 @@
 using UnityEngine;
 namespace EverythingGrows
 {
-    public enum GrowthEffect { Dig, Water, Produce, Storage, Weapon, Crop, Scythe, Heart }
+    public enum GrowthEffect { Dig, Water, Produce, Storage, Weapon, Crop, Scythe, Heart, House }
     [CreateAssetMenu(menuName="Everything Grows/Plant Definition")]
     public sealed class PlantDefinition : ScriptableObject
     {
@@ -16,6 +16,10 @@ namespace EverythingGrows
         public PlantDefinition harvestResult;
         public bool transformed;
         public int iconIndex = -1;
+        [Header("Item appearance")]
+        public Sprite itemSprite;
+        [Min(.1f)] public float plantedDisplaySize=.85f;
+        [Min(.1f)] public float matureDisplaySize=1;
         [Min(0)] public int sellPrice = 5;
         [Header("Crop farming")]
         public bool isSeed;

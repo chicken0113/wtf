@@ -13,7 +13,7 @@ public sealed class FarmItemPlacementInspector : Editor
             var item=(FarmItemPlacement)value; var renderer=item.GetComponent<SpriteRenderer>();
             if(renderer==null || item.item==null) continue;
             var art=new FarmArt(); int index=art.ItemIndex(item.item);
-            Undo.RecordObject(renderer,"Update item preview"); renderer.sprite=EditableMapBuilder.PreviewIcon(index); renderer.color=Color.white; EditorUtility.SetDirty(renderer);
+            Undo.RecordObject(renderer,"Update item preview"); renderer.sprite=item.item.itemSprite!=null?item.item.itemSprite:EditableMapBuilder.PreviewIcon(index); renderer.color=Color.white; EditorUtility.SetDirty(renderer);
         }
         EditorGUILayout.HelpBox("Item에서 심을 대상을 지정합니다. 씬의 위치와 크기가 Play에서도 적용됩니다.",MessageType.Info);
     }
