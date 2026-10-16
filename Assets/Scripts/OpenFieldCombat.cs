@@ -13,7 +13,34 @@ namespace EverythingGrows
         private readonly List<Enemy> enemies=new();
         private readonly List<Shot> shots=new();
         private readonly List<Flash> flashes=new();
+        [SerializeField,Range(1,5)] private int startingHearts=5;
+        [SerializeField,Min(1)] private float healthPerHeart=20;
+        private int removedHearts;
+        public int HeartCount => Mathf.Max(1,startingHearts-removedHearts);
+        public float MaxHealth => HeartCount*healthPerHeart;
         public float Health { get; private set; } = 100;
+        public Rect HudRect => new Rect(Screen.width-230,10,220,78);
+        public Rect HeartRect(int index) => new Rect(HudRect.x+12+index*38,HudRect.y+22,32,28);
+        public int HeartAt(Vector2 guiPoint)
+        {
+            for(int i=0;i<HeartCount;i++) if(HeartRect(i).Contains(guiPoint)) return i;
+            return -1;
+        }
+        public bool HarvestHeart(int index)
+        {
+            if(index<0 || index>=HeartCount) return false;
+            if(HeartCount<=1) { farm.Notify("Keep your last heart to stay alive."); return false; }
+            var heart=Resources.Load<PlantDefinition>("Equipment/Heart");
+            if(heart==null) { farm.Notify("Heart item data is missing."); return false; }
+            farm.DropItem(heart,farm.PlayerPosition+Vector2.down*.65f);
+            removedHearts++; Health=Mathf.Min(Health,MaxHealth);
+            farm.Notify("One heart harvested. Maximum HP decreased. Pick it up with RMB."); return true;
+        }
+        public bool RestoreHeart()
+        {
+            if(removedHearts<=0) { farm.Notify("All heart slots are already attached."); return false; }
+            removedHearts--; Health=Mathf.Min(MaxHealth,Health+healthPerHeart); return true;
+        }
         public int Kills { get; private set; }
         public int EnemyCount { get { int n=0; foreach(var enemy in enemies) if(enemy.health>0) n++; return n; } }
         public bool IsRolling => rollTime>0;
@@ -30,7 +57,7 @@ namespace EverythingGrows
         private sealed class Flash { public SpriteRenderer model; public float time=.16f; }
         public void Initialize(FarmGame owner)
         {
-            farm=owner; art=new FarmArt(); square=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2);
+            farm=owner; Health=MaxHealth; art=new FarmArt(); square=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2);
             if(farm.Layout!=null)
             {
                 foreach(var marker in farm.Layout.GetComponentsInChildren<EnemyPlacement>()) SpawnEnemy(marker.transform.position,marker.ranged,new Vector2(Mathf.Abs(marker.transform.lossyScale.x),Mathf.Abs(marker.transform.lossyScale.y)));
@@ -100,7 +127,7 @@ namespace EverythingGrows
             if(Health<=0)
             {
                 // Solo prototype recovery; inventory is preserved. Planted resurrection is a later milestone.
-                farm.MovePlayer(farm.SpawnPosition); Health=100; invulnerability=1.5f; rollTime=0;
+                farm.MovePlayer(farm.SpawnPosition); Health=MaxHealth; invulnerability=1.5f; rollTime=0;
                 farm.Notify("You collapsed. Returned to the farm; your items are safe.");
             }
         }
@@ -110,7 +137,7 @@ namespace EverythingGrows
             attackCooldown=Mathf.Max(0,attackCooldown-seconds); invulnerability=Mathf.Max(0,invulnerability-seconds);
             rollCooldown=Mathf.Max(0,rollCooldown-seconds); quietTime+=seconds;
             if(rollTime>0) { float active=Mathf.Min(rollTime,seconds); farm.MovePlayer(farm.PlayerPosition+rollDirection*active*9); rollTime=Mathf.Max(0,rollTime-seconds); }
-            if(IsSafe(farm.PlayerPosition) && quietTime>2) Health=Mathf.Min(100,Health+seconds*14);
+            if(IsSafe(farm.PlayerPosition) && quietTime>2) Health=Mathf.Min(MaxHealth,Health+seconds*14);
             foreach(var enemy in enemies)
             {
                 if(enemy.health<=0)
@@ -170,9 +197,22 @@ namespace EverythingGrows
         private void OnGUI()
         {
             if(farm==null) return;
-            GUI.Box(new Rect(Screen.width-230,10,220,78),IsSafe(farm.PlayerPosition)?"FARM / SAFE":"WILD FIELD / COMBAT");
-            GUI.Label(new Rect(Screen.width-215,34,200,22),"HP "+Mathf.CeilToInt(Health)+" / 100   |   Defeated "+Kills);
-            GUI.Label(new Rect(Screen.width-215,54,200,22),"Shift: dodge   |   M: map");
+            GUI.Box(HudRect,IsSafe(farm.PlayerPosition)?"FARM / SAFE":"WILD FIELD / COMBAT");
+            var previousColor=GUI.color;
+            for(int i=0;i<HeartCount;i++)
+            {
+                var rect=HeartRect(i); GUI.color=new Color(.24f,.16f,.18f); art.Icon(rect,29);
+                float fill=Mathf.Clamp01((Health-i*healthPerHeart)/healthPerHeart);
+                if(fill>0)
+                {
+                    GUI.color=Color.white;
+                    GUI.DrawTextureWithTexCoords(new Rect(rect.x,rect.y,rect.width*fill,rect.height),art.Get(29).texture,new Rect(0,0,fill,1));
+                }
+            }
+            GUI.color=previousColor;
+            int hovered=HeartAt(Event.current.mousePosition);
+            GUI.Label(new Rect(Screen.width-218,60,208,24),hovered>=0?(HeartCount>1?"E: harvest one heart":"Keep the final heart"):
+                "HP "+Mathf.CeilToInt(Health)+" / "+Mathf.CeilToInt(MaxHealth)+"  |  Defeated "+Kills);
             var camera=Camera.main;
             foreach(var enemy in enemies) if(enemy.health>0 && Vector2.Distance(farm.PlayerPosition,enemy.model.transform.position)<7)
             {

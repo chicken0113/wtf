@@ -1,7 +1,7 @@
 using UnityEngine;
 namespace EverythingGrows
 {
-    public enum GrowthEffect { Dig, Water, Produce, Storage, Weapon, Crop, Scythe }
+    public enum GrowthEffect { Dig, Water, Produce, Storage, Weapon, Crop, Scythe, Heart }
     [CreateAssetMenu(menuName="Everything Grows/Plant Definition")]
     public sealed class PlantDefinition : ScriptableObject
     {

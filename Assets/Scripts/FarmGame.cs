@@ -131,6 +131,7 @@ namespace EverythingGrows
             if(art.Available) { renderer.sprite=art.Get(index); renderer.color=Color.white; }
             return renderer;
         }
+        public void DropItem(PlantDefinition definition,Vector2 point) => Spawn(definition,point);
         private void Spawn(PlantDefinition definition,Vector2 point,Vector2? size=null)
         {
             var renderer=ArtDraw(definition.label,point,size??Vector2.one*.8f,art.ItemIndex(definition),definition.color,3);
@@ -267,6 +268,11 @@ namespace EverythingGrows
         public bool UseTool(Vector2Int cell)
         {
             if(Held==null) { message="Select a hoe or watering can."; return false; }
+            if(Held.effect==GrowthEffect.Heart)
+            {
+                if(!combat.RestoreHeart()) return false;
+                RemoveInventoryItem(selected); message="Heart reattached. Maximum HP restored."; return true;
+            }
             if(Held.effect==GrowthEffect.Scythe) return ClearDeadCrop(cell);
             if(Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water) return false;
             bool used=Held.effect==GrowthEffect.Dig?Till(cell):Water(cell,.1f)>0;
@@ -280,7 +286,7 @@ namespace EverythingGrows
         private bool OverUI()
         {
             Vector2 point=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
-            if((shop!=null && shop.IsOpen) || new Rect(Screen.width-230,94,220,30).Contains(point) || new Rect(10,10,520,showHelp?174:62).Contains(point) || new Rect(Screen.width-230,10,220,78).Contains(point)) return true;
+            if((shop!=null && shop.IsOpen) || new Rect(Screen.width-230,94,220,30).Contains(point) || new Rect(10,10,520,showHelp?174:62).Contains(point) || (combat!=null && combat.HudRect.Contains(point))) return true;
             if(showMap && new Rect(Screen.width/2-170,Screen.height/2-120,340,240).Contains(point)) return true;
             for(int i=0;i<Capacity;i++) if(SlotRect(i).Contains(point)) return true;
             return false;
@@ -288,6 +294,9 @@ namespace EverythingGrows
         private void Update()
         {
             if(player==null) return;
+            var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
+            int hoveredHeart=combat.HeartAt(guiMouse);
+            if(Input.GetKeyDown(KeyCode.E) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
             if(shop!=null && shop.IsOpen)
             {
                 Tick(Time.deltaTime); combat.TickCombat(Time.deltaTime); shop.CheckDistance();
@@ -323,7 +332,7 @@ namespace EverythingGrows
             if(Input.GetMouseButtonDown(0))
             {
                 if(Held==null) message="Select a hoe to till soil.";
-                else if(Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe) UseTool(cell);
+                else if(Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe || Held.effect==GrowthEffect.Heart) UseTool(cell);
                 else if(Held.effect!=GrowthEffect.Weapon) message="This item has no direct use. Press E to plant it.";
                 actionTime=.25f;
             }

@@ -49,6 +49,12 @@ namespace EverythingGrows
             else if(index==18) { Box(21,4,2,24,metal); Box(9,7,3,18,brown); Box(12,4,5,3,brown); Box(12,25,5,3,brown); Box(17,7,3,18,brown); Box(5,15,24,2,gold); }
             else if(index==19) { Box(8,9,5,12,brown); Box(8,19,19,6,metal); Box(25,20,5,3,Color.gray); Box(15,13,7,3,Color.gray); }
             else if(index==22) { Box(14,3,4,24,brown); Box(6,23,18,4,metal); Box(5,19,5,7,metal); }
+            else if(index==29)
+            {
+                string[] rows={"01100110","11111111","11111111","11111111","01111110","00111100","00011000"};
+                for(int y=0;y<rows.Length;y++) for(int x=0;x<8;x++)
+                    if(rows[y][x]=='1') Box(4+x*3,25-y*3,3,3,new Color(1,.22f,.32f));
+            }
             else if(index==28) { Box(16,3,3,22,brown); Box(7,22,13,3,metal); Box(5,19,4,5,metal); Box(3,15,3,5,metal); }
             else if(index==23) { Box(7,4,18,23,new Color(.85f,.71f,.43f)); Box(7,25,18,3,brown); Box(11,10,10,9,new Color(.35f,.6f,.23f)); Box(15,9,2,12,Color.white); }
             else if(index>=24 && index<=27)
