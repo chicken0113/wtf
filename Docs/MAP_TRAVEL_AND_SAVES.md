@@ -38,3 +38,19 @@
 ## 검증
 
 별도 임시 Unity 프로젝트와 테스트 전용 저장 폴더에서 실제 Play 모드로 맵 왕복, 잘못된 도착 지점의 원복, 소지품/HP/골드 유지, 밭과 성장도, 부재 시간 성장, 드롭 크기, 설치한 집, 수확한 원래 집의 제거 상태, 재실행 및 백업 복원을 검사한다. 사용자 플레이 저장 파일은 검증에 사용하지 않는다.
+
+
+## 두 종류의 입출구
+
+| 프리팹 | 색상 | 동작 |
+| --- | --- | --- |
+| `Assets/Prefabs/Map/MapDoorExit.prefab` | 청록색 문틀 | 영역 안에서 E를 눌러 이동 |
+| `Assets/Prefabs/Map/MapBoundaryExit.prefab` | 주황색 바닥과 흰 화살표 | 플레이어 몸이 닿으면 자동 이동 |
+
+Hierarchy의 `GameObject > Everything Grows > Door Exit (E)` 또는 `Boundary Exit (Touch)`로도 배치할 수 있습니다. 기존 `MapExit.prefab`은 장식 없는 기본 영역으로 유지합니다.
+
+MapExit Inspector의 **Activation**에서 Door / Boundary를 선택합니다. 새 프리팹은 모드에 따라 색도 변경됩니다. **Destination Scene**, **Arrival Id**는 이전과 동일하게 설정하며, **Area Size**는 이동 판정 크기입니다. 장식의 크기와 위치는 자식 오브젝트에서 조절합니다. Scene의 Gizmos 색도 두 모드를 구분합니다.
+
+자동 통로는 캐릭터 중심이 아니라 Player Radius를 포함한 몸 판정을 사용합니다. 저장 복원이나 맵 도착 시 자동 통로와 겹치면 한 번 밖으로 나간 후 다시 닿아야 활성화됩니다. 도착 후 짧은 이동 유예도 유지해 즉시 왕복되는 현상을 방지합니다.
+
+기존 청록색 문을 유지하며, 테스트용 주황색 통로를 농장 `(9, 0)`과 전투 맵 `(-10, 2.5)`에 추가했습니다. 각 씬의 `Touch Map Connection` 그룹에서 이동·삭제할 수 있습니다. 자동 통로 도착 지점은 문형 출입구와 별도로 구성합니다.

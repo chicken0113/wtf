@@ -22,14 +22,14 @@ public static class CombatTestMapCheck
     {
         if(!Application.isBatchMode || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR"))) throw new Exception("Use isolated project and save directory.");
         EditorSceneManager.OpenScene(CombatTestMapSetup.FarmScene);
-        CombatTestMapSetup.ConnectFarm(); SessionState.SetBool(Key,true); EditorApplication.isPlaying=true;
+        CombatTestMapSetup.ConnectFarm(); MapExitTypesSetup.Apply(); SessionState.SetBool(Key,true); EditorApplication.isPlaying=true;
     }
     static void Tick()
     {
         try
         {
             if(EditorApplication.timeSinceStartup>deadline) throw new Exception("Combat test timed out at step "+step+": "+GameSession.LastError);
-            if(!EditorApplication.isPlaying || Time.timeSinceLevelLoad<.3f || GameSession.Busy) return;
+            if(!EditorApplication.isPlaying || Time.timeSinceLevelLoad<.3f || GameSession.Busy || Time.unscaledTime<GameSession.ArrivalGraceUntil) return;
             var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); if(farm==null || farm.Combat==null) return;
             Require(string.IsNullOrEmpty(GameSession.LastError),GameSession.LastError);
             if(step==0)
@@ -38,10 +38,10 @@ public static class CombatTestMapCheck
                 Require(farm.InventoryCount==4 && farm.InventoryQuantity(2)==10,"Starting inventory changed");
                 farm.Cycle.Tick(farm.Cycle.Settings.daylightSeconds+1);
                 Require(!farm.Cycle.MonstersActive && farm.Combat.EnemyCount==0 && farm.IsSafe(new Vector2(20,12)),"Farm is not peaceful at dusk");
-                var exit=UnityEngine.Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None).Single(e=>e.destinationScene==CombatTestMapSetup.CombatScene);
+                var exit=UnityEngine.Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None).Single(e=>e.requireInteract && e.destinationScene==CombatTestMapSetup.CombatScene);
                 farm.TeleportPlayer(exit.transform.position); Require(exit.Contains(farm.PlayerPosition),"Farm entrance unreachable");
                 Require(new MapCollision(farm).CanStand(farm.PlayerPosition,farm.PlayerRadius),"Farm entrance overlaps obstacle");
-                step=1; Require(exit.Travel(farm),"Farm to combat travel failed"); return;
+                step=1; Require(!exit.TryActivate(farm,false),"Door traveled without E"); Require(exit.TryActivate(farm,true),"Farm to combat travel failed"); return;
             }
             if(step==1)
             {
@@ -70,8 +70,8 @@ public static class CombatTestMapCheck
                 }
                 Require(warning && shot,"Ranged enemy did not warn and fire");
                 Snapshot(farm,"CombatTestOverview.png",Vector2.zero,9.5f);
-                var exit=UnityEngine.Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None).Single(e=>e.destinationScene==CombatTestMapSetup.FarmScene);
-                farm.TeleportPlayer(exit.transform.position); step=2; Require(exit.Travel(farm),"Return travel failed"); return;
+                var exit=UnityEngine.Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None).Single(e=>e.requireInteract && e.destinationScene==CombatTestMapSetup.FarmScene);
+                farm.TeleportPlayer(exit.transform.position); step=2; Require(exit.TryActivate(farm,true),"Return travel failed"); return;
             }
             if(step==2)
             {
@@ -81,8 +81,31 @@ public static class CombatTestMapCheck
                 Require(farm.InventoryCount==4 && farm.InventoryQuantity(2)==10,"Return trip duplicated or removed inventory");
                 Require(File.Exists(GameSession.SavePath),"Autosave missing");
                 Snapshot(farm,"CombatFarmEntrance.png",new Vector2(3,0),5);
+                var touch=UnityEngine.Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None).Single(e=>!e.requireInteract && e.destinationScene==CombatTestMapSetup.CombatScene);
+                farm.TeleportPlayer((Vector2)touch.transform.position+Vector2.right*(touch.areaSize.x*.5f+.1f));
+                Require(!touch.Contains(farm.PlayerPosition) && touch.TouchesPlayer(farm),"Body contact requires player center");
+                step=3; Require(touch.TryActivate(farm,false),"Touch travel still requires E"); return;
+            }
+            if(step==3)
+            {
+                Require(farm.gameObject.scene.path==CombatTestMapSetup.CombatScene,"Touch entrance did not change map");
+                var arrival=MapArrivalPoint.Find(farm.gameObject.scene,"combat_path_entry");
+                Require(Vector2.Distance(farm.PlayerPosition,arrival.transform.position)<.1f,"Wrong touch arrival");
+                var touch=UnityEngine.Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None).Single(e=>!e.requireInteract);
+                farm.TeleportPlayer(touch.transform.position); MapExit.PrepareArrival(farm);
+                Require(!touch.TryActivate(farm,false),"Overlapping arrival immediately returned");
+                farm.TeleportPlayer((Vector2)touch.transform.position+Vector2.right*3);
+                Require(!touch.TryActivate(farm,false),"Touch exit activated outside area");
+                farm.TeleportPlayer(touch.transform.position); step=4;
+                Require(touch.TryActivate(farm,false),"Touch exit did not rearm after leaving"); return;
+            }
+            if(step==4)
+            {
+                Require(farm.gameObject.scene.path==CombatTestMapSetup.FarmScene,"Touch return failed");
+                var arrival=MapArrivalPoint.Find(farm.gameObject.scene,"farm_path_entry");
+                Require(Vector2.Distance(farm.PlayerPosition,arrival.transform.position)<.1f && farm.InventoryCount==4 && farm.InventoryQuantity(2)==10,"Touch roundtrip lost position or inventory");
                 SessionState.SetBool(Key,false); EditorApplication.update-=Tick;
-                Debug.Log("COMBAT_MAP_PLAY_SUCCESS: peaceful farm, both portals and safe arrivals, inventory preservation, autosave, permanent enemies, collision, pursuit, warning and ranged shots."); EditorApplication.Exit(0);
+                Debug.Log("MAP_EXIT_TYPES_PLAY_SUCCESS: E doors, body contact without E, both roundtrips, distinct arrivals, inventory, autosave and overlapping arrival protection. Combat arena checks also passed."); EditorApplication.Exit(0);
             }
         }
         catch(Exception error) { SessionState.SetBool(Key,false); EditorApplication.update-=Tick; Debug.LogException(error); EditorApplication.Exit(1); }

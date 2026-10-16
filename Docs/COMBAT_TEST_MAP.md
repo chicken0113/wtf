@@ -33,3 +33,8 @@ FarmMapLayout의 `Combat Schedule`은 Night Only / Peaceful / Always입니다. �
 농장 연결 도구는 현재 FirstGarden의 기존 배치를 유지하며 입구를 한 번만 추가합니다. `Tools > Everything Grows > Combat test > Connect current farm`에서 다시 실행할 수 있습니다.
 
 실제 Play 모드에서 왕복 이동·도착 지점·안전구역·인벤토리 유지·자동 저장·시간대 독립 몬스터·벽 충돌·추격·공격 예고·발사 동작을 검사했습니다. 테스트는 별도 프로젝트와 저장 폴더를 사용합니다.
+
+
+## 자동 이동 통로
+
+기존 E키로 사용하는 청록색 문 외에 주황색 자동 이동 통로가 있습니다. 농장 `(9, 0)`, 전투 맵 `(-10, 2.5)`의 주황색 바닥에 몸이 닿으면 E키 없이 이동합니다. 씬의 `Touch Map Connection` 그룹에서 편집합니다. 두 방식 모두 기존 자동 저장을 사용합니다.

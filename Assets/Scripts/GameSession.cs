@@ -103,6 +103,7 @@ namespace EverythingGrows
                 if(arrival!=null) farm.TeleportPlayer(arrival.transform.position);
                 if(map!=null) farm.Tick(Mathf.Max(0,(float)(data.worldSeconds-map.updatedAt)));
                 farm.ReconcileRestoredInventory();
+                MapExit.PrepareArrival(farm);
                 current=farm;
                 ArrivalGraceUntil=Time.unscaledTime+1;
                 if(pendingScene==scene) { pendingScene=pendingArrival=null; }
