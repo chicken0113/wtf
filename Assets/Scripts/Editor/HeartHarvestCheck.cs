@@ -27,12 +27,18 @@ public static class HeartHarvestCheck
         Check(!combat.RestoreHeart(),"Heart count can exceed initial maximum");
         for(int i=0;i<4;i++) Check(combat.HarvestHeart(0),"Repeated individual harvest failed");
         pieces=farm.WorldPieceCount;
-        Check(combat.HeartCount==1 && !combat.HarvestHeart(0) && farm.WorldPieceCount==pieces,"Last heart protection");
+        Check(combat.HeartCount==1 && !combat.IsGameOver,"Premature game over");
         farm.MovePlayer(new Vector2(22,14)); combat.TickCombat(1); combat.DamagePlayer(200);
         Check(combat.Health==20 && combat.MaxHealth==20,"Death restored removed heart capacity");
         Check(farm.Till(Vector2Int.zero) && farm.AddItem(heart) && farm.PlantSelected(Vector2Int.zero),"Heart cannot be planted");
         farm.Water(Vector2.zero,.1f); farm.Tick(heart.growthSeconds);
         Check(farm.IsMature(Vector2Int.zero) && farm.InteractPlot(Vector2Int.zero),"Heart planting and harvest failed");
-        Debug.Log("HEART_HARVEST_SUCCESS: hover, single drops, pickup, capacity, restore, final heart, respawn and planting.");
+        pieces=farm.WorldPieceCount; var position=farm.PlayerPosition;
+        Check(combat.HarvestHeart(0) && farm.WorldPieceCount==pieces+1,"Last heart did not drop exactly once");
+        Check(combat.IsGameOver && combat.Health==0 && combat.MaxHealth==0 && combat.HeartCount==0,"Last heart did not trigger game over");
+        combat.TickCombat(5); combat.DamagePlayer(200);
+        Check(combat.IsGameOver && combat.Health==0 && farm.PlayerPosition==position,"Game over recovered or respawned");
+        Check(!combat.HarvestHeart(0) && !combat.RestoreHeart() && farm.WorldPieceCount==pieces+1,"Game over can be bypassed");
+        Debug.Log("HEART_HARVEST_SUCCESS: hover, single drops, pickup, capacity, restore, final heart game over, respawn and planting.");
     }
 }

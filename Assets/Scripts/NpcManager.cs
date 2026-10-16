@@ -65,7 +65,7 @@ namespace EverythingGrows
         }
         private void OnGUI()
         {
-            if(farm==null) return;
+            if(farm==null || farm.Combat.IsGameOver) return;
             GUI.Box(new Rect(Screen.width-230,94,220,30),"Gold: "+Gold);
             if(!IsOpen)
             {

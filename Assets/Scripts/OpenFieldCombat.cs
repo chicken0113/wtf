@@ -16,7 +16,8 @@ namespace EverythingGrows
         [SerializeField,Range(1,5)] private int startingHearts=5;
         [SerializeField,Min(1)] private float healthPerHeart=20;
         private int removedHearts;
-        public int HeartCount => Mathf.Max(1,startingHearts-removedHearts);
+        public int HeartCount => Mathf.Max(0,startingHearts-removedHearts);
+        public bool IsGameOver { get; private set; }
         public float MaxHealth => HeartCount*healthPerHeart;
         public float Health { get; private set; } = 100;
         public Rect HudRect => new Rect(Screen.width-230,10,220,78);
@@ -28,16 +29,21 @@ namespace EverythingGrows
         }
         public bool HarvestHeart(int index)
         {
-            if(index<0 || index>=HeartCount) return false;
-            if(HeartCount<=1) { farm.Notify("Keep your last heart to stay alive."); return false; }
+            if(IsGameOver || index<0 || index>=HeartCount) return false;
             var heart=Resources.Load<PlantDefinition>("Equipment/Heart");
             if(heart==null) { farm.Notify("Heart item data is missing."); return false; }
             farm.DropItem(heart,farm.PlayerPosition+Vector2.down*.65f);
             removedHearts++; Health=Mathf.Min(Health,MaxHealth);
+            if(HeartCount==0)
+            {
+                IsGameOver=true; rollTime=0; farm.Shop?.Close();
+                farm.Notify("Game over. You harvested your last heart."); return true;
+            }
             farm.Notify("One heart harvested. Maximum HP decreased. Pick it up with RMB."); return true;
         }
         public bool RestoreHeart()
         {
+            if(IsGameOver) return false;
             if(removedHearts<=0) { farm.Notify("All heart slots are already attached."); return false; }
             removedHearts--; Health=Mathf.Min(MaxHealth,Health+healthPerHeart); return true;
         }
@@ -80,12 +86,12 @@ namespace EverythingGrows
         }
         public bool Roll(Vector2 direction)
         {
-            if(rollCooldown>0 || direction.sqrMagnitude<.01f) return false;
+            if(IsGameOver || rollCooldown>0 || direction.sqrMagnitude<.01f) return false;
             rollDirection=direction.normalized; rollTime=.2f; rollCooldown=.85f; invulnerability=Mathf.Max(invulnerability,.25f); return true;
         }
         public bool Attack(PlantDefinition weapon,Vector2 target)
         {
-            if(weapon==null || weapon.effect!=GrowthEffect.Weapon || attackCooldown>0 || IsRolling) return false;
+            if(IsGameOver || weapon==null || weapon.effect!=GrowthEffect.Weapon || attackCooldown>0 || IsRolling) return false;
             attackCooldown=weapon.attackInterval;
             Vector2 direction=(target-farm.PlayerPosition).normalized; if(direction.sqrMagnitude<.1f) direction=Vector2.right;
             if(weapon.ranged) Shoot(farm.PlayerPosition+direction*.55f,direction*10,weapon.damage,false,weapon.attackRange/10);
@@ -122,7 +128,7 @@ namespace EverythingGrows
         }
         public void DamagePlayer(float damage)
         {
-            if(invulnerability>0 || IsSafe(farm.PlayerPosition)) return;
+            if(IsGameOver || invulnerability>0 || IsSafe(farm.PlayerPosition)) return;
             Health=Mathf.Max(0,Health-damage); invulnerability=.65f; quietTime=0;
             if(Health<=0)
             {
@@ -133,7 +139,7 @@ namespace EverythingGrows
         }
         public void TickCombat(float seconds)
         {
-            if(seconds<=0 || farm==null) return;
+            if(IsGameOver || seconds<=0 || farm==null) return;
             attackCooldown=Mathf.Max(0,attackCooldown-seconds); invulnerability=Mathf.Max(0,invulnerability-seconds);
             rollCooldown=Mathf.Max(0,rollCooldown-seconds); quietTime+=seconds;
             if(rollTime>0) { float active=Mathf.Min(rollTime,seconds); farm.MovePlayer(farm.PlayerPosition+rollDirection*active*9); rollTime=Mathf.Max(0,rollTime-seconds); }
@@ -211,8 +217,19 @@ namespace EverythingGrows
             }
             GUI.color=previousColor;
             int hovered=HeartAt(Event.current.mousePosition);
-            GUI.Label(new Rect(Screen.width-218,60,208,24),hovered>=0?(HeartCount>1?"E: harvest one heart":"Keep the final heart"):
+            GUI.Label(new Rect(Screen.width-265,60,260,24),hovered>=0?(HeartCount>1?"E: harvest one heart":"E: harvest last heart (GAME OVER)"):
                 "HP "+Mathf.CeilToInt(Health)+" / "+Mathf.CeilToInt(MaxHealth)+"  |  Defeated "+Kills);
+            if(IsGameOver)
+            {
+                int previousDepth=GUI.depth; GUI.depth=-100;
+                var tint=GUI.color; GUI.color=new Color(0,0,0,.8f);
+                GUI.DrawTexture(new Rect(0,0,Screen.width,Screen.height),Texture2D.whiteTexture); GUI.color=tint;
+                var style=new GUIStyle(GUI.skin.label) {fontSize=32,fontStyle=FontStyle.Bold,alignment=TextAnchor.MiddleCenter};
+                GUI.Label(new Rect(0,Screen.height*.5f-60,Screen.width,60),"GAME OVER",style);
+                style.fontSize=16; style.fontStyle=FontStyle.Normal;
+                GUI.Label(new Rect(0,Screen.height*.5f,Screen.width,60),"You harvested your last heart.\nRestart Play to try again.",style);
+                GUI.depth=previousDepth; return;
+            }
             var camera=Camera.main;
             foreach(var enemy in enemies) if(enemy.health>0 && Vector2.Distance(farm.PlayerPosition,enemy.model.transform.position)<7)
             {

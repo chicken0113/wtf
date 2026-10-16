@@ -194,7 +194,7 @@ namespace EverythingGrows
         }
         public void Tick(float seconds)
         {
-            if(seconds<=0) return;
+            if(seconds<=0 || (combat!=null && combat.IsGameOver)) return;
             var snapshot=new List<Plot>(plots.Values);
             foreach(var plot in snapshot)
             {
@@ -294,6 +294,7 @@ namespace EverythingGrows
         private void Update()
         {
             if(player==null) return;
+            if(combat.IsGameOver) { plantingPreview.enabled=false; return; }
             var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
             int hoveredHeart=combat.HeartAt(guiMouse);
             if(Input.GetKeyDown(KeyCode.E) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
@@ -374,7 +375,7 @@ namespace EverythingGrows
         }
         private void OnGUI()
         {
-            if(player==null) return;
+            if(player==null || combat.IsGameOver) return;
             titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
             smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
             Panel(new Rect(10,10,520,showHelp?174:62),new Color(.48f,.3f,.17f,.95f));
