@@ -81,12 +81,12 @@ public static class PersistencePlayCheck
                 Require(farm.AddItem(seed) && farm.PlantSelected(new Vector2Int(1,-2)),"Test crop planting");
                 farm.Water(new Vector2(1,-2),.1f); farm.Tick(seed.growthSeconds*.25f);
                 Require(farm.Combat.HarvestHeart(0),"Test heart harvest");
-                farm.MovePlayer(new Vector2(22,14)); farm.Combat.DamagePlayer(farm.Combat.HalfHeartHealth);
+                farm.TeleportPlayer(new Vector2(22,14)); farm.Combat.DamagePlayer(farm.Combat.HalfHeartHealth);
                 var building=farm.GetComponentInChildren<FarmBuilding>(); var renderer=building.GetComponentInChildren<SpriteRenderer>();
-                var point=new Vector2(renderer.bounds.center.x,renderer.bounds.min.y+.1f); farm.MovePlayer(point-Vector2.up*.6f);
+                var point=new Vector2(renderer.bounds.center.x,renderer.bounds.min.y+.1f); farm.TeleportPlayer(point-Vector2.up*.6f);
                 Require(farm.HarvestBuildingAt(point),"Authored house harvest");
                 farm.RemoveInventoryItem(0); farm.AddItem(Resources.Load<PlantDefinition>("Buildings/UpgradedHouse"));
-                farm.MovePlayer(new Vector2(-5,-5)); Require(farm.PlaceHouse(new Vector2(-5,-3)),"Test house placement");
+                farm.TeleportPlayer(new Vector2(-5,-5)); Require(farm.PlaceHouse(new Vector2(-5,-3)),"Test house placement");
                 var slot=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/InventorySlot.asset");
                 farm.AddItem(slot); Require(farm.PlantSelected(new Vector2Int(-1,-3)),"Storage crop fixture failed");
                 farm.Water(new Vector2(-1,-3),.1f); farm.Tick(slot.growthSeconds);

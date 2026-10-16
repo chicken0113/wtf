@@ -17,11 +17,11 @@ public static class HeartHarvestCheck
         Check(heart!=null && heart.effect==GrowthEffect.Heart,"Missing heart data");
         Check(combat.HeartCount==5 && combat.MaxHealth==100,"Default hearts");
         Check(combat.HeartAt(combat.HeartRect(2).center)==2 && combat.HeartAt(Vector2.zero)==-1,"Heart hover detection");
-        farm.MovePlayer(new Vector2(22,14)); combat.DamagePlayer(combat.HalfHeartHealth);
+        farm.TeleportPlayer(new Vector2(22,14)); combat.DamagePlayer(combat.HalfHeartHealth);
         Check(combat.Health==90 && combat.HeartFill(4)==.5f && combat.HeartFill(3)==1,"Half heart damage display failed");
         combat.TickCombat(.7f); combat.DamagePlayer(combat.HalfHeartHealth);
         Check(combat.Health==80 && combat.HeartFill(4)==0 && combat.HeartCount==5,"Empty heart display failed");
-        farm.MovePlayer(farm.SpawnPosition); combat.TickCombat(5);
+        farm.TeleportPlayer(farm.SpawnPosition); combat.TickCombat(5);
         var hoe=UnityEditor.AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset");
         while(farm.AddItem(hoe)) {}
         int fullPieces=farm.WorldPieceCount;
@@ -38,7 +38,7 @@ public static class HeartHarvestCheck
         for(int i=0;i<4;i++) Check(combat.HarvestHeart(0),"Repeated individual harvest failed");
         pieces=farm.WorldPieceCount;
         Check(combat.HeartCount==1 && !combat.IsGameOver,"Premature game over");
-        farm.MovePlayer(new Vector2(22,14)); combat.TickCombat(1); combat.DamagePlayer(200);
+        farm.TeleportPlayer(new Vector2(22,14)); combat.TickCombat(1); combat.DamagePlayer(200);
         Check(combat.Health==20 && combat.MaxHealth==20,"Death restored removed heart capacity");
         Check(farm.Till(Vector2Int.zero) && farm.AddItem(heart) && farm.PlantSelected(Vector2Int.zero),"Heart cannot be planted");
         farm.Water(Vector2.zero,.1f); farm.Tick(heart.growthSeconds);

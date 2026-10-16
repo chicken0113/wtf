@@ -16,7 +16,7 @@ public static class HousePlantingCheck
         var original=farm.GetComponentInChildren<FarmBuilding>();
         var originalVisual=original.GetComponentInChildren<SpriteRenderer>(); float originalWidth=originalVisual.bounds.size.x;
         var point=new Vector2(originalVisual.bounds.center.x,originalVisual.bounds.min.y+.1f);
-        farm.MovePlayer(point-Vector2.up*.6f);
+        farm.TeleportPlayer(point-Vector2.up*.6f);
         var hoe=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset");
         while(farm.AddItem(hoe)) {}
         int pieces=farm.WorldPieceCount;
@@ -26,7 +26,7 @@ public static class HousePlantingCheck
         Check(farm.DetachAt(farm.PlayerPosition+Vector2.down*.65f),"Dropped house cannot be picked up");
         var house=Resources.Load<PlantDefinition>("Buildings/House"); var upgraded=house.harvestResult;
         Check(farm.SelectedItem==house && upgraded!=null,"House upgrade data missing");
-        var cell=new Vector2Int(1,-2); farm.MovePlayer(new Vector2(1,-4));
+        var cell=new Vector2Int(1,-2); farm.TeleportPlayer(new Vector2(1,-4));
         Check(farm.PlantSelected(cell),"House cannot be planted");
         var visual=farm.GetComponentsInChildren<SpriteRenderer>().First(r=>r.name=="Growing House");
         Check(visual.sprite.texture==house.itemSprite.texture && visual.sprite.rect.height<house.itemSprite.rect.height && visual.bounds.size.x<=1,"Buried house appearance incorrect");
@@ -44,12 +44,12 @@ public static class HousePlantingCheck
         Check(farm.HarvestBuildingAt(cell) && farm.Capacity==5 && farm.InventoryCount==5 && farm.WorldPieceCount==pieces+1,"Full inventory house harvest lost items or changed capacity");
         Check(farm.GetComponentsInChildren<FarmBuilding>().Length==0,"Harvested house remained installed");
         while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
-        farm.AddItem(upgraded); farm.MovePlayer(new Vector2(7,-5));
+        farm.AddItem(upgraded); farm.TeleportPlayer(new Vector2(7,-5));
         Check(farm.PlaceHouse(new Vector2(7,-3)),"House cannot be installed elsewhere");
         farm.AddItem(house); int carried=farm.InventoryCount;
         Check(!farm.PlaceHouse(new Vector2(7,-3)) && farm.InventoryCount==carried,"Overlapping placement consumed house");
         while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
-        farm.MovePlayer(new Vector2(1,-4));
+        farm.TeleportPlayer(new Vector2(1,-4));
         var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"); farm.AddItem(seed); farm.PlantSelected(cell);
         while(farm.AddItem(hoe)) {}
         farm.Water(cell,.1f); farm.Tick(seed.growthSeconds); pieces=farm.WorldPieceCount;

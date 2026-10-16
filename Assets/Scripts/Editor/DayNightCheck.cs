@@ -17,7 +17,7 @@ public static class DayNightCheck
         var npc=farm.GetComponentInChildren<ShopNpc>(); var renderer=npc.GetComponent<SpriteRenderer>();
         int enemies=farm.Layout.GetComponentsInChildren<EnemyPlacement>().Count(marker=>!farm.IsSafe(marker.transform.position));
         Check(enemies>0 && cycle.ShopsOpen && !cycle.MonstersActive && farm.Combat.EnemyCount==0 && cycle.Darkness==0,"Daylight schedule incorrect");
-        farm.MovePlayer(npc.transform.position-Vector3.up);
+        farm.TeleportPlayer(npc.transform.position-Vector3.up);
         Check(npc.IsVisiting && renderer.enabled && shop.Open(npc) && shop.Buy(0),"Daylight merchant unavailable");
         int gold=shop.Gold, carried=farm.InventoryCount;
         cycle.Tick(settings.daylightSeconds);

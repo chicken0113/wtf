@@ -11,6 +11,9 @@ namespace EverythingGrows
         private float attackCooldown, invulnerability, rollTime, rollCooldown, quietTime;
         private Vector2 rollDirection;
         private bool nightActive;
+        [SerializeField,Min(.1f)] private float enemyRadius=.35f;
+        private MapCollision collision;
+        private MapCollision enemyCollision;
         private readonly List<Enemy> enemies=new();
         private readonly List<Shot> shots=new();
         private readonly List<Flash> flashes=new();
@@ -67,7 +70,9 @@ namespace EverythingGrows
         private bool IsSafe(Vector2 point) => farm.IsSafe(point);
         private sealed class Enemy
         {
-            public Vector2 home, aim;
+            public Vector2 home, aim, pathGoal;
+            public List<Vector2> path=new();
+            public float repath;
             public SpriteRenderer model, warning;
             public bool ranged;
             public float health=55,cooldown=1,windup,respawn;
@@ -103,7 +108,7 @@ namespace EverythingGrows
             nightActive=active;
             foreach(var enemy in enemies)
             {
-                enemy.windup=0; enemy.warning.enabled=false;
+                enemy.windup=0; enemy.warning.enabled=false; enemy.path.Clear(); enemy.repath=0;
                 if(active) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.cooldown=1; enemy.respawn=0; }
                 enemy.model.enabled=active && enemy.health>0;
             }
@@ -120,15 +125,16 @@ namespace EverythingGrows
             if(IsGameOver || weapon==null || weapon.effect!=GrowthEffect.Weapon || attackCooldown>0 || IsRolling) return false;
             attackCooldown=weapon.attackInterval;
             Vector2 direction=(target-farm.PlayerPosition).normalized; if(direction.sqrMagnitude<.1f) direction=Vector2.right;
-            if(weapon.ranged) Shoot(farm.PlayerPosition+direction*.55f,direction*10,weapon.damage,false,weapon.attackRange/10);
+            if(weapon.ranged) Shoot(farm.PlayerPosition,direction*10,weapon.damage,false,weapon.attackRange/10);
             else
             {
                 var flash=Draw("Sword swing",farm.PlayerPosition+direction*.9f,new Vector2(weapon.attackRange,.13f),new Color(1,.9f,.45f));
                 flash.transform.rotation=Quaternion.Euler(0,0,Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg); flashes.Add(new Flash {model=flash});
+                var attackCollision=new MapCollision(farm);
                 foreach(var enemy in enemies)
                 {
                     Vector2 offset=(Vector2)enemy.model.transform.position-farm.PlayerPosition;
-                    if(nightActive && enemy.health>0 && offset.magnitude<=weapon.attackRange+.35f && (offset.magnitude<.35f || Vector2.Dot(direction,offset.normalized)>.35f)) Hit(enemy,weapon.damage,direction);
+                    if(nightActive && enemy.health>0 && offset.magnitude<=weapon.attackRange+.35f && attackCollision.Trace(farm.PlayerPosition,enemy.model.transform.position,0,true)>=1 && (offset.magnitude<.35f || Vector2.Dot(direction,offset.normalized)>.35f)) Hit(enemy,weapon.damage,direction);
                 }
             }
             return true;
@@ -149,7 +155,7 @@ namespace EverythingGrows
             else
             {
                 Vector2 pushed=(Vector2)enemy.model.transform.position+direction*.35f;
-                if(!IsSafe(pushed)) enemy.model.transform.position=pushed;
+                enemy.model.transform.position=new MapCollision(farm,true).Move(enemy.model.transform.position,pushed,enemyRadius);
             }
         }
         public void DamagePlayer(float damage)
@@ -160,13 +166,14 @@ namespace EverythingGrows
             if(Health<=0)
             {
                 // Solo prototype recovery; inventory is preserved. Planted resurrection is a later milestone.
-                farm.MovePlayer(farm.SpawnPosition); Health=MaxHealth; invulnerability=1.5f; rollTime=0;
+                farm.TeleportPlayer(farm.SpawnPosition); Health=MaxHealth; invulnerability=1.5f; rollTime=0;
                 farm.Notify("You collapsed. Returned to the farm; your items are safe.");
             }
         }
         public void TickCombat(float seconds)
         {
             if(IsGameOver || seconds<=0 || farm==null) return;
+            collision=new MapCollision(farm); enemyCollision=new MapCollision(farm,true);
             attackCooldown=Mathf.Max(0,attackCooldown-seconds); invulnerability=Mathf.Max(0,invulnerability-seconds);
             rollCooldown=Mathf.Max(0,rollCooldown-seconds); quietTime+=seconds;
             if(rollTime>0) { float active=Mathf.Min(rollTime,seconds); farm.MovePlayer(farm.PlayerPosition+rollDirection*active*9); rollTime=Mathf.Max(0,rollTime-seconds); }
@@ -184,7 +191,7 @@ namespace EverythingGrows
                 bool active=!IsSafe(farm.PlayerPosition) && offset.magnitude<7;
                 enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10);
                 enemy.model.flipX=offset.x<0;
-                if(!active) { enemy.windup=0; enemy.warning.enabled=false; enemy.model.transform.position=Vector2.MoveTowards(point,enemy.home,seconds*1.7f); enemy.cooldown=Mathf.Max(.5f,enemy.cooldown-seconds); continue; }
+                if(!active) { enemy.windup=0; enemy.warning.enabled=false; MoveEnemy(enemy,enemy.home,seconds*1.7f,seconds); enemy.cooldown=Mathf.Max(.5f,enemy.cooldown-seconds); continue; }
                 if(enemy.windup>0)
                 {
                     enemy.windup-=seconds; enemy.warning.enabled=true;
@@ -193,34 +200,82 @@ namespace EverythingGrows
                     {
                         enemy.warning.enabled=false;
                         if(enemy.ranged) Shoot(point,enemy.aim*4.5f,HalfHeartHealth,true);
-                        else if(offset.magnitude<1.35f) DamagePlayer(HalfHeartHealth);
+                        else if(offset.magnitude<1.35f && collision.Trace(point,farm.PlayerPosition,0,true)>=1) DamagePlayer(HalfHeartHealth);
                         enemy.cooldown=enemy.ranged?1.7f:1;
                     }
                     continue;
                 }
                 enemy.cooldown-=seconds;
                 float reach=enemy.ranged?4.8f:1.05f;
-                if(offset.magnitude<=reach && enemy.cooldown<=0) { enemy.windup=.5f; enemy.aim=offset.normalized; }
-                else if(offset.magnitude>reach*.85f)
+                if(offset.magnitude<=reach && enemy.cooldown<=0 && collision.Trace(point,farm.PlayerPosition,.1f,true)>=1) { enemy.windup=.5f; enemy.aim=offset.normalized; }
+                else if(offset.magnitude>reach*.85f || collision.Trace(point,farm.PlayerPosition,.1f,true)<1)
                 {
-                    Vector2 next=Vector2.MoveTowards(point,farm.PlayerPosition,seconds*(enemy.ranged?1.3f:2));
-                    if(!IsSafe(next)) enemy.model.transform.position=next;
+                    MoveEnemy(enemy,farm.PlayerPosition,seconds*(enemy.ranged?1.3f:2),seconds);
                 }
             }
+            SeparateEnemies(seconds);
             for(int i=shots.Count-1;i>=0;i--)
             {
-                var shot=shots[i]; Vector2 start=shot.model.transform.position, end=start+shot.velocity*Mathf.Min(seconds,shot.life); shot.life-=seconds; bool hit=false;
+                var shot=shots[i]; Vector2 start=shot.model.transform.position, end=start+shot.velocity*Mathf.Min(seconds,shot.life);
+                shot.life-=seconds; float radius=shot.hostile?.11f:.06f;
+                float wall=collision.Trace(start,end,radius,true), first=wall;
+                Enemy victim=null; bool playerHit=false;
                 if(shot.hostile)
                 {
-                    if(IsSafe(end)) hit=true;
-                    else if(SegmentDistance(start,end,farm.PlayerPosition)<.35f) { DamagePlayer(shot.damage); hit=true; }
+                    if(MapCollision.Intersect(start,end,farm.SafeBounds,out float safeEntry)) first=Mathf.Min(first,safeEntry);
+                    if(!IsSafe(farm.PlayerPosition) && SegmentCircle(start,end,farm.PlayerPosition,farm.PlayerRadius+radius,out float entry) && entry<first)
+                    { first=entry; playerHit=true; }
                 }
-                else foreach(var enemy in enemies) if(nightActive && enemy.health>0 && SegmentDistance(start,end,enemy.model.transform.position)<.5f)
-                { Hit(enemy,shot.damage,shot.velocity.normalized); hit=true; break; }
-                shot.model.transform.position=end;
-                if(hit || shot.life<=0) { Remove(shot.model.gameObject); shots.RemoveAt(i); }
+                else foreach(var enemy in enemies)
+                {
+                    if(nightActive && enemy.health>0 && SegmentCircle(start,end,enemy.model.transform.position,enemyRadius+radius,out float entry) && entry<first)
+                    { first=entry; victim=enemy; }
+                }
+                if(playerHit) DamagePlayer(shot.damage);
+                if(victim!=null) Hit(victim,shot.damage,shot.velocity.normalized);
+                shot.model.transform.position=Vector2.Lerp(start,end,first);
+                if(first<1 || shot.life<=0) { Remove(shot.model.gameObject); shots.RemoveAt(i); }
             }
             for(int i=flashes.Count-1;i>=0;i--) { flashes[i].time-=seconds; if(flashes[i].time<=0) { Remove(flashes[i].model.gameObject); flashes.RemoveAt(i); } }
+        }
+        private void MoveEnemy(Enemy enemy,Vector2 target,float distance,float seconds)
+        {
+            Vector2 start=enemy.model.transform.position;
+            enemy.repath-=seconds;
+            Vector2 waypoint=target;
+            if(enemyCollision.Trace(start,target,enemyRadius)<1)
+            {
+                if(enemy.repath<=0 || Vector2.Distance(enemy.pathGoal,target)>.75f)
+                { enemy.path=enemyCollision.FindPath(start,target,enemyRadius); enemy.pathGoal=target; enemy.repath=.6f; }
+                while(enemy.path.Count>0 && Vector2.Distance(start,enemy.path[0])<.12f) enemy.path.RemoveAt(0);
+                if(enemy.path.Count==0) return;
+                waypoint=enemy.path[0];
+            }
+            else { enemy.path.Clear(); enemy.repath=0; }
+            enemy.model.transform.position=enemyCollision.Move(start,Vector2.MoveTowards(start,waypoint,distance),enemyRadius);
+        }
+        private void SeparateEnemies(float seconds)
+        {
+            if(!nightActive) return;
+            for(int i=0;i<enemies.Count;i++) for(int j=i+1;j<enemies.Count;j++)
+            {
+                var a=enemies[i]; var b=enemies[j]; if(a.health<=0 || b.health<=0) continue;
+                Vector2 pa=a.model.transform.position,pb=b.model.transform.position,delta=pa-pb;
+                float distance=delta.magnitude; if(distance>=enemyRadius*2) continue;
+                Vector2 direction=distance>.001f?delta/distance:((i+j)%2==0?Vector2.right:Vector2.up);
+                float push=Mathf.Min((enemyRadius*2-distance)*.5f,seconds*2);
+                a.model.transform.position=enemyCollision.Move(pa,pa+direction*push,enemyRadius);
+                b.model.transform.position=enemyCollision.Move(pb,pb-direction*push,enemyRadius);
+            }
+        }
+        public static bool SegmentCircle(Vector2 start,Vector2 end,Vector2 center,float radius,out float entry)
+        {
+            entry=0; Vector2 delta=end-start,offset=start-center;
+            float c=offset.sqrMagnitude-radius*radius; if(c<=0) return true;
+            float a=delta.sqrMagnitude; if(a<.000001f) return false;
+            float b=Vector2.Dot(offset,delta),discriminant=b*b-a*c;
+            if(discriminant<0) return false;
+            entry=(-b-Mathf.Sqrt(discriminant))/a; return entry>=0 && entry<=1;
         }
         public static float SegmentDistance(Vector2 start,Vector2 end,Vector2 point)
         {

@@ -139,3 +139,7 @@ Tab으로 인벤토리를 열고 닫으며 보유 골드는 인벤토리 안에�
 ## 맵 이동과 자동 저장
 
 맵별 밭·성장·드롭·집 상태를 유지하고 맵 이동 때 자동 저장합니다. 출입구와 도착 지점은 씬에 프리팹으로 배치합니다. 설정 방법과 저장 범위는 [MAP_TRAVEL_AND_SAVES.md](Docs/MAP_TRAVEL_AND_SAVES.md)를 참고하세요.
+
+## 이동과 장애물
+
+벽·바위 등에 MapObstacle을 붙여 이동과 탄환을 막습니다. 씬 배치와 판정 설정은 [MOVEMENT_AND_OBSTACLES.md](Docs/MOVEMENT_AND_OBSTACLES.md)를 참고하세요.

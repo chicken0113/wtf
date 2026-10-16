@@ -52,18 +52,25 @@ namespace EverythingGrows
         public Vector2 PlayerPosition => player==null?Vector2.zero:(Vector2)player.position;
         public PlantDefinition SelectedItem => Held;
         public void Notify(string text) => message=text;
+        [SerializeField,Min(.05f)] private float playerRadius=.25f;
+        public float PlayerRadius => playerRadius;
         public void MovePlayer(Vector2 point)
         {
             if(player==null) return;
-            point=new Vector2(Mathf.Clamp(point.x,WorldBounds.xMin+.5f,WorldBounds.xMax-.5f),Mathf.Clamp(point.y,WorldBounds.yMin+.5f,WorldBounds.yMax-.5f));
-            var buildings=GetComponentsInChildren<FarmBuilding>();
-            bool Blocked(Vector2 candidate) { foreach(var building in buildings) if(building.Blocks(candidate)) return true; return false; }
-            if(Blocked(point))
-            {
-                Vector2 horizontal=new Vector2(point.x,player.position.y),vertical=new Vector2(player.position.x,point.y);
-                point=!Blocked(horizontal)?horizontal:!Blocked(vertical)?vertical:(Vector2)player.position;
-            }
-            player.position=new Vector3(point.x,point.y,0);
+            Vector2 resolved=new MapCollision(this).Move(PlayerPosition,point,playerRadius);
+            player.position=new Vector3(resolved.x,resolved.y,0);
+        }
+        // Respawn, saved positions and map arrivals are placement, not swept movement.
+        public void TeleportPlayer(Vector2 point)
+        {
+            if(player==null) return;
+            player.position=new Vector3(Mathf.Clamp(point.x,WorldBounds.xMin+playerRadius,WorldBounds.xMax-playerRadius),Mathf.Clamp(point.y,WorldBounds.yMin+playerRadius,WorldBounds.yMax-playerRadius),0);
+        }
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color=Color.cyan;
+            Vector2 point=player!=null?PlayerPosition:SpawnPosition;
+            Gizmos.DrawWireCube(point,Vector2.one*playerRadius*2);
         }
         public void DropCombatMaterial(Vector2 point,bool ranged) { var item=Resources.Load<PlantDefinition>("Equipment/"+(ranged?"Bow":"Sword")); if(item!=null) Spawn(item,point); }
         private GUIStyle titleStyle, smallStyle;
@@ -268,7 +275,7 @@ namespace EverythingGrows
             var footprint=HouseFootprint(item,point);
             var source=art.ItemSprite(item); float height=item.matureDisplaySize*source.bounds.size.y/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
             var visual=new Rect(point+new Vector2(-item.matureDisplaySize*.5f,-.18f),new Vector2(item.matureDisplaySize,height));
-            if(!WorldBounds.Contains(visual.min) || !WorldBounds.Contains(visual.max) || footprint.Contains(PlayerPosition)) return false;
+            if(!WorldBounds.Contains(visual.min) || !WorldBounds.Contains(visual.max) || footprint.Overlaps(new Rect(PlayerPosition-Vector2.one*playerRadius,Vector2.one*playerRadius*2))) return false;
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(footprint.Overlaps(building.WorldFootprint)) return false;
             foreach(var plot in plots.Values) if(plot.plant!=null && footprint.Overlaps(new Rect((Vector2)plot.cell-Vector2.one*.4f,Vector2.one*.8f))) return false;
             foreach(var npc in GetComponentsInChildren<ShopNpc>()) if(npc.IsVisiting && footprint.Contains(npc.transform.position)) return false;

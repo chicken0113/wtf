@@ -98,9 +98,9 @@ namespace EverythingGrows
                 {
                     farm.RestorePlayer(data.player,catalog);
                     farm.Cycle.RestoreElapsed(data.player.cycleElapsed);
-                    if(data.currentScene==scene) farm.MovePlayer(data.player.position);
+                    if(data.currentScene==scene) farm.TeleportPlayer(data.player.position);
                 }
-                if(arrival!=null) farm.MovePlayer(arrival.transform.position);
+                if(arrival!=null) farm.TeleportPlayer(arrival.transform.position);
                 if(map!=null) farm.Tick(Mathf.Max(0,(float)(data.worldSeconds-map.updatedAt)));
                 farm.ReconcileRestoredInventory();
                 current=farm;

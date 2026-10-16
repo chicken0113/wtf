@@ -58,7 +58,7 @@ public static class OpenFieldPlayCheck
             }
             if(shopFrames==20)
             {
-                var npc=farm.GetComponentInChildren<ShopNpc>(); farm.MovePlayer(npc.transform.position-Vector3.up);
+                var npc=farm.GetComponentInChildren<ShopNpc>(); farm.TeleportPlayer(npc.transform.position-Vector3.up);
                 if(!farm.Shop.Open(npc)) throw new Exception("Merchant cannot open alongside inventory");
             }
             if(shopFrames++<30) return;
@@ -94,7 +94,7 @@ public static class OpenFieldPlayCheck
             if(shopFrames==0)
             {
                 var npc=farm.GetComponentInChildren<ShopNpc>();
-                farm.MovePlayer(npc.transform.position-Vector3.up);
+                farm.TeleportPlayer(npc.transform.position-Vector3.up);
                 int gold=farm.Shop.Gold;
                 if(!farm.Shop.Open(npc) || !farm.Shop.Buy(0) || !farm.Shop.Sell(0) || farm.Shop.Gold>=gold) { Finish(false,"Runtime shop transaction failed"); return; }
             }

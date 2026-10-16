@@ -38,7 +38,7 @@ public static class DailyFarmingSetup
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false);
         void Check(bool ok,string reason) { if(!ok) throw new Exception(reason); }
         var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"); var tomato=Resources.Load<PlantDefinition>("Crops/TomatoSeeds");
-        farm.MovePlayer(new Vector2(0,-2));
+        farm.TeleportPlayer(new Vector2(0,-2));
         Check(farm.AddItem(seed) && farm.InteractPlot(new Vector2Int(0,-2)),"Seed planting");
         farm.Tick(seed.growthSeconds*2); Check(farm.CropProgress(new Vector2Int(0,-2))==0,"Dry crop grew");
         farm.Water(new Vector2(0,-2),.1f); farm.Tick(seed.growthSeconds*.5f);
@@ -64,7 +64,7 @@ public static class DailyFarmingSetup
         Check(farm.AddItem(seed) && farm.AddItem(seed) && farm.InventoryCount==1 && farm.InventoryQuantity(0)==2,"Seeds do not stack");
         Check(farm.InteractPlot(new Vector2Int(1,-2)) && farm.InventoryQuantity(0)==1,"Planting consumed entire stack");
         var hoe=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset"); while(farm.AddItem(hoe)) {}
-        farm.MovePlayer(new Vector2(.5f,1));
+        farm.TeleportPlayer(new Vector2(.5f,1));
         var npc=farm.GetComponentInChildren<ShopNpc>(); Check(farm.Shop.Open(npc),"Stack trade shop unavailable");
         int seedIndex=farm.Shop.npcs[0].offers.FindIndex(offer=>offer.item==seed); int gold=farm.Shop.Gold;
         Check(farm.Shop.Buy(seedIndex) && farm.InventoryQuantity(0)==2 && farm.Shop.Gold==gold-20,"Full inventory cannot buy into an existing stack");
