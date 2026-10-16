@@ -20,6 +20,12 @@ namespace EverythingGrows
         public int HeartCount => Mathf.Max(0,startingHearts-removedHearts);
         public bool IsGameOver { get; private set; }
         public float MaxHealth => HeartCount*healthPerHeart;
+        public float HalfHeartHealth => healthPerHeart*.5f;
+        public float HeartFill(int index)
+        {
+            float filledHalves=Mathf.Floor(Health/HalfHeartHealth+.0001f);
+            return Mathf.Clamp01((filledHalves-index*2)*.5f);
+        }
         public float Health { get; private set; } = 100;
         public Rect HudRect => new Rect(14,14,HeartCount*38,32);
         public Rect HeartRect(int index) => new Rect(HudRect.x+2+index*38,HudRect.y+2,32,28);
@@ -33,14 +39,14 @@ namespace EverythingGrows
             if(IsGameOver || index<0 || index>=HeartCount) return false;
             var heart=Resources.Load<PlantDefinition>("Equipment/Heart");
             if(heart==null) { farm.Notify("Heart item data is missing."); return false; }
-            farm.DropItem(heart,farm.PlayerPosition+Vector2.down*.65f);
+            if(!farm.AddItem(heart)) return false;
             removedHearts++; Health=Mathf.Min(Health,MaxHealth);
             if(HeartCount==0)
             {
                 IsGameOver=true; rollTime=0; farm.Shop?.Close();
                 farm.Notify("Game over. You harvested your last heart."); return true;
             }
-            farm.Notify("One heart harvested. Maximum HP decreased. Pick it up with RMB."); return true;
+            farm.Notify("One heart harvested into your inventory. Maximum HP decreased."); return true;
         }
         public bool RestoreHeart()
         {
@@ -142,8 +148,9 @@ namespace EverythingGrows
         }
         public void DamagePlayer(float damage)
         {
-            if(IsGameOver || invulnerability>0 || IsSafe(farm.PlayerPosition)) return;
-            Health=Mathf.Max(0,Health-damage); invulnerability=.65f; quietTime=0;
+            if(IsGameOver || damage<=0 || invulnerability>0 || IsSafe(farm.PlayerPosition)) return;
+            float steppedDamage=Mathf.Ceil(damage/HalfHeartHealth)*HalfHeartHealth;
+            Health=Mathf.Max(0,Health-steppedDamage); invulnerability=.65f; quietTime=0;
             if(Health<=0)
             {
                 // Solo prototype recovery; inventory is preserved. Planted resurrection is a later milestone.
@@ -179,8 +186,8 @@ namespace EverythingGrows
                     if(enemy.windup<=0)
                     {
                         enemy.warning.enabled=false;
-                        if(enemy.ranged) Shoot(point,enemy.aim*4.5f,12,true);
-                        else if(offset.magnitude<1.35f) DamagePlayer(16);
+                        if(enemy.ranged) Shoot(point,enemy.aim*4.5f,HalfHeartHealth,true);
+                        else if(offset.magnitude<1.35f) DamagePlayer(HalfHeartHealth);
                         enemy.cooldown=enemy.ranged?1.7f:1;
                     }
                     continue;
@@ -221,8 +228,8 @@ namespace EverythingGrows
             var previousColor=GUI.color;
             for(int i=0;i<HeartCount;i++)
             {
-                var rect=HeartRect(i); GUI.color=new Color(.24f,.16f,.18f); art.Icon(rect,29);
-                float fill=Mathf.Clamp01((Health-i*healthPerHeart)/healthPerHeart);
+                var rect=HeartRect(i); GUI.color=new Color(.55f,.5f,.5f); art.Icon(rect,30);
+                float fill=HeartFill(i);
                 if(fill>0)
                 {
                     GUI.color=Color.white;
