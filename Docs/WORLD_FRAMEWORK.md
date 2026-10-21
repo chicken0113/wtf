@@ -10,17 +10,17 @@
 ```
 
 - **FirstGarden**: 기존 농사·집·상인. 청록색 문과 주황색 통로가 마을로 이어집니다.
-- **Town**: 안전한 마을. 64×44 크기에 중앙 광장·분수, 길드·대장간·잡화점, 주택 외관 10채, 마당·골목·해안 산책길과 주민 3명이 있습니다.
+- **Town**: 안전한 마을. 64×60 크기이며 펠리컨 타운 지도를 기준으로 북쪽 회관·공원, 중앙 잡화점·광장, 남서쪽 주택, 동쪽 강·다리·대장간과 주민 3명을 배치했습니다. 그래픽은 기존 프로젝트 에셋입니다.
 - **GeneralStore**: 카운터·진열대·상인이 있는 실내. 낮에 기존 물품을 구매하고 인벤토리 물품을 판매합니다.
 - **CombatTest**: 기존 전투 테스트 공간. 입구에서 마을로 돌아옵니다.
 
-사용자 스케치 기준으로 마을 서쪽은 농장 방향, 북쪽은 던전 방향입니다. 잡화점과 주택은 남서쪽, 길드는 북서쪽, 대장간은 북동쪽입니다. **청록색은 E키, 주황색은 몸이 닿으면 이동**합니다. 잡화점 앞 청록색 발판에서 E로 들어가고, 실내 아래쪽 발판에서 E로 나옵니다.
+사용자 스케치 기준으로 마을 서쪽은 농장 방향, 북쪽은 던전 방향입니다. 펠리컨 타운 재배치에 따라 잡화점은 중앙 광장 북쪽, 주택은 남서쪽, 회관은 북쪽, 대장간은 강 건너 남동쪽입니다. **청록색은 E키, 주황색은 몸이 닿으면 이동**합니다. 잡화점 앞 청록색 발판에서 E로 들어가고, 실내 아래쪽 발판에서 E로 나옵니다.
 
 마을과 농장은 안전합니다. 주민 Mira·Rowan·June은 가까이에서 E로 대화합니다. 대화창은 E / Esc / Tab 또는 Close로 닫습니다. 주민은 밤에도 남으며, 잡화점 상인은 기존 낮 영업 규칙을 따릅니다. 대장장이와 주택은 현재 마을 외관·대화 역할입니다.
 
 ## 씬에서 편집
 
-- `Assets/Scenes/Town.unity`의 `EditableMap` 아래 Ground and paths / Buildings / Residential neighborhoods / Plaza and decorations / Residents / Travel 그룹을 편집합니다.
+- `Assets/Scenes/Town.unity`의 `EditableMap` 아래 Ground and paths / Buildings / Town districts / Plaza and decorations / Residents / Travel 그룹을 편집합니다.
 - `Assets/Scenes/GeneralStore.unity`의 Interior 그룹에서 카운터·벽·진열대, Merchant에서 상인 위치를 편집합니다.
 - 마을 건물 프리팹: `Assets/Prefabs/Map/TownGeneralStore.prefab`, `TownSmith.prefab`, `TownHouse.prefab`.
 - 건물의 MapObstacle은 발밑 충돌 영역입니다. 건물 전체 그림과 독립적으로 조절할 수 있습니다.
@@ -51,7 +51,7 @@
 
 ## 현재 작업 기준과 연결 점검
 
-현재 마을은 사용자 그림의 주요 시설 위치 관계를 반영했고, 후속 요청으로 주택가와 해안 길을 추가했습니다. 세부 배치는 Scene에서 계속 수정할 수 있습니다. 농장·던전 내부의 상세 배치는 아직 보류 상태입니다. 데모 전체 목록은 [DEMO_ROADMAP.md](DEMO_ROADMAP.md)를 기준으로 합니다.
+현재 마을은 후속 수정 요청에 따라 펠리컨 타운 지도의 시설·길·강 배치를 기준으로 재구성했습니다. 세부 배치는 Scene에서 계속 수정할 수 있습니다. 농장·던전 내부의 상세 배치는 아직 보류 상태입니다. 데모 전체 목록은 [DEMO_ROADMAP.md](DEMO_ROADMAP.md)를 기준으로 합니다.
 
 `Tools > Everything Grows > World > Validate world connections`를 실행하면 네 씬의 Build Settings 등록, 출입구 목적지와 도착 ID, 중복 ID, 막힌 도착·스폰 위치, NPC 프로필 누락을 검사합니다. 오류는 Console에서 확인합니다. 도구는 배치를 수정하거나 씬을 저장하지 않습니다. 이 검사는 전체 지형에서 목적지까지 걸어갈 수 있는지를 보장하는 경로 탐색 검사는 아닙니다.
 
@@ -60,4 +60,4 @@
 
 ## 사용자 초안 적용
 
-최신 위치 기준은 [MAP_LAYOUT_PLAN.md](MAP_LAYOUT_PLAN.md)입니다. 마을 남쪽은 해안이며 동쪽과 북쪽·남쪽에 추가 주택가를 배치했습니다. 농장과 던전에는 Farm Dungeon Shortcut을 추가해 마을을 거치지 않고 이동할 수 있습니다. 기존 출입구의 도착 ID와 상점 실내 연결은 유지합니다.
+최신 위치 기준은 [MAP_LAYOUT_PLAN.md](MAP_LAYOUT_PLAN.md)입니다. 마을 동쪽과 남쪽으로 강이 이어지며 세 다리를 배치했습니다. 시설 위치의 최신 기준은 펠리컨 타운 지도입니다. 농장과 던전에는 Farm Dungeon Shortcut을 추가해 마을을 거치지 않고 이동할 수 있습니다. 기존 출입구의 도착 ID와 상점 실내 연결은 유지합니다.

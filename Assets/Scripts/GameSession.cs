@@ -98,7 +98,13 @@ namespace EverythingGrows
                 {
                     farm.RestorePlayer(data.player,catalog);
                     farm.Cycle.RestoreElapsed(data.player.cycleElapsed);
-                    if(data.currentScene==scene) farm.TeleportPlayer(data.player.position);
+                    if(data.currentScene==scene)
+                    {
+                        // Scene edits can put an old saved position inside a new river or building.
+                        var position=data.player.position;
+                        if(!new MapCollision(farm).CanStand(position,farm.PlayerRadius)) position=farm.SpawnPosition;
+                        farm.TeleportPlayer(position);
+                    }
                 }
                 if(arrival!=null) farm.TeleportPlayer(arrival.transform.position);
                 if(map!=null) farm.Tick(Mathf.Max(0,(float)(data.worldSeconds-map.updatedAt)));
