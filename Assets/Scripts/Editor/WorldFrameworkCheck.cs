@@ -106,7 +106,7 @@ public static class WorldFrameworkCheck
                 Require(farm.Shop.OpenNearby() && farm.InventoryOpen && !farm.Shop.IsTrading && !farm.Shop.Buy(0) && !farm.Shop.Sell(0),"Dialogue unexpectedly trades"); farm.Shop.Close();
                 farm.Cycle.RestoreElapsed(farm.Cycle.Settings.daylightSeconds+farm.Cycle.Settings.duskSeconds+1);
                 Require(guide.IsVisiting && farm.Shop.Open(guide) && farm.Combat.EnemyCount==0,"Resident dialogue unavailable at night"); farm.Shop.Close(); farm.Cycle.RestoreElapsed(0);
-                Snapshot(farm,"TownOverview.png",Vector2.zero,12);
+                Snapshot(farm,"TownOverview.png",Vector2.zero,farm.WorldBounds.height*.55f);
                 step=2; Travel(farm,WorldFrameworkSetup.Store,true); return;
             }
             if(step==2)
@@ -139,7 +139,11 @@ public static class WorldFrameworkCheck
                 step=10; Travel(farm,CombatTestMapSetup.FarmScene,true); return;
             }
             if(step==10) { At(farm,CombatTestMapSetup.FarmScene,"farm_from_combat"); step=11; Travel(farm,WorldFrameworkSetup.Town,false); return; }
-            if(step==11) { At(farm,WorldFrameworkSetup.Town,"town_from_farm"); Finish("WORLD_FRAMEWORK_PLAY_SUCCESS: all four scenes, both route types, dialogue and night residents, daytime store, buy/sell, shared gold/inventory, farm crop/drop preservation, collision and autosaves."); }
+            if(step==11) { At(farm,WorldFrameworkSetup.Town,"town_from_farm"); if(farm.GetComponentsInChildren<Transform>().Any(item=>item.name=="Sketch layout 2026-10-21")) { step=12; Travel(farm,CombatTestMapSetup.FarmScene,false); return; } Finish("WORLD_FRAMEWORK_PLAY_SUCCESS: all four scenes, both route types, dialogue and night residents, daytime store, buy/sell, shared gold/inventory, farm crop/drop preservation, collision and autosaves."); }
+            if(step==12) { At(farm,CombatTestMapSetup.FarmScene,"farm_path_entry"); step=13; Travel(farm,CombatTestMapSetup.CombatScene,false); return; }
+            if(step==13) { At(farm,CombatTestMapSetup.CombatScene,"combat_from_farm"); step=14; Travel(farm,CombatTestMapSetup.FarmScene,false); return; }
+            if(step==14) { At(farm,CombatTestMapSetup.FarmScene,"farm_from_dungeon"); Require(farm.Gold==expectedGold && farm.InventoryCount==4 && farm.IsMature(new Vector2Int(0,-2)),"Shortcut lost player/farm state"); step=15; Travel(farm,WorldFrameworkSetup.Town,false); return; }
+            if(step==15) { At(farm,WorldFrameworkSetup.Town,"town_from_farm"); Finish("TOWN_SKETCH_PLAY_SUCCESS: world roundtrips, store/NPCs, farm-dungeon shortcut both ways, inventory/gold/crops, autosave."); }
         }
         catch(Exception error) { SessionState.SetBool(Key,false); EditorApplication.update-=Tick; Debug.LogException(error); EditorApplication.Exit(1); }
     }

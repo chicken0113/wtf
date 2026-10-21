@@ -157,3 +157,7 @@ Tab으로 인벤토리를 열고 닫으며 보유 골드는 인벤토리 안에�
 입대 전 데모의 작업 목록과 현재 진행 상황은 [DEMO_ROADMAP.md](Docs/DEMO_ROADMAP.md)에 기록합니다. 최종 맵 배치와 이동 동선은 사용자 그림을 받은 후 적용합니다.
 
 기본 조작과 메뉴 일시정지 규칙은 [FOUNDATION_CONTROLS.md](Docs/FOUNDATION_CONTROLS.md)에 정리했습니다. 배치 후 `Tools > Everything Grows > World > Validate world connections`에서 연결 오류를 확인할 수 있습니다.
+
+## 사용자 맵 초안
+
+길드(북서)·대장간(북동)·광장(중앙)·주택/상점(남서)을 기준으로 마을을 배치하고 남쪽 해안과 가벼운 조경을 추가합니다. 위치 기준과 원본 그림은 [MAP_LAYOUT_PLAN.md](Docs/MAP_LAYOUT_PLAN.md)에 보관합니다.

@@ -126,6 +126,7 @@ public static class WorldFrameworkSetup
             {
                 foreach(var exit in scene.GetRootGameObjects().SelectMany(r=>r.GetComponentsInChildren<MapExit>()))
                 {
+                    if(exit.GetComponentsInParent<Transform>().Any(parent=>parent.name=="Farm Dungeon Shortcut")) continue;
                     string previous=path==CombatTestMapSetup.FarmScene?CombatTestMapSetup.CombatScene:CombatTestMapSetup.FarmScene;
                     if(exit.destinationScene!=previous && exit.destinationScene!=Town) continue;
                     Undo.RecordObject(exit,"Route through town"); exit.destinationScene=Town;
