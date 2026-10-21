@@ -10,7 +10,7 @@ using EverythingGrows;
 public static class PelicanTownLayout
 {
     const string Marker="Pelican town reference layout 2026-10-21";
-    static Sprite Tile=>AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/MapSprites/TestBlock.png");
+    internal static Sprite Tile=>AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/MapSprites/TestBlock.png");
     static Vector2 P(float x,float y)=>new Vector2((x-392)*.08f,(360-y)*.08f);
     static Vector2[] Line(params float[] coordinates)=>Enumerable.Range(0,coordinates.Length/2).Select(i=>P(coordinates[i*2],coordinates[i*2+1])).ToArray();
     static readonly Vector2[] River=Line(615,-30,615,50,605,100,587,155,597,190,563,228,528,250,486,278,474,312,485,348,472,380,491,410,522,442,526,472,510,502,497,530,500,563,512,595,509,625,511,652,531,679,556,700,570,750);
@@ -44,28 +44,28 @@ public static class PelicanTownLayout
         ("East market exterior",P(630,313),new Vector2(1.5f,.9f)),
         ("Museum exterior",P(674,578),new Vector2(1.35f,.8f))
     };
-    static GameObject Root(string name,Transform parent,Vector2 p)
+    internal static GameObject Root(string name,Transform parent,Vector2 p)
     {var root=new GameObject(name);root.transform.SetParent(parent,false);root.transform.position=p;return root;}
-    static Transform Group(Transform parent,string name)=>parent.Find(name)??Root(name,parent,Vector2.zero).transform;
-    static void Clear(Transform parent){foreach(Transform child in parent.Cast<Transform>().ToArray())UnityEngine.Object.DestroyImmediate(child.gameObject);}
-    static SpriteRenderer Draw(string name,Transform parent,Vector2 p,Vector2 size,Color color,int order=-1000,Sprite sprite=null)
+    internal static Transform Group(Transform parent,string name)=>parent.Find(name)??Root(name,parent,Vector2.zero).transform;
+    internal static void Clear(Transform parent){foreach(Transform child in parent.Cast<Transform>().ToArray())UnityEngine.Object.DestroyImmediate(child.gameObject);}
+    internal static SpriteRenderer Draw(string name,Transform parent,Vector2 p,Vector2 size,Color color,int order=-1000,Sprite sprite=null)
     {
         var r=Root(name,parent,p).AddComponent<SpriteRenderer>();r.sprite=sprite!=null?sprite:Tile;r.color=color;r.sortingOrder=order;
         r.transform.localScale=new Vector3(size.x/r.sprite.bounds.size.x,size.y/r.sprite.bounds.size.y,1);return r;
     }
-    static int Depth(float y)=>30-Mathf.RoundToInt(y*10);
-    static float Distance(Vector2 p,Vector2[] line)
+    internal static int Depth(float y)=>30-Mathf.RoundToInt(y*10);
+    internal static float Distance(Vector2 p,Vector2[] line)
     {float result=float.PositiveInfinity;for(int i=1;i<line.Length;i++)result=Mathf.Min(result,OpenFieldCombat.SegmentDistance(line[i-1],line[i],p));return result;}
     static float DirtDistance(Vector2 p)=>DirtRoads.Min(line=>Distance(p,line));
     static bool Water(Vector2 p)=>Distance(p,River)<1.45f||Distance(p,SouthRiver)<1.2f;
     static bool Bridge(Vector2 p)=>Bridges.Any(rect=>rect.Contains(p));
-    static void Block(Transform parent,string name,Vector2 p,Vector2 size)
+    internal static void Block(Transform parent,string name,Vector2 p,Vector2 size)
     {var obstacle=Root(name,parent,p).AddComponent<MapObstacle>();obstacle.size=size;}
-    static void Solid(Transform parent,string name,Vector2 p,Vector2 size,Color color,int? order=null)
+    internal static void Solid(Transform parent,string name,Vector2 p,Vector2 size,Color color,int? order=null)
     {Draw(name,parent,p,size,color,order??Depth(p.y));Block(parent,name+" collision",p,size);}
-    static void Tree(Transform parent,Vector2 p,float size=1)
+    internal static void Tree(Transform parent,Vector2 p,float size=1)
     {Draw("Tree",parent,p,new Vector2(1.8f,2.3f)*size,Color.white,Depth(p.y-size),EditableMapBuilder.PreviewIcon(13));Block(parent,"Tree trunk",p+Vector2.down*.75f*size,new Vector2(.45f,.35f)*size);}
-    static void Building(Transform parent,string name,Vector2 p,Vector2 scale,bool existing,Color tint)
+    internal static void Building(Transform parent,string name,Vector2 p,Vector2 scale,bool existing,Color tint)
     {
         Transform root;
         if(existing)root=parent.Find(name);
@@ -187,11 +187,11 @@ public static class PelicanTownLayout
         try{Build();AssetDatabase.SaveAssets();Debug.Log("PELICAN_LAYOUT_APPLIED");}
         finally{if(setup.Any(s=>s.isLoaded&&s.isActive))EditorSceneManager.RestoreSceneManagerSetup(setup);else EditorSceneManager.OpenScene(CombatTestMapSetup.FarmScene);}
     }
-    static void Capture(FarmGame farm)
+    internal static void Capture(FarmGame farm,string path="PelicanOverview.png")
     {
         var camera=Camera.main; camera.transform.position=new Vector3(0,0,-10);camera.orthographic=true;camera.orthographicSize=32;
         var target=new RenderTexture(960,900,24);camera.targetTexture=target;camera.Render();RenderTexture.active=target;
-        var image=new Texture2D(960,900,TextureFormat.RGBA32,false);image.ReadPixels(new Rect(0,0,960,900),0,0);image.Apply();System.IO.File.WriteAllBytes("PelicanOverview.png",image.EncodeToPNG());
+        var image=new Texture2D(960,900,TextureFormat.RGBA32,false);image.ReadPixels(new Rect(0,0,960,900),0,0);image.Apply();System.IO.File.WriteAllBytes(path,image.EncodeToPNG());
         camera.targetTexture=null;RenderTexture.active=null;UnityEngine.Object.DestroyImmediate(image);UnityEngine.Object.DestroyImmediate(target);
     }
     public static void VerifyOldSavePosition()
