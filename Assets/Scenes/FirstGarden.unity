@@ -9065,6 +9065,8 @@ MonoBehaviour:
   npcs:
   - id: farm_merchant
     displayName: Farm merchant
+    shopEnabled: 1
+    greeting: Welcome. Take a look around.
     offers:
     - item: {fileID: 11400000, guid: 79ab0160a68f41644902c89a95e1c883, type: 2}
       buyPrice: 15
@@ -13191,6 +13193,7 @@ Transform:
   - {fileID: 1210318988}
   - {fileID: 1913781086}
   - {fileID: 1515035427}
+  - {fileID: 385639507}
   m_Father: {fileID: 1988787558}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &188527694
@@ -13205,8 +13208,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24e1a4ec333243f4b4d8fde2d0602e7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MapExit
-  destinationScene: Assets/Scenes/CombatTest.unity
-  arrivalId: combat_entry
+  destinationScene: Assets/Scenes/Town.unity
+  arrivalId: town_from_farm_door
   areaSize: {x: 1.8, y: 2.4}
   requireInteract: 1
 --- !u!1001 &188598504
@@ -27167,6 +27170,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1674332607612379456, guid: 1b20c097ed2255c4bb2d7aac6f9b5025, type: 3}
   m_PrefabInstance: {fileID: 384248628}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &385639506
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 385639507}
+  - component: {fileID: 385639508}
+  m_Layer: 0
+  m_Name: Town route label
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &385639507
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 385639506}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 188527693}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &385639508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 385639506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 248e68500a2b42289cedf1e636e88b46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.WorldLabel
+  text: 'Town [E]'
+  visibleDistance: 6
 --- !u!1001 &386120076
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -79017,6 +79066,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1674332607612379456, guid: 1b20c097ed2255c4bb2d7aac6f9b5025, type: 3}
   m_PrefabInstance: {fileID: 1130567430}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1132498277
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1132498278}
+  - component: {fileID: 1132498279}
+  m_Layer: 0
+  m_Name: Town route label
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1132498278
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1132498277}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1829349730}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1132498279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1132498277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 248e68500a2b42289cedf1e636e88b46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.WorldLabel
+  text: Town
+  visibleDistance: 6
 --- !u!1001 &1134147871
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -127269,11 +127364,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: arrivalId
-      value: combat_path_entry
+      value: town_from_farm
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/CombatTest.unity
+      value: Assets/Scenes/Town.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -127317,7 +127412,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1132498278}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
 --- !u!4 &1829349730 stripped

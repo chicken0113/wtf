@@ -31,7 +31,7 @@ namespace EverythingGrows
             if(!isActiveAndEnabled || farm==null || farm.gameObject.scene!=gameObject.scene) return false;
             bool touching=TouchesPlayer(farm);
             if(!touching) blockedUntilExit=false;
-            if(farm.InventoryOpen || farm.Combat==null || farm.Combat.IsGameOver || GameSession.Busy || Time.unscaledTime<GameSession.ArrivalGraceUntil) return false;
+            if(farm.WorldInputBlocked || farm.Combat==null || farm.Combat.IsGameOver || GameSession.Busy || Time.unscaledTime<GameSession.ArrivalGraceUntil) return false;
             if(requireInteract) return interactPressed && Contains(farm.PlayerPosition) && Travel(farm);
             if(!touching || blockedUntilExit) return false;
             blockedUntilExit=true;
@@ -50,7 +50,7 @@ namespace EverythingGrows
         {
             if(!Application.isPlaying || !requireInteract || GameSession.Busy) return;
             var farm=Object.FindFirstObjectByType<FarmGame>();
-            if(farm==null || farm.Combat==null || farm.Combat.IsGameOver || farm.InventoryOpen || !Contains(farm.PlayerPosition)) return;
+            if(farm==null || farm.Combat==null || farm.Combat.IsGameOver || farm.WorldInputBlocked || !Contains(farm.PlayerPosition)) return;
             var point=Camera.main.WorldToScreenPoint(transform.position+Vector3.up*.7f);
             GUI.Label(new Rect(point.x-70,Screen.height-point.y,140,24),"E: travel");
         }

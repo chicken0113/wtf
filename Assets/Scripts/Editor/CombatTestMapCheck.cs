@@ -20,6 +20,7 @@ public static class CombatTestMapCheck
     static void Require(bool value,string message) { if(!value) throw new Exception(message); }
     public static void Run()
     {
+        if(AssetDatabase.LoadAssetAtPath<SceneAsset>(WorldFrameworkSetup.Town)!=null) { WorldFrameworkCheck.Run(); return; }
         if(!Application.isBatchMode || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR"))) throw new Exception("Use isolated project and save directory.");
         EditorSceneManager.OpenScene(CombatTestMapSetup.FarmScene);
         CombatTestMapSetup.ConnectFarm(); MapExitTypesSetup.Apply(); SessionState.SetBool(Key,true); EditorApplication.isPlaying=true;

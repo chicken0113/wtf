@@ -12,6 +12,8 @@ namespace EverythingGrows
     [Serializable] public sealed class NpcProfile
     {
         public string id="farm_merchant",displayName="Farm merchant";
+        public bool shopEnabled=true;
+        [TextArea] public string greeting="Welcome. Take a look around.";
         public List<ShopOffer> offers=new();
     }
     public sealed class NpcManager : MonoBehaviour
@@ -25,34 +27,34 @@ namespace EverythingGrows
         private Vector2 scroll;
         public int Gold { get; private set; }
         public bool CanTrade => farm!=null && !farm.Combat.IsGameOver && (farm.Cycle==null || farm.Cycle.ShopsOpen);
-        public bool IsOpen => CanTrade && activeNpc!=null && activeNpc.IsVisiting && activeProfile!=null;
+        public bool IsOpen => activeNpc!=null && CanInteract(activeNpc) && activeNpc.IsVisiting && activeProfile!=null;
+        public bool IsTrading => IsOpen && CanTrade && activeProfile.shopEnabled;
+        private bool CanInteract(ShopNpc npc) => farm!=null && !farm.Combat.IsGameOver && npc!=null && npc.isActiveAndEnabled && (!npc.daytimeOnly || CanTrade);
         public void UpdateAvailability()
         {
-            bool visiting=CanTrade;
-            foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) npc.SetVisiting(visiting);
-            if(!visiting) Close();
+            foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) npc.SetVisiting(CanInteract(npc));
+            if(activeNpc!=null && !activeNpc.IsVisiting) Close();
         }
         public void Initialize(FarmGame owner) { if(farm!=null) return; farm=owner; Gold=Mathf.Max(0,startingGold); art=new FarmArt(); }
         public void RestoreGold(int gold) { Gold=Mathf.Max(0,gold); }
         public bool Open(ShopNpc npc)
         {
-            if(!CanTrade || npc==null || !npc.IsVisiting || !npc.isActiveAndEnabled || Vector2.Distance(farm.PlayerPosition,npc.transform.position)>npc.interactionRange) return false;
+            if(!CanInteract(npc) || !npc.IsVisiting || Vector2.Distance(farm.PlayerPosition,npc.transform.position)>npc.interactionRange) return false;
             var profile=npcs.Find(entry=>entry!=null && entry.id==npc.npcId); if(profile==null) { farm.Notify("This NPC has no shop profile."); return false; }
             activeNpc=npc; activeProfile=profile; scroll=Vector2.zero; return true;
         }
         public bool OpenNearby()
         {
-            if(!CanTrade) return false;
             ShopNpc nearest=null; float distance=float.PositiveInfinity;
             foreach(var npc in farm.GetComponentsInChildren<ShopNpc>())
-            { float d=Vector2.Distance(farm.PlayerPosition,npc.transform.position); if(npc.IsVisiting && npc.isActiveAndEnabled && d<=npc.interactionRange && d<distance) { nearest=npc; distance=d; } }
+            { float d=Vector2.Distance(farm.PlayerPosition,npc.transform.position); if(CanInteract(npc) && npc.IsVisiting && d<=npc.interactionRange && d<distance) { nearest=npc; distance=d; } }
             return Open(nearest);
         }
         public void Close() { activeNpc=null; activeProfile=null; }
         public void CheckDistance() { if(IsOpen && Vector2.Distance(farm.PlayerPosition,activeNpc.transform.position)>activeNpc.interactionRange) Close(); }
         public bool Buy(int index)
         {
-            if(!IsOpen || index<0 || index>=activeProfile.offers.Count) return false;
+            if(!IsTrading || index<0 || index>=activeProfile.offers.Count) return false;
             var offer=activeProfile.offers[index]; if(offer==null || offer.item==null || offer.buyPrice<0) return false;
             if(Gold<offer.buyPrice) { farm.Notify("Not enough gold."); return false; }
             if(!farm.AddItem(offer.item)) return false;
@@ -66,7 +68,7 @@ namespace EverythingGrows
         }
         public bool Sell(int index)
         {
-            if(!IsOpen) return false;
+            if(!IsTrading) return false;
             var item=farm.InventoryItem(index); if(item==null) return false;
             int price=SalePrice(item); if(Gold>int.MaxValue-price) return false;
             if(!farm.RemoveInventoryItem(index)) return false;
@@ -74,14 +76,23 @@ namespace EverythingGrows
         }
         private void OnGUI()
         {
-            if(farm==null || farm.Combat.IsGameOver) return;
+            if(farm==null || farm.Combat.IsGameOver || farm.MapOpen) return;
             if(!IsOpen)
             {
-                foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) if(CanTrade && npc.IsVisiting && Vector2.Distance(farm.PlayerPosition,npc.transform.position)<=npc.interactionRange)
+                foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) if(CanInteract(npc) && npc.IsVisiting && Vector2.Distance(farm.PlayerPosition,npc.transform.position)<=npc.interactionRange)
                 {
                     var position=Camera.main.WorldToScreenPoint(npc.transform.position+Vector3.up*.7f);
-                    GUI.Label(new Rect(position.x-60,Screen.height-position.y,120,24),"E: open shop");
+                    var profile=npcs.Find(entry=>entry!=null && entry.id==npc.npcId);
+                    GUI.Label(new Rect(position.x-90,Screen.height-position.y,180,24),profile!=null && profile.shopEnabled && CanTrade?"E: open shop":"E: talk");
                 }
+                return;
+            }
+            if(!IsTrading)
+            {
+                float dialogueWidth=Mathf.Min(480,Screen.width-32); var box=new Rect((Screen.width-dialogueWidth)*.5f,Screen.height-210,dialogueWidth,150);
+                GUI.Box(box,activeProfile.displayName);
+                GUI.Label(new Rect(box.x+16,box.y+32,box.width-32,70),activeProfile.greeting,new GUIStyle(GUI.skin.label) {wordWrap=true,fontSize=15});
+                if(GUI.Button(new Rect(box.xMax-90,box.yMax-36,75,26),"Close")) Close();
                 return;
             }
             float width=Mathf.Min(400,Screen.width*.46f),height=Mathf.Min(350,Screen.height-120);

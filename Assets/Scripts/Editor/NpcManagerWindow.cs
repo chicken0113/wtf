@@ -13,8 +13,8 @@ public sealed class NpcManagerWindow : EditorWindow
     {
         var scene=UnityEngine.SceneManagement.SceneManager.GetActiveScene();
         var manager=scene.GetRootGameObjects().SelectMany(root=>root.GetComponentsInChildren<NpcManager>()).FirstOrDefault();
-        if(manager==null) { EditorGUILayout.HelpBox("NPC 매니저가 있는 농장 씬을 열어주세요.",MessageType.Info); return; }
-        EditorGUILayout.HelpBox("NPC마다 ID와 판매 목록을 설정하세요. NPC 오브젝트의 Npc Id를 같은 ID로 맞춥니다. Buy Price는 구매 가격, Sell Price는 이 NPC에게 판매할 가격(-1이면 아이템 기본 판매가)입니다.",MessageType.Info);
+        if(manager==null) { EditorGUILayout.HelpBox("NPC 매니저가 있는 농장·마을·상점 씬을 열어주세요.",MessageType.Info); return; }
+        EditorGUILayout.HelpBox("NPC마다 ID와 판매 목록을 설정하세요. Shop Enabled를 끄면 Greeting을 출력하는 대화 NPC가 됩니다. NPC 오브젝트의 Npc Id를 같은 ID로 맞춥니다. Buy Price는 구매 가격, Sell Price는 이 NPC에게 판매할 가격(-1이면 아이템 기본 판매가)입니다.",MessageType.Info);
         using(new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
             var data=new SerializedObject(manager); data.Update();

@@ -3,6 +3,7 @@ namespace EverythingGrows
 {
     public sealed class ShopNpc : MonoBehaviour
     {
+        public bool daytimeOnly=true;
         public string npcId="farm_merchant";
         [Min(.1f)] public float interactionRange=2.2f;
         private Renderer[] visuals;

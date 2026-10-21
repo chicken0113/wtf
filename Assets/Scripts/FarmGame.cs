@@ -24,6 +24,9 @@ namespace EverythingGrows
         private int facing;
         private bool showMap, showInventory;
         private Vector2 inventoryScroll;
+        public bool MapOpen => showMap;
+        public bool WorldInputBlocked => InventoryOpen || showMap;
+        public void SetMapOpen(bool open) { showMap=open; }
         public bool InventoryOpen => showInventory || (shop!=null && shop.IsOpen);
         public int Gold => shop!=null?shop.Gold:carriedGold;
         public void SetInventoryOpen(bool open) { showInventory=open; }
@@ -32,7 +35,7 @@ namespace EverythingGrows
             get
             {
                 float width=Mathf.Min(460,Screen.width-24);
-                bool trading=shop!=null && shop.IsOpen;
+                bool trading=shop!=null && shop.IsTrading;
                 if(trading) width=Mathf.Min(400,Screen.width*.46f);
                 float height=Mathf.Min(Screen.height-100,Mathf.Max(230,116+Mathf.CeilToInt(Capacity/5f)*58));
                 return new Rect(trading?Screen.width*.5f+8:(Screen.width-width)*.5f,Mathf.Max(60,(Screen.height-height)*.5f),width,height);
@@ -413,34 +416,45 @@ namespace EverythingGrows
             for(int i=0;i<Capacity;i++) if(SlotRect(i).Contains(point)) return true;
             return false;
         }
+        // Return true when the input belongs to a menu, so the same key cannot act on the world.
+        public bool ProcessMenuInput(bool inventoryPressed,bool escapePressed,bool mapPressed,bool interactPressed)
+        {
+            if(inventoryPressed)
+            {
+                bool next=!InventoryOpen; shop?.Close(); showMap=false; SetInventoryOpen(next);
+                plantingPreview.enabled=false; return true;
+            }
+            if(escapePressed && WorldInputBlocked)
+            {
+                shop?.Close(); SetInventoryOpen(false); showMap=false; plantingPreview.enabled=false; return true;
+            }
+            if(mapPressed && !InventoryOpen)
+            { showMap=!showMap; plantingPreview.enabled=false; return true; }
+            if(WorldInputBlocked)
+            {
+                shop?.CheckDistance();
+                if(interactPressed && shop!=null && shop.IsOpen) { shop.Close(); SetInventoryOpen(false); }
+                plantingPreview.enabled=false; return true;
+            }
+            return false;
+        }
         private void Update()
         {
             if(player==null) return;
             if(combat.IsGameOver || GameSession.Busy || !string.IsNullOrEmpty(GameSession.LastError)) { plantingPreview.enabled=false; return; }
-            if(MapExit.TryInteract(this)) { plantingPreview.enabled=false; return; }
-            GameSession.AdvanceTime(Time.deltaTime);
-            Cycle.Tick(Time.deltaTime);
-            if(Input.GetKeyDown(KeyCode.Tab))
-            {
-                bool next=!InventoryOpen; if(!next) shop?.Close(); SetInventoryOpen(next);
-            }
-            if(Input.GetKeyDown(KeyCode.Escape) && InventoryOpen) { shop?.Close(); SetInventoryOpen(false); }
+            if(ProcessMenuInput(Input.GetKeyDown(KeyCode.Tab),Input.GetKeyDown(KeyCode.Escape),Input.GetKeyDown(KeyCode.M),Input.GetKeyDown(KeyCode.E))) return;
             var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
             int hoveredHeart=combat.HeartAt(guiMouse);
             if(Input.GetKeyDown(KeyCode.E) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
-            if(InventoryOpen)
-            {
-                Tick(Time.deltaTime); combat.TickCombat(Time.deltaTime); shop?.CheckDistance();
-                if(Input.GetKeyDown(KeyCode.E) && shop!=null && shop.IsOpen) { shop.Close(); SetInventoryOpen(false); }
-                plantingPreview.enabled=false; return;
-            }
+            if(MapExit.TryInteract(this)) { plantingPreview.enabled=false; return; }
+            GameSession.AdvanceTime(Time.deltaTime);
+            Cycle.Tick(Time.deltaTime);
             Vector2 move=new Vector2(Input.GetKey(KeyCode.D)?1:Input.GetKey(KeyCode.A)?-1:0,Input.GetKey(KeyCode.W)?1:Input.GetKey(KeyCode.S)?-1:0);
             if(Input.GetKeyDown(KeyCode.LeftShift)) combat.Roll(move.sqrMagnitude>0?move:MousePoint-PlayerPosition);
             if(!combat.IsRolling) MovePlayer(PlayerPosition+Vector2.ClampMagnitude(move,1)*3.8f*Time.deltaTime);
             combat.TickCombat(Time.deltaTime);
             for(int i=0;i<Mathf.Min(9,Capacity);i++) if(Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1+i))) selected=i;
             AnimateFarmer(move);
-            if(Input.GetKeyDown(KeyCode.M)) showMap=!showMap;
             float wheel=Input.mouseScrollDelta.y;
             if(wheel!=0) selected=(selected+(wheel>0?-1:1)+Capacity)%Capacity;
             Tick(Time.deltaTime);
@@ -510,7 +524,8 @@ namespace EverythingGrows
             if(player==null || combat.IsGameOver) return;
             titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize=16,fontStyle=FontStyle.Bold };
             smallStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,alignment=TextAnchor.MiddleCenter };
-            if(InventoryOpen) { DrawInventoryWindow(); return; }
+            if(InventoryOpen) { if(showInventory || (shop!=null && shop.IsTrading)) DrawInventoryWindow(); return; }
+            if(showMap) { DrawMap(); return; }
             for(int i=0;i<Capacity;i++)
             {
                 Rect rect=SlotRect(i);
@@ -519,11 +534,10 @@ namespace EverythingGrows
                 else if(i<inventory.Count) GUI.Label(rect,inventory[i].item.label,smallStyle);
                 GUI.Label(new Rect(rect.x+4,rect.y+1,16,16),(i+1).ToString());
                 if(InventoryQuantity(i)>1) GUI.Label(new Rect(rect.x+26,rect.y+1,24,16),InventoryQuantity(i).ToString(),smallStyle);
-                if(shop!=null && shop.IsOpen && i<inventory.Count) GUI.Label(new Rect(rect.x,rect.y+35,rect.width,16),shop.SalePrice(inventory[i].item)+" G",smallStyle);
+                if(shop!=null && shop.IsTrading && i<inventory.Count) GUI.Label(new Rect(rect.x,rect.y+35,rect.width,16),shop.SalePrice(inventory[i].item)+" G",smallStyle);
                 if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
-                { if(Event.current.button==0) selected=i; else if(Event.current.button==1) { if(shop!=null && shop.IsOpen) shop.Sell(i); else DetachSlot(); } Event.current.Use(); break; }
+                { if(Event.current.button==0) selected=i; else if(Event.current.button==1) { if(shop!=null && shop.IsTrading) shop.Sell(i); else DetachSlot(); } Event.current.Use(); break; }
             }
-            if(showMap) DrawMap();
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
                 Vector3 position=view.WorldToScreenPoint((Vector2)plot.cell+Vector2.up*.6f);
@@ -555,11 +569,11 @@ namespace EverythingGrows
                 Panel(rect,i==selected?new Color(.85f,.64f,.3f):new Color(.55f,.36f,.2f));
                 if(i<inventory.Count) art.ItemIcon(new Rect(rect.x+6,rect.y+5,40,40),inventory[i].item);
                 if(InventoryQuantity(i)>1) GUI.Label(new Rect(rect.x+27,rect.y+2,24,18),InventoryQuantity(i).ToString(),smallStyle);
-                if(shop!=null && shop.IsOpen && i<inventory.Count) GUI.Label(new Rect(rect.x,rect.y+34,52,18),shop.SalePrice(inventory[i].item)+" G",smallStyle);
+                if(shop!=null && shop.IsTrading && i<inventory.Count) GUI.Label(new Rect(rect.x,rect.y+34,52,18),shop.SalePrice(inventory[i].item)+" G",smallStyle);
                 if(Event.current.type==EventType.MouseDown && rect.Contains(Event.current.mousePosition))
                 {
                     if(Event.current.button==0) selected=i;
-                    else if(Event.current.button==1) { if(shop!=null && shop.IsOpen) shop.Sell(i); else DetachSlot(); }
+                    else if(Event.current.button==1) { if(shop!=null && shop.IsTrading) shop.Sell(i); else DetachSlot(); }
                     Event.current.Use(); break;
                 }
             }
