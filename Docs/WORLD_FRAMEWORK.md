@@ -10,7 +10,7 @@
 ```
 
 - **FirstGarden**: 기존 농사·집·상인. 청록색 문과 주황색 통로가 마을로 이어집니다.
-- **Town**: 안전한 마을. 중앙 광장·분수·길·나무·벤치·가로등, 잡화점·대장간·주택 외관, 주민 3명이 있습니다.
+- **Town**: 안전한 마을. 64×44 크기에 중앙 광장·분수, 길드·대장간·잡화점, 주택 외관 10채, 마당·골목·해안 산책길과 주민 3명이 있습니다.
 - **GeneralStore**: 카운터·진열대·상인이 있는 실내. 낮에 기존 물품을 구매하고 인벤토리 물품을 판매합니다.
 - **CombatTest**: 기존 전투 테스트 공간. 입구에서 마을로 돌아옵니다.
 
@@ -20,7 +20,7 @@
 
 ## 씬에서 편집
 
-- `Assets/Scenes/Town.unity`의 `EditableMap` 아래 Ground and paths / Buildings / Plaza and decorations / Residents / Travel 그룹을 편집합니다.
+- `Assets/Scenes/Town.unity`의 `EditableMap` 아래 Ground and paths / Buildings / Residential neighborhoods / Plaza and decorations / Residents / Travel 그룹을 편집합니다.
 - `Assets/Scenes/GeneralStore.unity`의 Interior 그룹에서 카운터·벽·진열대, Merchant에서 상인 위치를 편집합니다.
 - 마을 건물 프리팹: `Assets/Prefabs/Map/TownGeneralStore.prefab`, `TownSmith.prefab`, `TownHouse.prefab`.
 - 건물의 MapObstacle은 발밑 충돌 영역입니다. 건물 전체 그림과 독립적으로 조절할 수 있습니다.
@@ -51,7 +51,7 @@
 
 ## 현재 작업 기준과 연결 점검
 
-현재 배치는 임시안이며, 최종 농장·마을·상점·던전 배치와 동선은 사용자 그림을 받은 후 작업합니다. 그림 대기 중에는 위치를 재배치하지 않고 기능을 점검합니다. 데모 전체 목록은 [DEMO_ROADMAP.md](DEMO_ROADMAP.md)를 기준으로 합니다.
+현재 마을은 사용자 그림의 주요 시설 위치 관계를 반영했고, 후속 요청으로 주택가와 해안 길을 추가했습니다. 세부 배치는 Scene에서 계속 수정할 수 있습니다. 농장·던전 내부의 상세 배치는 아직 보류 상태입니다. 데모 전체 목록은 [DEMO_ROADMAP.md](DEMO_ROADMAP.md)를 기준으로 합니다.
 
 `Tools > Everything Grows > World > Validate world connections`를 실행하면 네 씬의 Build Settings 등록, 출입구 목적지와 도착 ID, 중복 ID, 막힌 도착·스폰 위치, NPC 프로필 누락을 검사합니다. 오류는 Console에서 확인합니다. 도구는 배치를 수정하거나 씬을 저장하지 않습니다. 이 검사는 전체 지형에서 목적지까지 걸어갈 수 있는지를 보장하는 경로 탐색 검사는 아닙니다.
 
@@ -60,4 +60,4 @@
 
 ## 사용자 초안 적용
 
-최신 위치 기준은 [MAP_LAYOUT_PLAN.md](MAP_LAYOUT_PLAN.md)입니다. 마을 남쪽은 해안이며 동쪽은 추후 콘텐츠를 위한 여유 공간으로 남깁니다. 농장과 던전에는 Farm Dungeon Shortcut을 추가해 마을을 거치지 않고 이동할 수 있습니다. 기존 출입구의 도착 ID와 상점 실내 연결은 유지합니다.
+최신 위치 기준은 [MAP_LAYOUT_PLAN.md](MAP_LAYOUT_PLAN.md)입니다. 마을 남쪽은 해안이며 동쪽과 북쪽·남쪽에 추가 주택가를 배치했습니다. 농장과 던전에는 Farm Dungeon Shortcut을 추가해 마을을 거치지 않고 이동할 수 있습니다. 기존 출입구의 도착 ID와 상점 실내 연결은 유지합니다.
