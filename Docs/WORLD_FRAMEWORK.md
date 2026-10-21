@@ -10,7 +10,7 @@
 ```
 
 - **FirstGarden**: 기존 농사·집·상인. 청록색 문과 주황색 통로가 마을로 이어집니다.
-- **Town**: 안전한 마을. 64×60 크기이며 사용자 스케치의 위치대로 북서쪽 길드·공원, 북동쪽 대장간, 중앙 돌바닥 광장, 남서쪽 주택·잡화점과 주민 3명을 배치했습니다. 그래픽은 기존 프로젝트 에셋입니다.
+- **Town**: 안전한 마을. 64×60 크기이며 사용자 스케치의 위치대로 북서쪽 길드·공원, 북동쪽 대장간, 중앙 돌바닥 광장, 남서쪽 주택·잡화점과 주민 3명을 배치했습니다. 그래픽은 기존 프로젝트 에셋이며 건물 12채의 지붕 위에 용도별 표식을 붙였습니다.
 - **GeneralStore**: 카운터·진열대·상인이 있는 실내. 낮에 기존 물품을 구매하고 인벤토리 물품을 판매합니다.
 - **CombatTest**: 기존 전투 테스트 공간. 입구에서 마을로 돌아옵니다.
 
@@ -23,6 +23,7 @@
 - `Assets/Scenes/Town.unity`의 `EditableMap` 아래 Ground and paths / Buildings / Town districts / Plaza and decorations / Residents / Travel 그룹을 편집합니다.
 - `Assets/Scenes/GeneralStore.unity`의 Interior 그룹에서 카운터·벽·진열대, Merchant에서 상인 위치를 편집합니다.
 - 마을 건물 프리팹: `Assets/Prefabs/Map/TownGeneralStore.prefab`, `TownSmith.prefab`, `TownHouse.prefab`.
+- 각 건물 아래 `Roof identity`는 용도를 구분하는 지붕 표식입니다. 건물과 함께 움직이며 개별 조절·교체할 수 있습니다. 표식 프리팹은 `Assets/Prefabs/Map/RoofSigns`에 있습니다.
 - 건물의 MapObstacle은 발밑 충돌 영역입니다. 건물 전체 그림과 독립적으로 조절할 수 있습니다.
 - 길 안내 문구는 WorldLabel의 Text, 표시 거리는 Visible Distance입니다.
 - 출입구·도착 지점을 옮길 때 연결된 Arrival Id는 유지합니다. 상점 입구나 도착 지점에 장애물을 겹치지 않게 배치합니다.
