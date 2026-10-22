@@ -41,7 +41,12 @@ namespace EverythingGrows
                 !string.IsNullOrEmpty(GameSession.LastError) || combat==null || combat.IsGameOver ||
                 !WorldBounds.Contains(point) || !Near(point) || !WithinReach(cell)) return;
             bool tool=Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe;
-            var hint=tool?PrimaryFarmHint(point):farming.PlantHint(cell);
+            var hint=tool?PrimaryFarmHint(point):new FarmActionHint(false,"");
+            if(!hint.Allowed)
+            {
+                tool=false;
+                hint=farming.PlantHint(cell);
+            }
             if(!hint.Allowed || combat.IsRolling) return;
             var source=tool?art.ItemSprite(Held):art.Get(FarmArt.PlantingIcon);
             plantingPreview.sprite=source;

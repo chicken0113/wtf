@@ -105,16 +105,29 @@ public static class FarmingFeedbackCheck
             var target=name=="Hoe"?new Vector2Int(0,-4):empty;
             if(name=="Scythe")
             {
+                Query(farm,"UpdateFarmingIcon",(Vector2)empty,false);
+                Check(icon.enabled && icon.sprite==plantingSprite && Border(farm).enabled,"Scythe did not fall back to planting on empty soil");
                 farm.RemoveInventoryItem(farm.InventoryCount-1);farm.AddItem(seed);Check(farm.PlantSelected(empty),"Dead-crop fixture planting failed");farm.AddItem(item);
                 foreach(var plot in (System.Collections.IEnumerable)Read(Read(farm,"Farming"),"Plots"))
                     if((Vector2Int)plot.GetType().GetField("cell").GetValue(plot)==empty) plot.GetType().GetField("wilted").SetValue(plot,true);
             }
             Query(farm,"UpdateFarmingIcon",(Vector2)target,false);
             Check(icon.enabled && Border(farm).enabled && icon.sprite==art.ItemSprite(item) && icon.sprite!=plantingSprite,"Tool did not replace planting icon: "+name);
-            if(name=="Hoe") { Check(farm.UseTool(target),"Hoe fixture failed");Query(farm,"UpdateFarmingIcon",(Vector2)target,false);Check(!icon.enabled && !Border(farm).enabled,"Already tilled cell retained hoe preview"); }
+            if(name=="Hoe")
+            {
+                Check(farm.UseTool(target),"Hoe fixture failed");
+                Query(farm,"UpdateFarmingIcon",(Vector2)target,false);
+                Check(icon.enabled && icon.sprite==plantingSprite && Border(farm).enabled,"Hoe did not fall back to planting after tilling");
+                Check(farm.FarmAction(target) && farm.InventoryItem(farm.InventoryCount-1)!=item,"E could not plant the indicated hoe");
+                Query(farm,"UpdateFarmingIcon",(Vector2)target,false);
+                Check(!icon.enabled && !Border(farm).enabled,"Occupied cell retained invalid preview");
+                Check(farm.Uproot(target),"Could not recover planted tool fixture");
+            }
             farm.RemoveInventoryItem(farm.InventoryCount-1);
         }
         while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);farm.AddItem(water);
+        Query(farm,"UpdateFarmingIcon",new Vector2(0,-4),false);
+        Check(icon.enabled && icon.sprite==art.ItemSprite(water) && Border(farm).enabled,"Water action did not take priority over possible planting");
     }
     private static SpriteRenderer Border(FarmGame farm) => (SpriteRenderer)typeof(FarmGame).GetField("farmingBorder",Members).GetValue(farm);
     private const BindingFlags Members=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
