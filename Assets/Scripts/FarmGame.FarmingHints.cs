@@ -23,7 +23,25 @@ namespace EverythingGrows
             if(Held.effect==GrowthEffect.House) return CanPlaceHouse(Held,cell)?new(true,"Install house"):new(false,"Cannot install here; keep the footprint clear.");
             return farming.ToolHint(cell,Held.effect);
         }
-        internal bool ShowFarmingHints => IsInitialized && !WorldInputBlocked && !GameSession.Busy && string.IsNullOrEmpty(GameSession.LastError) && !OverUI() && combat!=null && !combat.IsGameOver;
-        internal Vector2 FarmingPointer => MousePoint;
+        private void UpdatePlantingPreview() => UpdateFarmingIcon(MousePoint,OverUI());
+
+        // One action icon, anchored to the cell rather than following the pointer.
+        private void UpdateFarmingIcon(Vector2 point,bool pointerOverUI)
+        {
+            plantingPreview.enabled=false;
+            var cell=Vector2Int.RoundToInt(point);
+            if(!IsInitialized || Held==null || pointerOverUI || WorldInputBlocked || GameSession.Busy ||
+                !string.IsNullOrEmpty(GameSession.LastError) || combat==null || combat.IsGameOver ||
+                !WorldBounds.Contains(point) || !Near(point) || !WithinReach(cell)) return;
+            bool tool=Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe;
+            var hint=tool?PrimaryFarmHint(point):farming.PlantHint(cell);
+            var source=tool?art.ItemSprite(Held):art.Get(FarmArt.PlantingIcon);
+            plantingPreview.sprite=source;
+            plantingPreview.transform.position=new Vector3(cell.x,cell.y,0);
+            plantingPreview.transform.localScale=Vector3.one*(.55f/Mathf.Max(.01f,Mathf.Max(source.bounds.size.x,source.bounds.size.y)));
+            plantingPreview.sortingOrder=30000;
+            plantingPreview.color=hint.Allowed && !combat.IsRolling?(tool?Color.white:new Color(.5f,1,.55f)):new Color(1,.25f,.25f);
+            plantingPreview.enabled=true;
+        }
     }
 }

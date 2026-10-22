@@ -49,28 +49,63 @@ public static class FarmingFeedbackCheck
                 farm.AddItem(AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/WateringCan.asset"));
                 Query(farm,"LateUpdate");
                 var camera=Camera.main;camera.transform.position=new Vector3(1,-1.8f,-10);camera.orthographicSize=4.8f;
-                Query(farm,"UpdatePlantingPreview");
+                CheckIcons(farm,seed);
+                Query(farm,"UpdateFarmingIcon",new Vector2(1.1f,-2.1f),false);
                 var probe=farm.gameObject.AddComponent<FarmingFeedbackGuiProbe>();probe.farm=farm;
                 Application.logMessageReceived+=(message,trace,type)=> { if(type==LogType.Exception && trace.Contains("EverythingGrows.")) SessionState.SetString(VisualKey+"Error",message+trace); };
             }
             if(frames==12)
             {
-                imagePath=Path.GetFullPath("FarmingFeedback.png");
+                imagePath=Path.GetFullPath("FarmingIcons-"+Guid.NewGuid().ToString("N")+".png");
                 ScreenCapture.CaptureScreenshot(imagePath);Debug.Log("FEEDBACK_VISUAL_CAPTURE: "+imagePath);
             }
             if(frames<24 || !File.Exists(imagePath)) return;
             Check(string.IsNullOrEmpty(SessionState.GetString(VisualKey+"Error","")),SessionState.GetString(VisualKey+"Error",""));
             var f=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
-            f.SetInventoryOpen(true);
-            Check(!(bool)Read(f,"ShowFarmingHints"),"Hint leaked through inventory");
-            f.SetInventoryOpen(false);f.SetMapOpen(true);
-            Check(!(bool)Read(f,"ShowFarmingHints"),"Hint leaked through map");
+            var icon=(SpriteRenderer)typeof(FarmGame).GetField("plantingPreview",Members).GetValue(f);
+            f.SetInventoryOpen(true);Query(f,"UpdateFarmingIcon",new Vector2(0,-2),false);
+            Check(!icon.enabled,"Icon leaked through inventory");
+            f.SetInventoryOpen(false);f.SetMapOpen(true);Query(f,"UpdateFarmingIcon",new Vector2(0,-2),false);
+            Check(!icon.enabled,"Icon leaked through map");
             f.SetMapOpen(false);
             SessionState.SetBool(VisualKey,false);EditorApplication.update-=VisualTick;
-            Debug.Log("FARMING_FEEDBACK_VISUAL_SUCCESS: actual HUD rendered dry/growing/ripe states without exceptions; menus suppress hints. Image: "+imagePath);
+            Debug.Log("FARMING_FEEDBACK_VISUAL_SUCCESS: one cell-centered tool/planting icon; empty hands, range and menus hide it; no crop status HUD. Image: "+imagePath);
             EditorApplication.Exit(0);
         }
         catch(Exception e) { SessionState.SetBool(VisualKey,false);Debug.LogException(e);EditorApplication.Exit(1); }
+    }
+    private static void CheckIcons(FarmGame farm,PlantDefinition seed)
+    {
+        var icon=(SpriteRenderer)typeof(FarmGame).GetField("plantingPreview",Members).GetValue(farm);
+        var art=(FarmArt)Read(farm,"art");
+        var water=farm.SelectedItem;
+        Query(farm,"UpdateFarmingIcon",new Vector2(.15f,-2.1f),false);
+        Check(icon.enabled && icon.sprite==art.ItemSprite(water),"Watering tool icon missing");
+        Check(icon.transform.position==new Vector3(0,-2,0),"Icon not centered in cell");
+        Query(farm,"UpdateFarmingIcon",new Vector2(-.2f,-1.9f),false);
+        Check(icon.transform.position==new Vector3(0,-2,0),"Icon followed pointer inside a cell");
+        Query(farm,"UpdateFarmingIcon",new Vector2(6,-2),false);
+        Check(!icon.enabled,"Out-of-range icon visible");
+        Query(farm,"UpdateFarmingIcon",new Vector2(0,-2),true);
+        Check(!icon.enabled,"Icon visible over UI");
+        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        Query(farm,"UpdateFarmingIcon",new Vector2(0,-2),false);
+        Check(!icon.enabled,"Empty hands displayed icon");
+        farm.AddItem(seed);var empty=new Vector2Int(0,-3);farm.Till(empty);
+        Query(farm,"UpdateFarmingIcon",(Vector2)empty,false);
+        Check(icon.enabled && icon.sprite!=art.ItemSprite(seed) && icon.color.g>icon.color.r,"Planting icon missing or wrongly invalid");
+        var plantingSprite=icon.sprite;
+        Query(farm,"UpdateFarmingIcon",new Vector2(0,-2),false);
+        Check(icon.enabled && icon.color.r>icon.color.g,"Occupied cell icon not red");
+        foreach(var name in new[]{"Hoe","Scythe"})
+        {
+            var item=name=="Hoe"?AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset"):Resources.Load<PlantDefinition>("Crops/Scythe");
+            Check(item!=null,"Missing tool "+name);farm.AddItem(item);
+            Query(farm,"UpdateFarmingIcon",(Vector2)empty,false);
+            Check(icon.enabled && icon.sprite==art.ItemSprite(item) && icon.sprite!=plantingSprite,"Tool did not replace planting icon: "+name);
+            farm.RemoveInventoryItem(farm.InventoryCount-1);
+        }
+        farm.RemoveInventoryItem(0);farm.AddItem(water);
     }
     private const BindingFlags Members=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
     private static object Query(object owner,string method,params object[] args) => owner.GetType().GetMethod(method,Members).Invoke(owner,args);

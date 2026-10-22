@@ -105,7 +105,7 @@ namespace EverythingGrows
             player=farmer.transform;
             heldModel=Draw("Held object",Vector2.zero,Vector2.one*.55f,Color.white,11);
             heldModel.transform.SetParent(player,true); heldModel.enabled=false;
-            plantingPreview=Draw("Planting preview",Vector2.zero,Vector2.one*.95f,new Color(.4f,.9f,.5f,.35f),-2);
+            plantingPreview=Draw("Farming action icon",Vector2.zero,Vector2.one*.95f,new Color(.4f,.9f,.5f,.35f),-2);
             plantingPreview.enabled=false;
             if(mapLayout!=null)
             {
@@ -168,24 +168,5 @@ namespace EverythingGrows
         private bool OverUI() => hud.OverUI(new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y));
         private void OnGUI() { if(player!=null) hud?.Draw(); }
         private void OnDestroy() => worldView?.Dispose();
-        private void UpdatePlantingPreview()
-        {
-            var cell=MouseCell;
-            bool visible=ShowFarmingHints && WorldBounds.Contains(MousePoint);
-            var primary=PrimaryFarmHint(MousePoint);
-            var action=FarmHint(MousePoint);
-            if(Held!=null && Held.effect==GrowthEffect.House)
-            {
-                var source=art.ItemSprite(Held); float scale=Held.matureDisplaySize/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
-                plantingPreview.sprite=source; plantingPreview.transform.localScale=Vector3.one*scale;
-                plantingPreview.transform.position=(Vector2)cell+Vector2.up*(source.bounds.size.y*scale*.5f-.18f);
-                plantingPreview.sortingOrder=100; plantingPreview.enabled=visible;
-                plantingPreview.color=primary.Allowed?new Color(.4f,1,.5f,.5f):new Color(1,.3f,.25f,.5f); return;
-            }
-            plantingPreview.sprite=sprite; plantingPreview.transform.localScale=Vector3.one*.95f; plantingPreview.sortingOrder=-2;
-            plantingPreview.enabled=visible;
-            plantingPreview.transform.position=new Vector3(cell.x,cell.y,0);
-            plantingPreview.color=action.Allowed || primary.Allowed?new Color(.4f,.9f,.5f,.35f):new Color(.95f,.3f,.25f,.35f);
-        }
     }
 }

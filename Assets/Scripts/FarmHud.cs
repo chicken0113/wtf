@@ -8,7 +8,7 @@ namespace EverythingGrows
         private readonly FarmGame farm;
         private readonly FarmArt art;
         private readonly Camera view;
-        private GUIStyle titleStyle, smallStyle, hintStyle, cropStyle;
+        private GUIStyle titleStyle, smallStyle;
         private Vector2 inventoryScroll;
         public FarmHud(FarmGame farm, FarmArt art, Camera view) { this.farm=farm;this.art=art;this.view=view; }
         public Rect InventoryPanelRect
@@ -47,72 +47,7 @@ namespace EverythingGrows
                 Rect rect=SlotRect(i);
                 if (DrawSlot(rect, i, true)) break;
             }
-            DrawCropStates();
-            DrawFarmingHints();
             foreach(var piece in farm.WorldPieces) if(piece.model!=null) { var position=view.WorldToScreenPoint(piece.model.transform.position); GUI.Label(new Rect(position.x-60,Screen.height-position.y+12,120,22),"E: "+piece.definition.label); }
-        }
-        // Status badges leave the planted item's sprite and color intact.
-        private void DrawCropStates()
-        {
-            cropStyle ??= new GUIStyle(GUI.skin.label) { fontSize=10,alignment=TextAnchor.MiddleCenter,clipping=TextClipping.Clip,wordWrap=false };
-            foreach(var plot in farm.Farming.Plots)
-            {
-                if(plot.plant==null) continue;
-                Vector3 point=view.WorldToScreenPoint((Vector2)plot.cell+Vector2.up*.7f);
-                if(point.z<=0 || point.x<0 || point.x>Screen.width || point.y<0 || point.y>Screen.height) continue;
-                string status;
-                Color color;
-                if(plot.wilted) { status="DEAD"; color=new Color(.7f,.55f,.5f); }
-                else if(plot.CanHarvest) { status="E: HARVEST"; color=new Color(.5f,1,.65f); }
-                else if(plot.mature) { status="PRODUCING"; color=new Color(.65f,.85f,1); }
-                else if(!plot.wet) { status="NEEDS WATER"; color=new Color(.5f,.8f,1); }
-                else { status="GROWING "+Mathf.FloorToInt(plot.progress*100)+"%"; color=new Color(1,.85f,.4f); }
-                float width=Mathf.Clamp(view.WorldToScreenPoint((Vector2)plot.cell+Vector2.right).x-point.x-4,42,110);
-                if(width<70)
-                {
-                    if(!plot.wilted && plot.CanHarvest) status="E: PICK";
-                    else if(!plot.wilted && plot.mature) status="WAIT";
-                    else if(!plot.wilted && !plot.wet) status="WATER";
-                    else if(!plot.wilted) status="GROW "+Mathf.FloorToInt(plot.progress*100)+"%";
-                }
-                var rect=new Rect(point.x-width*.5f,Screen.height-point.y-25,width,34);
-                Color previous=GUI.color;
-                GUI.color=new Color(.08f,.12f,.1f,.88f); GUI.DrawTexture(rect,Texture2D.whiteTexture);
-                GUI.color=Color.white; GUI.Label(new Rect(rect.x,rect.y,rect.width,16),plot.plant.label,cropStyle);
-                GUI.color=color; GUI.Label(new Rect(rect.x,rect.y+15,rect.width,16),status,cropStyle);
-                if(!plot.mature && !plot.wilted)
-                {
-                    var bar=new Rect(rect.x,rect.yMax,rect.width,3);
-                    GUI.color=new Color(.15f,.2f,.18f); GUI.DrawTexture(bar,Texture2D.whiteTexture);
-                    GUI.color=color; GUI.DrawTexture(new Rect(bar.x,bar.y,bar.width*plot.progress,bar.height),Texture2D.whiteTexture);
-                }
-                GUI.color=previous;
-            }
-        }
-        private void DrawFarmingHints()
-        {
-            if(!farm.ShowFarmingHints || !farm.WorldBounds.Contains(farm.FarmingPointer)) return;
-            hintStyle ??= new GUIStyle(GUI.skin.label) { fontSize=12,wordWrap=true,padding=new RectOffset(8,8,5,5) };
-            var action=farm.FarmHint(farm.FarmingPointer);
-            var primary=farm.PrimaryFarmHint(farm.FarmingPointer);
-            string actionText="E: "+action.Text;
-            string primaryText=string.IsNullOrEmpty(primary.Text)?null:"LMB: "+primary.Text;
-            float desiredWidth=Mathf.Max(hintStyle.CalcSize(new GUIContent(actionText)).x,primaryText==null?0:hintStyle.CalcSize(new GUIContent(primaryText)).x);
-            float width=Mathf.Min(Screen.width-16,Mathf.Clamp(desiredWidth,160,300));
-            float actionHeight=hintStyle.CalcHeight(new GUIContent(actionText),width);
-            float primaryHeight=primaryText==null?0:hintStyle.CalcHeight(new GUIContent(primaryText),width);
-            var mouse=Event.current.mousePosition;
-            var rect=new Rect(Mathf.Clamp(mouse.x+18,8,Mathf.Max(8,Screen.width-width-8)),Mathf.Clamp(mouse.y+20,8,Mathf.Max(8,Screen.height-actionHeight-primaryHeight-8)),width,actionHeight+primaryHeight);
-            Color previous=GUI.color;
-            GUI.color=new Color(.06f,.1f,.09f,.94f); GUI.DrawTexture(rect,Texture2D.whiteTexture);
-            GUI.color=action.Allowed?new Color(.6f,1,.7f):new Color(1,.72f,.55f);
-            GUI.Label(new Rect(rect.x,rect.y,width,actionHeight),actionText,hintStyle);
-            if(primaryText!=null)
-            {
-                GUI.color=primary.Allowed?new Color(.6f,1,.7f):new Color(1,.72f,.55f);
-                GUI.Label(new Rect(rect.x,rect.y+actionHeight,width,primaryHeight),primaryText,hintStyle);
-            }
-            GUI.color=previous;
         }
         private void DrawInventoryWindow()
         {

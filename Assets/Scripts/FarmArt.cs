@@ -6,6 +6,7 @@ namespace EverythingGrows
     // The source sheet is four columns by four rows, read from its top left.
     public sealed class FarmArt
     {
+        internal const int PlantingIcon = 31;
         private readonly Texture2D atlas = Resources.Load<Texture2D>("FarmAtlas");
         private readonly Dictionary<int, Sprite> sprites = new();
         private readonly List<Texture2D> generated = new();
@@ -74,6 +75,13 @@ namespace EverythingGrows
             else if(index==18) { Box(21,4,2,24,metal); Box(9,7,3,18,brown); Box(12,4,5,3,brown); Box(12,25,5,3,brown); Box(17,7,3,18,brown); Box(5,15,24,2,gold); }
             else if(index==19) { Box(8,9,5,12,brown); Box(8,19,19,6,metal); Box(25,20,5,3,Color.gray); Box(15,13,7,3,Color.gray); }
             else if(index==22) { Box(14,3,4,24,brown); Box(6,23,18,4,metal); Box(5,19,5,7,metal); }
+            else if(index==PlantingIcon)
+            {
+                // White sprout silhouette, tinted green/red by the action indicator.
+                Box(5,4,22,3,Color.white); Box(14,7,4,14,Color.white);
+                Box(7,18,8,4,Color.white); Box(5,22,8,4,Color.white);
+                Box(18,21,8,4,Color.white); Box(21,25,7,3,Color.white);
+            }
             else if(index==29 || index==30)
             {
                 string[] rows={"01100110","11111111","11111111","11111111","01111110","00111100","00011000"};
