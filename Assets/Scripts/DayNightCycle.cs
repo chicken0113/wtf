@@ -20,11 +20,17 @@ namespace EverythingGrows
             ? farm.Layout.combatSchedule==FarmMapLayout.CombatSchedule.Always
             : CurrentPhase==Phase.Dusk || CurrentPhase==Phase.Night;
         public float Darkness => (farm.Layout!=null && !farm.Layout.dayNightLighting?0:Settings.nightDarkness)*(CurrentPhase==Phase.Daylight?0:CurrentPhase==Phase.Dusk?Mathf.SmoothStep(0,1,(Elapsed-Day)/Dusk):CurrentPhase==Phase.Night?1:1-Mathf.SmoothStep(0,1,(Elapsed-Day-Dusk-Night)/Dawn));
-        public void Initialize(FarmGame owner)
+        public void Initialize(FarmGame owner) => Initialize(owner,Resources.Load<DayNightSettings>("WorldCycle"));
+        public void Initialize(FarmGame owner,DayNightSettings settings)
         {
             if(farm!=null) return;
-            farm=owner; Settings=Resources.Load<DayNightSettings>("WorldCycle");
-            if(Settings==null) { Debug.LogError("Missing Resources/WorldCycle settings."); enabled=false; return; }
+            var report=new SetupValidationReport();
+            SetupDataValidator.CheckCycle(settings,report);
+            if(owner==null || owner.Combat==null || Camera.main==null)
+                report.Error("CYCLE_OWNER",this,"FarmGame / Combat / MainCamera","시간 시스템의 연결이 준비되지 않았습니다.","FarmGame 초기화 순서와 MainCamera를 확인하세요.");
+            report.Publish();
+            if(report.HasErrors) { enabled=false;return; }
+            farm=owner;Settings=settings;enabled=true;
             var root=new GameObject("World night shade"); root.transform.SetParent(Camera.main.transform,false); root.transform.localPosition=Vector3.forward;
             shade=root.AddComponent<SpriteRenderer>(); shade.sortingOrder=32760;
             shadeSprite=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2); shade.sprite=shadeSprite;

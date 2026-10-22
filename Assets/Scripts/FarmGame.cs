@@ -77,13 +77,12 @@ namespace EverythingGrows
         public void DropCombatMaterial(Vector2 point,bool ranged) { var item=Resources.Load<PlantDefinition>("Equipment/"+(ranged?"Bow":"Sword")); if(item!=null) Spawn(item,point); }
         public void Configure(PlantDefinition[] data) => definitions=data;
         private void Awake() { if(Application.isPlaying) Initialize(); }
-        public void Initialize(bool grantStartingItems=true)
+        private void InitializeRuntime(bool grantStartingItems, GameSetupResources resources)
         {
-            if(player!=null) return;
             if(mapLayout==null) mapLayout=GetComponentInChildren<FarmMapLayout>();
             worldView=new FarmWorldView(transform);
             farming=new FarmingSystem(this,worldView);
-            controlSettings=Resources.Load<PlayerControlSettings>("PlayerControls");
+            controlSettings=resources.Controls;
             view=Camera.main;
             if(view==null) { var cameraObject=new GameObject("Main Camera"); view=cameraObject.AddComponent<Camera>(); cameraObject.tag="MainCamera"; }
             hud=new FarmHud(this,art,view);
@@ -108,7 +107,6 @@ namespace EverythingGrows
             heldModel.transform.SetParent(player,true); heldModel.enabled=false;
             plantingPreview=Draw("Planting preview",Vector2.zero,Vector2.one*.95f,new Color(.4f,.9f,.5f,.35f),-2);
             plantingPreview.enabled=false;
-            if(definitions==null || definitions.Length<5) { message="Missing plant definitions. Run Tools > Everything Grows > Create prototype."; return; }
             if(mapLayout!=null)
             {
                 foreach(var placement in mapLayout.GetComponentsInChildren<FarmItemPlacement>())
@@ -129,11 +127,11 @@ namespace EverythingGrows
             }
             combat=gameObject.AddComponent<OpenFieldCombat>(); combat.Initialize(this);
             shop=GetComponent<NpcManager>(); if(shop!=null) shop.Initialize(this);
-            Cycle=GetComponent<DayNightCycle>(); if(Cycle==null) Cycle=gameObject.AddComponent<DayNightCycle>(); Cycle.Initialize(this);
+            Cycle=GetComponent<DayNightCycle>(); if(Cycle==null) Cycle=gameObject.AddComponent<DayNightCycle>(); Cycle.Initialize(this,resources.Cycle);
             if(mapLayout!=null) foreach(var ground in mapLayout.GetComponentsInChildren<FarmGround>()) if(ground.GetComponent<StartingPlot>()!=null) Till(Vector2Int.RoundToInt(ground.transform.position));
             if(grantStartingItems)
             {
-                var loadout=Resources.Load<StartingInventory>("StartingInventory");
+                var loadout=resources.Starting;
                 if(loadout!=null && loadout.items!=null) foreach(var entry in loadout.items)
                     if(entry!=null && entry.item!=null) for(int i=0;i<Mathf.Max(1,entry.quantity);i++)
                         if(!AddItem(entry.item)) Spawn(entry.item,SpawnPosition+Vector2.down*.6f);
@@ -142,7 +140,6 @@ namespace EverythingGrows
             message="E: pickup / plant / harvest. F: talk / enter. Click: use / attack. Space or Shift: dodge.";
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(!building.runtimePlaced) authoredBuildingKeys[building]=MapObjectId.Key(building);
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) HouseInteriorLink.EnsureDoor(building);
-            if(Application.isPlaying && grantStartingItems) GameSession.Bind(this);
         }
         private SpriteRenderer Draw(string label,Vector2 position,Vector2 size,Color color,int order) => worldView.Draw(label,position,size,color,order);
         private SpriteRenderer ArtDraw(string label,Vector2 position,Vector2 size,int index,Color fallback,int order) => worldView.ArtDraw(label,position,size,index,fallback,order);

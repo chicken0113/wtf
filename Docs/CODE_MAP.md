@@ -6,6 +6,7 @@
 
 | 수정할 기능 | 규칙·상태 담당 | 연결·표시 담당 |
 | --- | --- | --- |
+| 시작 설정 누락·잘못된 참조·수치 | `SetupDataValidator.cs`, `FarmSetupValidator.cs` | `FarmGame.Startup.cs`, `Editor/ProjectSetupCheck.cs`; 자세한 사용법은 [SETUP_VALIDATION.md](SETUP_VALIDATION.md) |
 | 아이템 수량·겹치기·선택·슬롯 제한 | `Assets/Scripts/InventoryState.cs` | `FarmGame.Inventory.cs`가 메시지·바닥 드롭 연결 |
 | 밭 갈기·심기·물주기·성장·수확·재수확 | `Assets/Scripts/FarmingSystem.cs` | `FarmGame`의 기존 공개 함수가 위임 |
 | 밭 한 칸의 상태 | `Assets/Scripts/PlantPlot.cs` | SpriteRenderer를 보관하지 않음 |
@@ -27,6 +28,8 @@
 | 벽·통행·탄환 차단·길 찾기 | `Assets/Scripts/MapCollision.cs` | Scene의 `MapObstacle`, `FarmBuilding` |
 
 `FarmGame.cs`는 Unity 컴포넌트 초기화, 기존 공개 API, 시스템 연결을 맡는다. 기존 컴포넌트와 직렬화 필드를 유지하므로 씬마다 새 컴포넌트를 붙일 필요가 없다.
+
+시작 순서는 `FarmGame.Startup.Initialize → 공유 설정 검사 → InitializeRuntime → IsInitialized=true → GameSession.Bind`다. 필수 오류가 있으면 오브젝트 생성과 저장 연결을 시작하지 않는다. 사용 코드에서 준비 여부를 확인할 때는 `IsInitialized`를 사용한다. 데이터 누락 검사를 입력/전투/UI에 각각 중복 구현하지 않는다.
 
 `FarmGame.*.cs`는 하나의 컴포넌트를 주제별로 나눈 연결 코드다. 이 파일 분할 자체를 독립된 시스템으로 간주하지 않는다. 실제 인벤토리 상태는 `InventoryState`, 밭 상태와 농사 규칙은 `FarmingSystem`, 그림은 `FarmWorldView`, HUD는 `FarmHud`가 소유한다.
 
@@ -90,6 +93,7 @@
 
 | 변경한 부분 | 검사 진입점 |
 | --- | --- |
+| 시작 설정·누락 처리·대체값 | `ProjectSetupCheck.Run`(정상 프로젝트), `SetupValidationCheck.Run`(격리된 오류 주입) |
 | 인벤토리·농사·수확·집 | `FoundationRefactorCheck.Run` — 기존 슬롯/보관/성장/재수확/하트/집 검사 묶음 |
 | E/F·메뉴 차단·조준·회피 | `BasicControlsCheck.Run` |
 | 전투 분리·하트·길 찾기·탄환 차단·재등장·피격 취소 | `CombatRefactorCheck.Run` — 기존 충돌/하트 검사와 전투 생명주기 검사 |

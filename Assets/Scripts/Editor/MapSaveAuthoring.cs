@@ -24,7 +24,7 @@ public static class MapSaveAuthoring
         if(catalog==null) { catalog=ScriptableObject.CreateInstance<SaveItemCatalog>(); catalog.entries=entries; AssetDatabase.CreateAsset(catalog,CatalogPath); }
         else
         {
-            if(catalog.entries.Length==entries.Length && catalog.entries.Zip(entries,(a,b)=>a.id==b.id && a.item==b.item).All(same=>same)) return;
+            if(catalog.entries!=null && catalog.entries.Length==entries.Length && catalog.entries.Zip(entries,(a,b)=>a!=null && a.id==b.id && a.item==b.item).All(same=>same)) return;
             catalog.entries=entries; EditorUtility.SetDirty(catalog);
         }
         AssetDatabase.SaveAssetIfDirty(catalog);

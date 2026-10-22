@@ -27,11 +27,11 @@ namespace EverythingGrows
         private NpcProfile activeProfile;
         private Vector2 scroll;
         public int Gold { get; private set; }
-        public bool CanTrade => farm!=null && !farm.Combat.IsGameOver && (farm.Cycle==null || farm.Cycle.ShopsOpen);
+        public bool CanTrade => farm!=null && farm.Combat!=null && !farm.Combat.IsGameOver && (farm.Cycle==null || (farm.Cycle.Settings!=null && farm.Cycle.ShopsOpen));
         public bool IsOpen => activeNpc!=null && CanInteract(activeNpc) && activeNpc.IsVisiting && activeProfile!=null;
         public bool IsTrading => IsOpen && CanTrade && activeProfile.shopEnabled;
         public bool IsQuestDesk => IsOpen && activeProfile.guildQuestGiver;
-        private bool CanInteract(ShopNpc npc) => farm!=null && !farm.Combat.IsGameOver && npc!=null && npc.isActiveAndEnabled && (!npc.daytimeOnly || CanTrade);
+        private bool CanInteract(ShopNpc npc) => farm!=null && farm.Combat!=null && !farm.Combat.IsGameOver && npc!=null && npc.isActiveAndEnabled && (!npc.daytimeOnly || CanTrade);
         public void UpdateAvailability()
         {
             foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) npc.SetVisiting(CanInteract(npc));

@@ -10,11 +10,19 @@ namespace EverythingGrows
         private readonly Dictionary<int, Sprite> sprites = new();
         private readonly List<Texture2D> generated = new();
         private readonly Dictionary<Sprite,Sprite> buriedSprites = new();
-        public bool Available => atlas != null;
+        public bool Available => atlas != null && atlas.width>=4 && atlas.height>=4;
         public Sprite Get(int index)
         {
             if(index>=16) return Procedural(index);
-            if (atlas == null) return null;
+            if (!Available)
+            {
+                if (!sprites.TryGetValue(index,out var fallback))
+                {
+                    fallback=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2);
+                    sprites.Add(index,fallback);
+                }
+                return fallback;
+            }
             if (!sprites.TryGetValue(index, out var result))
             {
                 int width = atlas.width / 4, height = atlas.height / 4;
@@ -53,7 +61,7 @@ namespace EverythingGrows
         public void Icon(Rect rect, int index)
         {
             if(index>=16) { GUI.DrawTexture(rect,Get(index).texture); return; }
-            if (atlas != null) GUI.DrawTextureWithTexCoords(rect, atlas, new Rect(index % 4 / 4f, (3 - index / 4) / 4f,.25f,.25f));
+            if (Available) GUI.DrawTextureWithTexCoords(rect, atlas, new Rect(index % 4 / 4f, (3 - index / 4) / 4f,.25f,.25f));
         }
         private Sprite Procedural(int index)
         {

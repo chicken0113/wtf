@@ -47,7 +47,8 @@ namespace EverythingGrows
         {
             if(loaded) return;
             loaded=true; catalog=Resources.Load<SaveItemCatalog>("SaveItemCatalog");
-            if(catalog==null) throw new InvalidOperationException("Save item catalog missing. Run Tools > Everything Grows > Refresh save item catalog.");
+            var setup=new SetupValidationReport(); SetupDataValidator.CheckCatalog(catalog,setup);
+            if(setup.HasErrors) throw new InvalidOperationException(setup.FirstError);
             if(!File.Exists(SavePath)) { data=new GameSaveData(); return; }
             Exception failure=null;
             foreach(var path in new[]{SavePath,SavePath+".bak"})
@@ -81,7 +82,7 @@ namespace EverythingGrows
         }
         public static void Bind(FarmGame farm)
         {
-            if(!Enabled) return;
+            if(!Enabled || farm==null || !farm.IsInitialized) return;
             EnsureRunner(); bool first=current==null && !loaded;
             try
             {
@@ -131,6 +132,7 @@ namespace EverythingGrows
         {
             if(!Enabled) return true;
             if(blocked || farm==null) return false;
+            if(!farm.IsInitialized) { error=farm.InitializationError??"게임 초기화를 완료한 뒤 저장하세요."; return false; }
             try
             {
                 Load(); if(data==null) return false;
@@ -149,6 +151,7 @@ namespace EverythingGrows
         public static bool SaveAfterHouseTime(FarmGame farm) => Save(farm);
         public static bool EnterHouse(FarmGame farm,string target,string arrival)
         {
+            if(farm==null || !farm.IsInitialized) return false;
             Load();if(data==null||Busy||farm==null)return false;
             string previous=data.houseReturnScene;Vector2 position=data.houseReturnPosition;
             data.houseReturnScene=farm.gameObject.scene.path;data.houseReturnPosition=farm.PlayerPosition;
@@ -157,13 +160,14 @@ namespace EverythingGrows
         }
         public static bool ReturnFromHouse(FarmGame farm,string fallbackScene,string fallbackArrival)
         {
+            if(farm==null || !farm.IsInitialized) return false;
             Load();return data!=null&&!string.IsNullOrEmpty(data.houseReturnScene)
                 ? Travel(farm,data.houseReturnScene,null,data.houseReturnPosition)
                 : Travel(farm,fallbackScene,fallbackArrival);
         }
         public static bool Travel(FarmGame farm,string target,string arrival,Vector2? position=null)
         {
-            if(!Application.isPlaying || Busy || blocked || farm==null || farm.Combat.IsGameOver) return false;
+            if(!Application.isPlaying || Busy || blocked || farm==null || !farm.IsInitialized || farm.Combat.IsGameOver) return false;
             if(string.IsNullOrEmpty(target) || SceneUtility.GetBuildIndexByScenePath(target)<0)
             { error="Destination scene is not enabled in Build Settings."; return false; }
             if(SceneUtility.GetBuildIndexByScenePath(farm.gameObject.scene.path)<0) { error="Enable the current scene in Build Settings before travelling."; return false; }
@@ -182,7 +186,8 @@ namespace EverythingGrows
             var scene=SceneManager.GetActiveScene();
             if(current==null || current.gameObject.scene!=scene || !string.IsNullOrEmpty(pendingScene))
             {
-                error=error??"Destination scene needs an initialized FarmGame.";
+                var failedFarm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
+                error=error??(failedFarm!=null?failedFarm.InitializationError:null)??"Destination scene needs an initialized FarmGame.";
                 pendingScene=origin; pendingArrival=null; pendingPosition=null;
                 operation=null;
                 try { operation=SceneManager.LoadSceneAsync(origin,LoadSceneMode.Single); }
