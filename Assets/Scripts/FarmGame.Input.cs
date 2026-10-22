@@ -11,19 +11,19 @@ namespace EverythingGrows
             if(inventoryPressed)
             {
                 bool next=!InventoryOpen; shop?.Close(); showMap=false; SetInventoryOpen(next);
-                plantingPreview.enabled=false; return true;
+                HideFarmingPreview(); return true;
             }
             if(escapePressed && WorldInputBlocked)
             {
-                shop?.Close(); SetInventoryOpen(false); showMap=false; plantingPreview.enabled=false; return true;
+                shop?.Close(); SetInventoryOpen(false); showMap=false; HideFarmingPreview(); return true;
             }
             if(mapPressed && !InventoryOpen)
-            { showMap=!showMap; plantingPreview.enabled=false; return true; }
+            { showMap=!showMap; HideFarmingPreview(); return true; }
             if(WorldInputBlocked)
             {
                 shop?.CheckDistance();
                 if(interactPressed && shop!=null && shop.IsOpen) { shop.Close(); SetInventoryOpen(false); }
-                plantingPreview.enabled=false; return true;
+                HideFarmingPreview(); return true;
             }
             return false;
         }
@@ -31,12 +31,12 @@ namespace EverythingGrows
         {
             frameMovement=Vector2.zero;
             if(player==null) return;
-            if(combat.IsGameOver || GameSession.Busy || !string.IsNullOrEmpty(GameSession.LastError)) { plantingPreview.enabled=false; return; }
+            if(combat.IsGameOver || GameSession.Busy || !string.IsNullOrEmpty(GameSession.LastError)) { HideFarmingPreview(); return; }
             if(ProcessMenuInput(Input.GetKeyDown(KeyCode.Tab),Input.GetKeyDown(KeyCode.Escape),Input.GetKeyDown(KeyCode.M),Input.GetKeyDown(KeyCode.F))) return;
             var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
             int hoveredHeart=combat.HeartAt(guiMouse);
             if(Input.GetKeyDown(KeyCode.E) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
-            if(MapExit.TryAutomatic(this)) { plantingPreview.enabled=false; return; }
+            if(MapExit.TryAutomatic(this)) { HideFarmingPreview(); return; }
             GameSession.AdvanceTime(Time.deltaTime);
             Cycle.Tick(Time.deltaTime);
             Vector2 move=MovementInput(Input.GetKey(KeyCode.A),Input.GetKey(KeyCode.D),Input.GetKey(KeyCode.W),Input.GetKey(KeyCode.S));

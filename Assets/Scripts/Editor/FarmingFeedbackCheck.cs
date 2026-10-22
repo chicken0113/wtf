@@ -64,12 +64,12 @@ public static class FarmingFeedbackCheck
             var f=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
             var icon=(SpriteRenderer)typeof(FarmGame).GetField("plantingPreview",Members).GetValue(f);
             f.SetInventoryOpen(true);Query(f,"UpdateFarmingIcon",new Vector2(0,-2),false);
-            Check(!icon.enabled,"Icon leaked through inventory");
+            Check(!icon.enabled && !Border(f).enabled,"Preview leaked through inventory");
             f.SetInventoryOpen(false);f.SetMapOpen(true);Query(f,"UpdateFarmingIcon",new Vector2(0,-2),false);
-            Check(!icon.enabled,"Icon leaked through map");
+            Check(!icon.enabled && !Border(f).enabled,"Preview leaked through map");
             f.SetMapOpen(false);
             SessionState.SetBool(VisualKey,false);EditorApplication.update-=VisualTick;
-            Debug.Log("FARMING_FEEDBACK_VISUAL_SUCCESS: one cell-centered tool/planting icon; empty hands, range and menus hide it; no crop status HUD. Image: "+imagePath);
+            Debug.Log("FARMING_FEEDBACK_VISUAL_SUCCESS: valid cell has one icon and green border; invalid cells, empty hands, range and menus hide both. Image: "+imagePath);
             EditorApplication.Exit(0);
         }
         catch(Exception e) { SessionState.SetBool(VisualKey,false);Debug.LogException(e);EditorApplication.Exit(1); }
@@ -82,31 +82,41 @@ public static class FarmingFeedbackCheck
         Query(farm,"UpdateFarmingIcon",new Vector2(.15f,-2.1f),false);
         Check(icon.enabled && icon.sprite==art.ItemSprite(water),"Watering tool icon missing");
         Check(icon.transform.position==new Vector3(0,-2,0),"Icon not centered in cell");
+        Check(Border(farm).enabled && Border(farm).transform.position==icon.transform.position && Border(farm).bounds.size.x==1 && Border(farm).color.g>Border(farm).color.r,"Green border does not surround selected cell");
         Query(farm,"UpdateFarmingIcon",new Vector2(-.2f,-1.9f),false);
         Check(icon.transform.position==new Vector3(0,-2,0),"Icon followed pointer inside a cell");
         Query(farm,"UpdateFarmingIcon",new Vector2(6,-2),false);
-        Check(!icon.enabled,"Out-of-range icon visible");
+        Check(!icon.enabled && !Border(farm).enabled,"Out-of-range preview visible");
         Query(farm,"UpdateFarmingIcon",new Vector2(0,-2),true);
-        Check(!icon.enabled,"Icon visible over UI");
+        Check(!icon.enabled && !Border(farm).enabled,"Preview visible over UI");
         while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
         Query(farm,"UpdateFarmingIcon",new Vector2(0,-2),false);
-        Check(!icon.enabled,"Empty hands displayed icon");
+        Check(!icon.enabled && !Border(farm).enabled,"Empty hands displayed preview");
         farm.AddItem(seed);var empty=new Vector2Int(0,-3);farm.Till(empty);
         Query(farm,"UpdateFarmingIcon",(Vector2)empty,false);
         Check(icon.enabled && icon.sprite!=art.ItemSprite(seed) && icon.color.g>icon.color.r,"Planting icon missing or wrongly invalid");
         var plantingSprite=icon.sprite;
         Query(farm,"UpdateFarmingIcon",new Vector2(0,-2),false);
-        Check(icon.enabled && icon.color.r>icon.color.g,"Occupied cell icon not red");
+        Check(!icon.enabled && !Border(farm).enabled,"Occupied cell preview visible");
         foreach(var name in new[]{"Hoe","Scythe"})
         {
             var item=name=="Hoe"?AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset"):Resources.Load<PlantDefinition>("Crops/Scythe");
             Check(item!=null,"Missing tool "+name);farm.AddItem(item);
-            Query(farm,"UpdateFarmingIcon",(Vector2)empty,false);
-            Check(icon.enabled && icon.sprite==art.ItemSprite(item) && icon.sprite!=plantingSprite,"Tool did not replace planting icon: "+name);
+            var target=name=="Hoe"?new Vector2Int(0,-4):empty;
+            if(name=="Scythe")
+            {
+                farm.RemoveInventoryItem(farm.InventoryCount-1);farm.AddItem(seed);Check(farm.PlantSelected(empty),"Dead-crop fixture planting failed");farm.AddItem(item);
+                foreach(var plot in (System.Collections.IEnumerable)Read(Read(farm,"Farming"),"Plots"))
+                    if((Vector2Int)plot.GetType().GetField("cell").GetValue(plot)==empty) plot.GetType().GetField("wilted").SetValue(plot,true);
+            }
+            Query(farm,"UpdateFarmingIcon",(Vector2)target,false);
+            Check(icon.enabled && Border(farm).enabled && icon.sprite==art.ItemSprite(item) && icon.sprite!=plantingSprite,"Tool did not replace planting icon: "+name);
+            if(name=="Hoe") { Check(farm.UseTool(target),"Hoe fixture failed");Query(farm,"UpdateFarmingIcon",(Vector2)target,false);Check(!icon.enabled && !Border(farm).enabled,"Already tilled cell retained hoe preview"); }
             farm.RemoveInventoryItem(farm.InventoryCount-1);
         }
-        farm.RemoveInventoryItem(0);farm.AddItem(water);
+        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);farm.AddItem(water);
     }
+    private static SpriteRenderer Border(FarmGame farm) => (SpriteRenderer)typeof(FarmGame).GetField("farmingBorder",Members).GetValue(farm);
     private const BindingFlags Members=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
     private static object Query(object owner,string method,params object[] args) => owner.GetType().GetMethod(method,Members).Invoke(owner,args);
     private static object Read(object owner,string property) => owner.GetType().GetProperty(property,Members).GetValue(owner);

@@ -7,6 +7,7 @@ namespace EverythingGrows
     public sealed class FarmArt
     {
         internal const int PlantingIcon = 31;
+        internal const int FarmingBorderIcon = 32;
         private readonly Texture2D atlas = Resources.Load<Texture2D>("FarmAtlas");
         private readonly Dictionary<int, Sprite> sprites = new();
         private readonly List<Texture2D> generated = new();
@@ -75,6 +76,11 @@ namespace EverythingGrows
             else if(index==18) { Box(21,4,2,24,metal); Box(9,7,3,18,brown); Box(12,4,5,3,brown); Box(12,25,5,3,brown); Box(17,7,3,18,brown); Box(5,15,24,2,gold); }
             else if(index==19) { Box(8,9,5,12,brown); Box(8,19,19,6,metal); Box(25,20,5,3,Color.gray); Box(15,13,7,3,Color.gray); }
             else if(index==22) { Box(14,3,4,24,brown); Box(6,23,18,4,metal); Box(5,19,5,7,metal); }
+            else if(index==FarmingBorderIcon)
+            {
+                Box(0,0,32,2,Color.white); Box(0,30,32,2,Color.white);
+                Box(0,2,2,28,Color.white); Box(30,2,2,28,Color.white);
+            }
             else if(index==PlantingIcon)
             {
                 // White sprout silhouette, tinted green/red by the action indicator.

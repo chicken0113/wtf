@@ -29,9 +29,9 @@ namespace EverythingGrows
         public bool InteractWorld(Vector2 point,bool pointerOverUI=false)
         {
             if(player==null||combat==null||combat.IsGameOver||combat.IsRolling||WorldInputBlocked||GameSession.Busy||pointerOverUI)return false;
-            if(shop!=null&&shop.OpenPointed(point)){plantingPreview.enabled=false;return true;}
-            if(MapExit.TryDoor(this)){plantingPreview.enabled=false;return true;}
-            if(shop!=null&&shop.OpenNearby()){plantingPreview.enabled=false;return true;}
+            if(shop!=null&&shop.OpenPointed(point)){HideFarmingPreview();return true;}
+            if(MapExit.TryDoor(this)){HideFarmingPreview();return true;}
+            if(shop!=null&&shop.OpenNearby()){HideFarmingPreview();return true;}
             Notify("Walk closer to a person or stand on a blue doormat, then press F.");return false;
         }
         // E unifies pickup, planting and harvest, without opening NPCs or doors.

@@ -106,7 +106,7 @@ namespace EverythingGrows
             heldModel=Draw("Held object",Vector2.zero,Vector2.one*.55f,Color.white,11);
             heldModel.transform.SetParent(player,true); heldModel.enabled=false;
             plantingPreview=Draw("Farming action icon",Vector2.zero,Vector2.one*.95f,new Color(.4f,.9f,.5f,.35f),-2);
-            plantingPreview.enabled=false;
+            HideFarmingPreview();
             if(mapLayout!=null)
             {
                 foreach(var placement in mapLayout.GetComponentsInChildren<FarmItemPlacement>())

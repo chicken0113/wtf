@@ -42,8 +42,8 @@
 
 - 심기 가능 여부는 `FarmingSystem.PlantHint`가 판단하며 `PlantSelected`도 같은 결과를 사용한다. 도구는 `ToolHint`, E 작물 행동은 `InteractionHint`를 실행과 안내가 공유한다. 이 쿼리는 아이템이나 밭 상태를 바꾸지 않는다.
 - `FarmGame.FarmingHints.FarmHint`는 실제 E의 바닥 아이템 → 건물 → 밭 우선순위를 따른다. `PrimaryFarmHint`는 좌클릭 도구/집 설치 판정이다.
-- 화면에서는 `UpdatePlantingPreview → UpdateFarmingIcon`이 한 개의 SpriteRenderer를 재사용한다. 괭이/물뿌리개/낫은 해당 도구 그림과 `ToolHint`, 그 외 아이템은 공통 새싹 그림과 `PlantHint`를 사용한다. 가능하면 원래 색(심기는 초록), 불가능하면 붉게 표시한다. 줍기·수확 가능 여부가 심기 아이콘의 색을 덮어쓰지 않는다.
-- 아이콘은 마우스가 가리키는 정수 칸 중앙에 고정한다. 맨손·거리 밖·월드 밖·메뉴/UI·이동/오류·게임오버에서는 숨긴다. 집 전체 설치 미리보기, 커서 안내 텍스트, 작물 위 이름/상태표/진행 막대는 제거했다. 실제 집 설치/심기와 농사 규칙은 유지한다.
+- 화면에서는 `UpdatePlantingPreview → UpdateFarmingIcon`이 한 개의 SpriteRenderer를 재사용한다. 괭이/물뿌리개/낫은 해당 도구 그림과 `ToolHint`, 그 외 아이템은 공통 새싹 그림과 `PlantHint`를 사용한다. 가능한 칸에서만 원래 색(심기는 초록) 아이콘과 초록색 한 칸 테두리를 함께 표시한다. 불가능하면 둘 다 숨긴다. 줍기·수확 가능 여부가 심기 아이콘의 색을 덮어쓰지 않는다.
+- 아이콘은 마우스가 가리키는 정수 칸 중앙에 고정한다. 맨손·거리 밖·월드 밖·메뉴/UI·이동/오류·게임오버에서는 숨긴다. 모든 숨김 경로는 `HideFarmingPreview`로 아이콘과 테두리를 함께 끈다. 테두리 그림은 `FarmArt.FarmingBorderIcon`의 속이 빈 사각형을 재사용한다. 집 전체 설치 미리보기, 커서 안내 텍스트, 작물 위 이름/상태표/진행 막대는 제거했다. 실제 집 설치/심기와 농사 규칙은 유지한다.
 - 밭으로 쓸 수 있는 위치와 건물 충돌은 `FarmGame.World.CanFarmAt`에서 연결한다.
 - 수확물은 `ReceiveHarvest → InventoryState.TryAdd`로 들어간다. 공간이 없으면 연결 코드가 바닥에 드롭한다.
 - 성장은 `FarmingSystem.Tick`, 모습은 `FarmWorldView.RefreshPlant`를 본다.
@@ -99,7 +99,7 @@
 | --- | --- |
 | 시작 설정·누락 처리·대체값 | `ProjectSetupCheck.Run`(정상 프로젝트), `SetupValidationCheck.Run`(격리된 오류 주입) |
 | 인벤토리·농사·수확·집 | `FoundationRefactorCheck.Run` — 기존 슬롯/보관/성장/재수확/하트/집 검사 묶음 |
-| 농사 판정/안내·작물 상태 | `FarmingFeedbackCheck.Run` — 잘못된 심기·도구·거리·생산/재수확·가득 찬 인벤토리, `RunVisual` — 도구 우선/공통 심기/칸 중앙 고정/맨손·거리·메뉴 숨김/불가능 색과 실제 렌더 |
+| 농사 판정/안내·작물 상태 | `FarmingFeedbackCheck.Run` — 잘못된 심기·도구·거리·생산/재수확·가득 찬 인벤토리, `RunVisual` — 도구 우선/공통 심기/칸 중앙 고정/맨손·거리·메뉴·불가능한 칸의 동시 숨김/초록 한 칸 테두리와 실제 렌더 |
 | E/F·메뉴 차단·조준·회피 | `BasicControlsCheck.Run` |
 | 전투 분리·하트·길 찾기·탄환 차단·재등장·피격 취소 | `CombatRefactorCheck.Run` — 기존 충돌/하트 검사와 전투 생명주기 검사 |
 | 공격·반동·회피 모습·농기구 연속 사용 | `ActionFeelCheck.Run` |

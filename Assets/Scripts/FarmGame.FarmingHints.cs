@@ -25,22 +25,37 @@ namespace EverythingGrows
         }
         private void UpdatePlantingPreview() => UpdateFarmingIcon(MousePoint,OverUI());
 
+        private SpriteRenderer farmingBorder;
+        private void HideFarmingPreview()
+        {
+            if(plantingPreview!=null) plantingPreview.enabled=false;
+            if(farmingBorder!=null) farmingBorder.enabled=false;
+        }
+
         // One action icon, anchored to the cell rather than following the pointer.
         private void UpdateFarmingIcon(Vector2 point,bool pointerOverUI)
         {
-            plantingPreview.enabled=false;
+            HideFarmingPreview();
             var cell=Vector2Int.RoundToInt(point);
             if(!IsInitialized || Held==null || pointerOverUI || WorldInputBlocked || GameSession.Busy ||
                 !string.IsNullOrEmpty(GameSession.LastError) || combat==null || combat.IsGameOver ||
                 !WorldBounds.Contains(point) || !Near(point) || !WithinReach(cell)) return;
             bool tool=Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe;
             var hint=tool?PrimaryFarmHint(point):farming.PlantHint(cell);
+            if(!hint.Allowed || combat.IsRolling) return;
             var source=tool?art.ItemSprite(Held):art.Get(FarmArt.PlantingIcon);
             plantingPreview.sprite=source;
             plantingPreview.transform.position=new Vector3(cell.x,cell.y,0);
             plantingPreview.transform.localScale=Vector3.one*(.55f/Mathf.Max(.01f,Mathf.Max(source.bounds.size.x,source.bounds.size.y)));
             plantingPreview.sortingOrder=30000;
-            plantingPreview.color=hint.Allowed && !combat.IsRolling?(tool?Color.white:new Color(.5f,1,.55f)):new Color(1,.25f,.25f);
+            plantingPreview.color=tool?Color.white:new Color(.5f,1,.55f);
+            if(farmingBorder==null)
+            {
+                farmingBorder=Draw("Available farming cell border",cell,Vector2.one,new Color(.25f,1,.3f),29999);
+                farmingBorder.sprite=art.Get(FarmArt.FarmingBorderIcon);
+            }
+            farmingBorder.transform.position=new Vector3(cell.x,cell.y,0);
+            farmingBorder.enabled=true;
             plantingPreview.enabled=true;
         }
     }
