@@ -12,11 +12,12 @@ public static class InteriorWorldCheck
 {
     const string Key="InteriorWorldPlayCheck";
     static int step,gold=411;static double deadline;static bool resume;
-    static readonly string[] Route={CombatTestMapSetup.FarmScene,InteriorWorldSetup.Home,CombatTestMapSetup.FarmScene,TriangleWorldSetup.Passage,
+    static string[] Route=>new[]{CombatTestMapSetup.FarmScene,InteriorWorldSetup.Home,CombatTestMapSetup.FarmScene,TriangleWorldSetup.Passage,
         WorldFrameworkSetup.Town,InteriorWorldSetup.Guild,WorldFrameworkSetup.Town,InteriorWorldSetup.Smith,WorldFrameworkSetup.Town,
         WorldFrameworkSetup.Store,WorldFrameworkSetup.Town,TriangleWorldSetup.Field,CombatTestMapSetup.FarmScene,TriangleWorldSetup.Field,
         TriangleWorldSetup.Forest,TriangleWorldSetup.Field,TriangleWorldSetup.Training,TriangleWorldSetup.Field,CombatTestMapSetup.CombatScene,
-        TriangleWorldSetup.Field,WorldFrameworkSetup.Town,TriangleWorldSetup.Passage,CombatTestMapSetup.FarmScene};
+        TriangleWorldSetup.Field,WorldFrameworkSetup.Town,TriangleWorldSetup.Passage,CombatTestMapSetup.FarmScene}
+        .SelectMany(path=>TowerDungeonSetup.Installed && path==CombatTestMapSetup.CombatScene?new[]{TowerDungeonSetup.Lobby,path,TowerDungeonSetup.Lobby}:new[]{path}).ToArray();
     static InteriorWorldCheck(){if(Application.isBatchMode&&SessionState.GetBool(Key,false)){resume=SessionState.GetBool(Key+"Resume",false);deadline=EditorApplication.timeSinceStartup+150;EditorApplication.update+=Tick;}}
     static void Check(bool ok,string text){if(!ok)throw new Exception(text);}
     public static void Run()
@@ -109,7 +110,7 @@ public static class InteriorWorldCheck
             }
             Check(f.gameObject.scene.path==InteriorWorldSetup.Home,"Moved house did not enter room");
             Check(GameSession.Save(f),"Home autosave failed");
-            Finish("BUILDING_INTERIORS_PLAY_SUCCESS: 11 maps, 22 directed routes, guild dialogue, smith buy/sell/funds, inventory/gold, movable house door and inside save.");
+            Finish("BUILDING_INTERIORS_PLAY_SUCCESS: "+TriangleWorldSetup.Paths.Length+" maps, "+(Route.Length-1)+" directed routes, guild dialogue, smith buy/sell/funds, inventory/gold, movable house door and inside save.");
         }
         catch(Exception e){SessionState.SetBool(Key,false);Debug.LogException(e);EditorApplication.Exit(1);}
     }

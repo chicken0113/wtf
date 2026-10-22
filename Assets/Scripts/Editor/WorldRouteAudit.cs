@@ -39,7 +39,7 @@ public static class WorldRouteAudit
         float inward=Length(town,townArrival.transform.position,guildExit.transform.position);
         EditorSceneManager.OpenScene(TriangleWorldSetup.Field);var field=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
         outward+=Length(field,field.GetComponentsInChildren<MapArrivalPoint>().Single(a=>a.arrivalId=="field_from_town").transform.position,
-            field.GetComponentsInChildren<MapExit>().Single(e=>e.destinationScene==CombatTestMapSetup.CombatScene).transform.position);
+            field.GetComponentsInChildren<MapExit>().Single(e=>e.destinationScene==(TowerDungeonSetup.Installed?TowerDungeonSetup.Lobby:CombatTestMapSetup.CombatScene)).transform.position);
         inward+=Length(field,field.GetComponentsInChildren<MapArrivalPoint>().Single(a=>a.arrivalId=="field_from_dungeon").transform.position,
             field.GetComponentsInChildren<MapExit>().Single(e=>e.destinationScene==WorldFrameworkSetup.Town).transform.position);
         var settings=Resources.Load<PlayerControlSettings>("PlayerControls");float speed=settings!=null?Mathf.Max(.1f,settings.moveSpeed):4.5f;

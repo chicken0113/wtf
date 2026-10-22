@@ -23,6 +23,7 @@
 | 탄환 생성·이동·벽 차단·최초 명중·수명 | `Assets/Scripts/ProjectileSystem.cs` | `Spawn`, `Tick`, `ClearHostile` |
 | 전투 궤적·발사·파편·잔상·공격 예고선 | `Assets/Scripts/CombatEffects.cs` | 캐릭터/손 동작과 카메라는 기존 `FarmGame.Feedback.cs` |
 | 전투 연결·처치 수·길드 처치 전달·체력 HUD | `Assets/Scripts/OpenFieldCombat.cs` | `Attack`, `TickCombat`, `EnemyDefeated`, `OnGUI` |
+| 탑 1·2층·F 계단 배치 | `Editor/TowerDungeonSetup.cs` | 기존 `MapExit`/`MapArrivalPoint`/`GameSession.Travel`; [TOWER_DUNGEON.md](TOWER_DUNGEON.md) |
 | 맵/플레이어 저장 연결 | `Assets/Scripts/FarmPersistence.cs` | 각 상태 소유자에게 Capture/Restore 위임 |
 | 파일 저장·백업·맵 이동·저장 오류 | `Assets/Scripts/GameSession.cs` | 의뢰는 `GameSession.Guild.cs` |
 | 저장 파일 필드 | `Assets/Scripts/GameSaveData.cs` | 버전 1 유지 |
@@ -100,6 +101,7 @@
 | 시작 설정·누락 처리·대체값 | `ProjectSetupCheck.Run`(정상 프로젝트), `SetupValidationCheck.Run`(격리된 오류 주입) |
 | 인벤토리·농사·수확·집 | `FoundationRefactorCheck.Run` — 기존 슬롯/보관/성장/재수확/하트/집 검사 묶음 |
 | 농사 판정/안내·작물 상태 | `FarmingFeedbackCheck.Run` — 잘못된 심기·도구·거리·생산/재수확·가득 찬 인벤토리, `RunVisual` — 도구 우선/공통 심기/칸 중앙 고정/맨손·거리·메뉴·불가능한 칸의 동시 숨김/초록 한 칸 테두리와 실제 렌더 |
+| 탑 1·2층·계단·재시작 | `TowerDungeonCheck.Run` / `Resume`, `WorldRouteAudit.Validate` — 테스트 저장과 별도 프로젝트에서 실행 |
 | E/F·메뉴 차단·조준·회피 | `BasicControlsCheck.Run` |
 | 전투 분리·하트·길 찾기·탄환 차단·재등장·피격 취소 | `CombatRefactorCheck.Run` — 기존 충돌/하트 검사와 전투 생명주기 검사 |
 | 공격·반동·회피 모습·농기구 연속 사용 | `ActionFeelCheck.Run` |
