@@ -12,6 +12,7 @@ namespace EverythingGrows
         public double worldSeconds;
         public PlayerSave player=new();
         public List<MapSave> maps=new();
+        public List<GuildQuestSave> guildQuests=new();
     }
     [Serializable] public sealed class PlayerSave
     {

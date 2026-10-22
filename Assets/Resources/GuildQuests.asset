@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fcc3c08a1344e6091f6f692aa0aa0bc, type: 3}
+  m_Name: GuildQuests
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.GuildQuestCatalog
+  quests:
+  - id: clear_dungeon
+    title: Clear the ruins
+    description: Defeat any 2 monsters in the dungeon, then report to the guild.
+    targetScene: Assets/Scenes/CombatTest.unity
+    enemyKind: 0
+    requiredKills: 2
+    rewardGold: 50
+    repeatable: 1
+  - id: ranged_watch
+    title: Stop the spitter
+    description: Defeat 1 ranged dungeon monster and return for your reward.
+    targetScene: Assets/Scenes/CombatTest.unity
+    enemyKind: 2
+    requiredKills: 1
+    rewardGold: 40
+    repeatable: 0

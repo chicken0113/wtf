@@ -153,7 +153,7 @@ namespace EverythingGrows
             {
                 enemy.health=0; enemy.model.enabled=false; enemy.warning.enabled=false; enemy.windup=0; enemy.respawn=25;
                 if(enemy.trainingDummy) enemy.respawn=3;
-                else { Kills++; farm.DropCombatMaterial(enemy.model.transform.position,enemy.ranged); }
+                else { Kills++; GameSession.RecordGuildKill(farm,enemy.ranged); farm.DropCombatMaterial(enemy.model.transform.position,enemy.ranged); }
             }
             else if(!enemy.trainingDummy)
             {

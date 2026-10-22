@@ -73,12 +73,19 @@ public static class InteriorWorldCheck
             if(step<Route.Length)
             {
                 Check(f.gameObject.scene.path==Route[step],"Wrong room at "+step);
-                if(step==0)f.Shop.RestoreGold(gold);else Check(f.Gold==gold,"Gold lost "+step);
+                if(step==0)
+                {
+                    f.Shop.RestoreGold(gold);
+                    var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds");f.AddItem(seed);f.TeleportPlayer(new Vector2(0,-3.5f));
+                    Check(f.PlantSelected(new Vector2Int(0,-2)),"Farm crop preparation failed");f.Water(new Vector2(0,-2),.1f);f.Tick(seed.growthSeconds);
+                    f.DropItem(Resources.Load<PlantDefinition>("Equipment/Heart"),new Vector2(2,-4));
+                }
+                else Check(f.Gold==gold,"Gold lost "+step);
                 Check(f.InventoryCount==4,"Inventory changed "+step);
                 if(InteriorWorldSetup.Rooms.Contains(f.gameObject.scene.path)){Check(!f.Layout.dayNightLighting&&f.Combat.EnemyCount==0,"Hostile/dark interior");Capture(f);}
                 if(step==5)
                 {
-                    var npc=f.GetComponentInChildren<ShopNpc>();f.TeleportPlayer(new Vector2(0,1.2f));
+                    var npc=f.GetComponentsInChildren<ShopNpc>().Single(n=>n.name=="Guild reception");f.TeleportPlayer(new Vector2(0,1.2f));
                     Check(f.Shop.Open(npc)&&!f.Shop.IsTrading&&!f.Shop.Buy(0),"Guild receptionist should provide dialogue only");f.Shop.Close();
                 }
                 if(step==7)
@@ -89,6 +96,7 @@ public static class InteriorWorldCheck
                     Check(f.Gold==gold,"Smith prices wrong");f.Shop.RestoreGold(0);Check(!f.Shop.Buy(0),"Smith allowed unfunded purchase");f.Shop.RestoreGold(gold);f.Shop.Close();
                 }
                 if(step<Route.Length-1){step++;Travel(f,Route[step]);return;}
+                Check(f.IsMature(new Vector2Int(0,-2))&&f.WorldPieceCount==1,"Farm crop/drop state lost after full world loop");
                 // Harvest/reinstall at a different location, then enter the same shared room.
                 var house=f.GetComponentInChildren<FarmBuilding>();var body=house.GetComponentsInChildren<SpriteRenderer>().First(r=>r.GetComponentInParent<MapExit>()==null);
                 var point=new Vector2(body.bounds.center.x,body.bounds.min.y+.1f);f.TeleportPlayer(point+Vector2.down*.5f);

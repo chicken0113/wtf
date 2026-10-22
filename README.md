@@ -14,12 +14,14 @@
 | `Assets/Scenes/ForestClearing.unity` | 기존 물건 줍기를 사용하는 숲·버려진 공터 |
 | `Assets/Scenes/TrainingGround.unity` | 기존 무기 피격 처리를 사용하는 연습 표적 |
 | `Assets/Scenes/FarmHouseInterior.unity` | 플레이어 집 실내·가구 |
-| `Assets/Scenes/GuildInterior.unity` | 길드 실내·접수 NPC 대화 |
+| `Assets/Scenes/GuildInterior.unity` | 길드 실내·접수원/게시판 의뢰 수락·보고 |
 | `Assets/Scenes/SmithInterior.unity` | 대장간 실내·기존 무기 구매와 아이템 판매 |
 
 야외 맵 사이는 주황색 자동 통로로 이동하고 집·길드·대장간·잡화점 실내는 파란 발판에서 E로 출입합니다. `CombatTest`는 현재 실제로 쓰는 던전이므로 유지합니다. 빌드 목록은 위 열한 씬을 사용합니다.
 
 농장 ↔ 연결 통로 ↔ 마을, 농장 ↔ 던전 입구 필드 ↔ 마을의 삼각형 구조입니다. 입구 필드에서 던전·숲·훈련장으로 갈 수 있습니다. Scene의 `EditableMap` 아래 지형·장식·아이템·Travel을 직접 편집합니다. 훈련 표적은 공격하지 않고, 보상 없이 3초 후 회복합니다. 숲의 물건과 훈련장의 검·활은 기존 획득 기능을 사용합니다.
+
+길드 접수원이나 왼쪽 게시판에서 E로 의뢰를 수락하고, 던전 몬스터를 처치한 뒤 돌아와 보상 골드를 받습니다. `Tools > Everything Grows > Guild quests`에서 필요 처치 수·보상·반복 여부를 조절합니다. [의뢰와 동선 점검](Docs/GUILD_REQUESTS.md)을 참고합니다.
 
 이전 중복 샘플 네 씬은 정리했습니다. 현재 씬 경로와 GUID는 유지해 기존 이동·저장 참조를 보존합니다.
 ## 초기 농장과 NPC 상점

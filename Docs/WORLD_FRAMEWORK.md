@@ -17,7 +17,7 @@
 - **GeneralStore**: 카운터·진열대·상인이 있는 실내. 낮에 기존 물품을 구매하고 인벤토리 물품을 판매합니다.
 - **CombatTest**: 기존 전투 테스트 공간. 던전 입구 필드로 돌아옵니다.
 - **FarmTownPassage / DungeonEntrance / ForestClearing / TrainingGround**: 연결 통로·입구 필드·숲·훈련장. [삼각형 월드 배치](TRIANGLE_WORLD.md)를 참고합니다.
-- **FarmHouseInterior / GuildInterior / SmithInterior**: 집·길드·대장간 실내. 파란 발판에서 E로 출입합니다. [건물 내부](BUILDING_INTERIORS.md)를 참고합니다. Rowan은 대장간 내부에서 기존 무기 거래를 담당합니다.
+- **FarmHouseInterior / GuildInterior / SmithInterior**: 집·길드·대장간 실내. 파란 발판에서 E로 출입합니다. [건물 내부](BUILDING_INTERIORS.md)를 참고합니다. Rowan은 대장간 내부에서 기존 무기 거래를 담당하고, 길드 접수원/게시판은 의뢰를 수락·보고하는 창구입니다.
 
 사용자 스케치 기준으로 마을 서쪽은 농장 방향, 북쪽은 던전 방향입니다. 광장은 스타듀밸리의 돌바닥 광장 분위기를 유지하며, 시설 위치는 사용자 스케치대로 길드 북서쪽·대장간 북동쪽·주택과 상점 남서쪽입니다. **지역 간 이동은 주황색 통로에 몸이 닿으면 자동으로 이동**합니다. 청록색 E 문은 건물 실내 출입에만 사용합니다. 잡화점 앞 청록색 발판에서 E로 들어가고, 실내 아래쪽 발판에서 E로 나옵니다.
 
@@ -39,6 +39,7 @@
 각 씬의 Farm 루트에 있는 NpcManager 또는 `Tools > Everything Grows > NPC manager`에서 설정합니다.
 
 - `Shop Enabled`: 거래 가능한 NPC. 끄면 Greeting을 출력하는 대화 NPC입니다. 대화 NPC에게는 구매·판매가 되지 않습니다.
+- `Guild Quest Giver`: 길드 의뢰 화면을 여는 NPC/게시판입니다. 의뢰 내용과 보상은 GuildQuests 자산에서 설정합니다.
 - `Greeting`: 대화 내용.
 - `Offers`: 기존과 동일한 판매 물품·구매가·판매가 설정.
 - NPC 오브젝트의 `Npc Id`를 프로필의 Id와 맞춥니다.

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace EverythingGrows
 {
-    public sealed class GameSession : MonoBehaviour
+    public sealed partial class GameSession : MonoBehaviour
     {
         static GameSession runner;
         static GameSaveData data;
@@ -57,6 +57,7 @@ namespace EverythingGrows
                 {
                     var candidate=JsonUtility.FromJson<GameSaveData>(File.ReadAllText(path));
                     if(candidate==null || candidate.version!=1 || candidate.player==null || candidate.maps==null || string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Unsupported or invalid save data.");
+                    candidate.guildQuests ??= new System.Collections.Generic.List<GuildQuestSave>();
                     Validate(candidate); data=candidate; return;
                 }
                 catch(InvalidOperationException) { throw; }
@@ -66,6 +67,7 @@ namespace EverythingGrows
         }
         static void Validate(GameSaveData candidate)
         {
+            ValidateGuildQuests(candidate);
             if(string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Save the Unity scene to disk before saving game progress.");
             if(candidate.player.inventory==null || candidate.player.removedSlots<0 || candidate.player.removedHearts<0 || candidate.player.gold<0) throw new InvalidDataException("Invalid player save.");
             foreach(var stack in candidate.player.inventory) { if(stack==null || string.IsNullOrEmpty(stack.item) || stack.count<1) throw new InvalidDataException("Invalid item quantity."); catalog.Resolve(stack.item); }
@@ -140,7 +142,7 @@ namespace EverythingGrows
                 string temporary=SavePath+".tmp";
                 File.WriteAllText(temporary,JsonUtility.ToJson(next,true));
                 if(File.Exists(SavePath)) File.Replace(temporary,SavePath,SavePath+".bak"); else File.Move(temporary,SavePath);
-                data=next; return true;
+                data=next; error=null; return true;
             }
             catch(Exception problem) { error="Autosave failed: "+problem.Message; Debug.LogError(error); return false; }
         }

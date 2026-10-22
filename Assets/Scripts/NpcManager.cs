@@ -13,6 +13,7 @@ namespace EverythingGrows
     {
         public string id="farm_merchant",displayName="Farm merchant";
         public bool shopEnabled=true;
+        public bool guildQuestGiver;
         [TextArea] public string greeting="Welcome. Take a look around.";
         public List<ShopOffer> offers=new();
     }
@@ -29,6 +30,7 @@ namespace EverythingGrows
         public bool CanTrade => farm!=null && !farm.Combat.IsGameOver && (farm.Cycle==null || farm.Cycle.ShopsOpen);
         public bool IsOpen => activeNpc!=null && CanInteract(activeNpc) && activeNpc.IsVisiting && activeProfile!=null;
         public bool IsTrading => IsOpen && CanTrade && activeProfile.shopEnabled;
+        public bool IsQuestDesk => IsOpen && activeProfile.guildQuestGiver;
         private bool CanInteract(ShopNpc npc) => farm!=null && !farm.Combat.IsGameOver && npc!=null && npc.isActiveAndEnabled && (!npc.daytimeOnly || CanTrade);
         public void UpdateAvailability()
         {
@@ -83,12 +85,13 @@ namespace EverythingGrows
                 {
                     var position=Camera.main.WorldToScreenPoint(npc.transform.position+Vector3.up*.7f);
                     var profile=npcs.Find(entry=>entry!=null && entry.id==npc.npcId);
-                    GUI.Label(new Rect(position.x-90,Screen.height-position.y,180,24),profile!=null && profile.shopEnabled && CanTrade?"E: open shop":"E: talk");
+                    GUI.Label(new Rect(position.x-90,Screen.height-position.y,180,24),profile!=null&&profile.guildQuestGiver?"E: guild requests":profile!=null && profile.shopEnabled && CanTrade?"E: open shop":"E: talk");
                 }
                 return;
             }
             if(!IsTrading)
             {
+                if(IsQuestDesk) { DrawGuildQuests(); return; }
                 float dialogueWidth=Mathf.Min(480,Screen.width-32); var box=new Rect((Screen.width-dialogueWidth)*.5f,Screen.height-210,dialogueWidth,150);
                 GUI.Box(box,activeProfile.displayName);
                 GUI.Label(new Rect(box.x+16,box.y+32,box.width-32,70),activeProfile.greeting,new GUIStyle(GUI.skin.label) {wordWrap=true,fontSize=15});
@@ -114,5 +117,38 @@ namespace EverythingGrows
             GUI.EndScrollView();
         }
         private void OnDestroy() { art?.Dispose(); }
+        private void DrawGuildQuests()
+        {
+            float width=Mathf.Min(590,Screen.width-32),height=Mathf.Min(510,Screen.height-72);
+            var panel=new Rect((Screen.width-width)*.5f,(Screen.height-height)*.5f,width,height);
+            GUI.Box(panel,activeProfile.displayName+" - Guild requests");
+            if(GUI.Button(new Rect(panel.xMax-70,panel.y+5,60,25),"Close")) { Close(); return; }
+            GUI.Label(new Rect(panel.x+16,panel.y+34,width-32,44),"Accept a request, defeat dungeon monsters, then return here for your reward.",new GUIStyle(GUI.skin.label){wordWrap=true});
+            var catalog=Resources.Load<GuildQuestCatalog>("GuildQuests");
+            if(catalog==null){GUI.Label(new Rect(panel.x+16,panel.y+90,width-32,30),"No requests posted.");return;}
+            var viewport=new Rect(panel.x+12,panel.y+85,width-24,height-97);
+            scroll=GUI.BeginScrollView(viewport,scroll,new Rect(0,0,width-48,catalog.quests.Count*150));
+            for(int i=0;i<catalog.quests.Count;i++)
+            {
+                var quest=catalog.quests[i];if(quest==null)continue;
+                var state=GameSession.GuildQuestState(quest.id);float y=i*150;float rowWidth=width-54;
+                GUI.Box(new Rect(0,y,rowWidth,140),"");
+                GUI.Label(new Rect(12,y+8,rowWidth-24,24),quest.title,new GUIStyle(GUI.skin.label){fontStyle=FontStyle.Bold,fontSize=16});
+                GUI.Label(new Rect(12,y+34,rowWidth-24,42),quest.description,new GUIStyle(GUI.skin.label){wordWrap=true});
+                int required=state!=null&&state.accepted?state.requiredKills:quest.requiredKills;
+                int reward=state!=null&&state.accepted?state.rewardGold:quest.rewardGold;
+                bool done=state!=null&&state.accepted&&state.progress>=required;
+                int progress=state!=null&&state.accepted?state.progress:!quest.repeatable&&state!=null&&state.completedRuns>0?required:0;
+                GUI.Label(new Rect(12,y+83,rowWidth-24,24),$"{progress} / {required}  |  Reward: {reward} G"+(quest.repeatable?"  |  Repeatable":""));
+                if(state!=null&&state.accepted)
+                {
+                    if(done){if(GUI.Button(new Rect(rowWidth-140,y+106,128,25),"Claim reward"))GameSession.ClaimGuildQuest(farm,quest.id);}
+                    else GUI.Label(new Rect(rowWidth-140,y+106,128,25),"In progress");
+                }
+                else if(!quest.repeatable&&state!=null&&state.completedRuns>0)GUI.Label(new Rect(rowWidth-140,y+106,128,25),"Completed");
+                else if(GUI.Button(new Rect(rowWidth-140,y+106,128,25),"Accept"))GameSession.AcceptGuildQuest(farm,quest.id);
+            }
+            GUI.EndScrollView();
+        }
     }
 }
