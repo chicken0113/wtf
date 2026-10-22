@@ -9,6 +9,7 @@
 | 시작 설정 누락·잘못된 참조·수치 | `SetupDataValidator.cs`, `FarmSetupValidator.cs` | `FarmGame.Startup.cs`, `Editor/ProjectSetupCheck.cs`; 자세한 사용법은 [SETUP_VALIDATION.md](SETUP_VALIDATION.md) |
 | 아이템 수량·겹치기·선택·슬롯 제한 | `Assets/Scripts/InventoryState.cs` | `FarmGame.Inventory.cs`가 메시지·바닥 드롭 연결 |
 | 밭 갈기·심기·물주기·성장·수확·재수확 | `Assets/Scripts/FarmingSystem.cs` | `FarmGame`의 기존 공개 함수가 위임 |
+| 농사 가능 판정·커서 안내 | `FarmingSystem.PlantHint / InteractionHint / ToolHint`, `FarmActionHint` | `FarmGame.FarmingHints`가 E 대상 우선순위·거리·집 설치 연결, `FarmHud`가 표시 |
 | 밭 한 칸의 상태 | `Assets/Scripts/PlantPlot.cs` | SpriteRenderer를 보관하지 않음 |
 | 작물·흙의 그림·크기·그리는 순서 | `Assets/Scripts/FarmWorldView.cs` | 농사 규칙을 변경하지 않음 |
 | 핫바·인벤토리·골드·지도·작물 안내 | `Assets/Scripts/FarmHud.cs` | `DrawSlot`이 핫바/인벤토리 표시와 슬롯 클릭을 공통 처리 |
@@ -39,7 +40,9 @@
 
 `FarmGame.Input.Update → FarmAction(E) → FarmingSystem.InteractPlot → PlantSelected / Collect / Uproot`
 
-- 심기 가능 여부는 `FarmingSystem.PlantSelected`가 판단한다.
+- 심기 가능 여부는 `FarmingSystem.PlantHint`가 판단하며 `PlantSelected`도 같은 결과를 사용한다. 도구는 `ToolHint`, E 작물 행동은 `InteractionHint`를 실행과 안내가 공유한다. 이 쿼리는 아이템이나 밭 상태를 바꾸지 않는다.
+- `FarmGame.FarmingHints.FarmHint`는 E의 바닥 아이템 → 건물 → 밭 우선순위를 따른다. `PrimaryFarmHint`는 별도로 좌클릭 도구/집 설치를 안내한다. 초록 칸은 두 행동 중 하나가 가능하다는 뜻이며 커서의 각 줄에서 개별 가능 여부와 이유를 확인한다. 집 모형 미리보기 색은 설치 가능 여부만 나타낸다.
+- `FarmHud.DrawCropStates`는 물 필요·성장·수확·생산 대기를 표시한다. 수확 가능 여부는 `PlantPlot.CanHarvest`를 공유하며 모델 색을 바꾸지 않는다.
 - 밭으로 쓸 수 있는 위치와 건물 충돌은 `FarmGame.World.CanFarmAt`에서 연결한다.
 - 수확물은 `ReceiveHarvest → InventoryState.TryAdd`로 들어간다. 공간이 없으면 연결 코드가 바닥에 드롭한다.
 - 성장은 `FarmingSystem.Tick`, 모습은 `FarmWorldView.RefreshPlant`를 본다.
@@ -95,6 +98,7 @@
 | --- | --- |
 | 시작 설정·누락 처리·대체값 | `ProjectSetupCheck.Run`(정상 프로젝트), `SetupValidationCheck.Run`(격리된 오류 주입) |
 | 인벤토리·농사·수확·집 | `FoundationRefactorCheck.Run` — 기존 슬롯/보관/성장/재수확/하트/집 검사 묶음 |
+| 농사 판정/안내·작물 상태 | `FarmingFeedbackCheck.Run` — 잘못된 심기·도구·거리·생산/재수확·가득 찬 인벤토리, `RunVisual` — 실제 HUD 렌더/메뉴 차단 |
 | E/F·메뉴 차단·조준·회피 | `BasicControlsCheck.Run` |
 | 전투 분리·하트·길 찾기·탄환 차단·재등장·피격 취소 | `CombatRefactorCheck.Run` — 기존 충돌/하트 검사와 전투 생명주기 검사 |
 | 공격·반동·회피 모습·농기구 연속 사용 | `ActionFeelCheck.Run` |

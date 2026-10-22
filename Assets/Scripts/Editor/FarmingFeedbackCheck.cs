@@ -1,0 +1,171 @@
+using System;
+using System.IO;
+using System.Reflection;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using EverythingGrows;
+
+[InitializeOnLoad]
+public static class FarmingFeedbackCheck
+{
+    private const string VisualKey="FarmingFeedbackVisual";
+    private static double deadline;
+    private static int frames;
+    private static string imagePath;
+    static FarmingFeedbackCheck()
+    {
+        if(Application.isBatchMode && SessionState.GetBool(VisualKey,false))
+        { deadline=EditorApplication.timeSinceStartup+90; EditorApplication.update+=VisualTick; }
+    }
+    public static void RunVisual()
+    {
+        Guard();
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR"))) throw new Exception("Use isolated save directory.");
+        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        SessionState.SetString(VisualKey+"Error","");
+        var gameView=EditorWindow.GetWindow(typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView"));gameView.Show();gameView.position=new Rect(100,100,1280,800);gameView.Focus();
+        SessionState.SetBool(VisualKey,true); EditorApplication.isPlaying=true;
+    }
+    private static void VisualTick()
+    {
+        try
+        {
+            if(EditorApplication.timeSinceStartup>deadline) throw new Exception("Feedback rendering timeout: frames="+frames+", playing="+EditorApplication.isPlaying+", busy="+GameSession.Busy+", time="+Time.timeSinceLevelLoad+", image="+imagePath);
+            if(!EditorApplication.isPlaying || Time.timeSinceLevelLoad<.4f || GameSession.Busy) return;
+            var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
+            if(farm==null || !farm.IsInitialized) return;
+            if(frames++==0)
+            {
+                Debug.Log("FEEDBACK_VISUAL_SETUP");
+                farm.enabled=false; // Freeze growth while rendering the actual HUD through the probe.
+                while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+                var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds");
+                var dry=new Vector2Int(0,-2);var growing=new Vector2Int(1,-2);var ripe=new Vector2Int(2,-2);
+                foreach(var cell in new[]{dry,growing,ripe}) { farm.Till(cell); farm.AddItem(seed); Check(farm.PlantSelected(cell),"Visual fixture planting failed"); }
+                farm.Water(ripe,.1f); farm.Tick(seed.growthSeconds);
+                farm.Water(growing,.1f); farm.Tick(seed.growthSeconds*.5f);
+                farm.TeleportPlayer(new Vector2(0,-4));
+                farm.AddItem(AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/WateringCan.asset"));
+                Query(farm,"LateUpdate");
+                var camera=Camera.main;camera.transform.position=new Vector3(1,-1.8f,-10);camera.orthographicSize=4.8f;
+                Query(farm,"UpdatePlantingPreview");
+                var probe=farm.gameObject.AddComponent<FarmingFeedbackGuiProbe>();probe.farm=farm;
+                Application.logMessageReceived+=(message,trace,type)=> { if(type==LogType.Exception && trace.Contains("EverythingGrows.")) SessionState.SetString(VisualKey+"Error",message+trace); };
+            }
+            if(frames==12)
+            {
+                imagePath=Path.GetFullPath("FarmingFeedback.png");
+                ScreenCapture.CaptureScreenshot(imagePath);Debug.Log("FEEDBACK_VISUAL_CAPTURE: "+imagePath);
+            }
+            if(frames<24 || !File.Exists(imagePath)) return;
+            Check(string.IsNullOrEmpty(SessionState.GetString(VisualKey+"Error","")),SessionState.GetString(VisualKey+"Error",""));
+            var f=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
+            f.SetInventoryOpen(true);
+            Check(!(bool)Read(f,"ShowFarmingHints"),"Hint leaked through inventory");
+            f.SetInventoryOpen(false);f.SetMapOpen(true);
+            Check(!(bool)Read(f,"ShowFarmingHints"),"Hint leaked through map");
+            f.SetMapOpen(false);
+            SessionState.SetBool(VisualKey,false);EditorApplication.update-=VisualTick;
+            Debug.Log("FARMING_FEEDBACK_VISUAL_SUCCESS: actual HUD rendered dry/growing/ripe states without exceptions; menus suppress hints. Image: "+imagePath);
+            EditorApplication.Exit(0);
+        }
+        catch(Exception e) { SessionState.SetBool(VisualKey,false);Debug.LogException(e);EditorApplication.Exit(1); }
+    }
+    private const BindingFlags Members=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
+    private static object Query(object owner,string method,params object[] args) => owner.GetType().GetMethod(method,Members).Invoke(owner,args);
+    private static object Read(object owner,string property) => owner.GetType().GetProperty(property,Members).GetValue(owner);
+    private static bool Allowed(object hint) => (bool)Read(hint,"Allowed");
+    private static string Text(object hint) => (string)Read(hint,"Text");
+    private static void Check(bool ok,string error) { if(!ok) throw new Exception(error); }
+    private static void Guard()
+    {
+        if(!Application.isBatchMode || !Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Run in an isolated temporary project.");
+    }
+    public static void Run()
+    {
+        Guard();
+        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false);
+        Check(farm.IsInitialized,farm.InitializationError);
+        var rules=Read(farm,"Farming");
+        var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds");
+        var tomato=Resources.Load<PlantDefinition>("Crops/TomatoSeeds");
+        var hoe=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset");
+        var water=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/WateringCan.asset");
+        Vector2Int cell=default; bool found=false;
+        for(int y=-12;y<=12 && !found;y++) for(int x=-20;x<=20 && !found;x++)
+        {
+            var candidate=new Vector2Int(x,y);
+            if(Allowed(Query(rules,"TillHint",candidate))) { cell=candidate; found=true; }
+        }
+        Check(found,"No empty farmable test cell");
+        farm.TeleportPlayer(cell);
+        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        farm.AddItem(hoe);
+        Check(!Allowed(Query(rules,"PlantHint",cell)) && !farm.PlantSelected(cell),"Untilled soil accepted planting");
+        Check(Allowed(Query(rules,"ToolHint",cell,GrowthEffect.Dig)) && farm.UseTool(cell),"Hoe preview and execution disagree");
+        Check(!Allowed(Query(rules,"ToolHint",cell,GrowthEffect.Dig)) && !farm.UseTool(cell),"Already tilled preview and execution disagree");
+        farm.RemoveInventoryItem(0);
+        Check(!Allowed(Query(rules,"PlantHint",cell)) && !farm.PlantSelected(cell),"Empty hands accepted planting");
+        var transformed=UnityEngine.Object.Instantiate(hoe);transformed.transformed=true;
+        var broken=UnityEngine.Object.Instantiate(seed);broken.harvestResult=null;
+        try
+        {
+            farm.AddItem(transformed); int before=farm.InventoryCount;
+            Check(!Allowed(Query(rules,"PlantHint",cell)) && !farm.PlantSelected(cell) && farm.InventoryCount==before,"Transformed item preview or consumption incorrect");
+            farm.RemoveInventoryItem(0); farm.AddItem(broken);
+            Check(!Allowed(Query(rules,"PlantHint",cell)) && !farm.PlantSelected(cell),"Unconfigured seed accepted");
+            farm.RemoveInventoryItem(0); farm.AddItem(seed);
+            Check(Allowed(Query(rules,"PlantHint",cell)) && farm.PlantSelected(cell),"Seed preview and planting disagree");
+            Check(!Allowed(Query(rules,"PlantHint",cell)),"Occupied plot accepted another plant");
+            Check(Text(Query(rules,"InteractionHint",cell)).Contains("Water") && !farm.InteractPlot(cell),"Dry crop state incorrect");
+            farm.AddItem(water);
+            Check(Allowed(Query(rules,"ToolHint",cell,GrowthEffect.Water)) && farm.UseTool(cell),"Water preview and execution disagree");
+            farm.Tick(seed.growthSeconds*.5f);
+            Check(Text(Query(rules,"InteractionHint",cell)).Contains("growing") && !farm.InteractPlot(cell),"Growing crop state incorrect");
+            farm.Tick(seed.growthSeconds);
+            Check(Allowed(Query(rules,"InteractionHint",cell)),"Ripe crop not harvestable");
+            // Full inventory still harvests successfully, dropping instead of rejecting.
+            while(farm.AddItem(hoe)) {}
+            int pieces=farm.WorldPieceCount;
+            Check(farm.InteractPlot(cell) && farm.WorldPieceCount==pieces+1,"Full inventory harvest did not drop");
+            while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+            farm.AddItem(seed.harvestResult);
+            Check(!Allowed(Query(rules,"PlantHint",cell)) && !farm.PlantSelected(cell),"Harvested vegetable showed plantable");
+            farm.RemoveInventoryItem(0);farm.AddItem(tomato);farm.PlantSelected(cell);farm.Water(cell,.1f);farm.Tick(tomato.growthSeconds);
+            Check(farm.InteractPlot(cell) && Text(Query(rules,"InteractionHint",cell)).Contains("Water"),"Regrowth did not return to needs-water state");
+            farm.Water(cell,.1f);farm.Tick(tomato.regrowSeconds);
+            Check(Allowed(Query(rules,"InteractionHint",cell)),"Regrown crop not harvestable");
+            farm.TeleportPlayer((Vector2)cell+Vector2.right*4);
+            Check(!Allowed(Query(rules,"InteractionHint",cell)) && !farm.InteractPlot(cell),"Out-of-reach harvest allowed");
+            Check(!Allowed(Query(farm,"PrimaryFarmHint",(Vector2)cell)),"Out-of-reach tool preview allowed");
+            farm.TeleportPlayer(cell);farm.Uproot(cell);
+            // Mature utility plants are harvestable; producers wait for their output.
+            while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+            var stone=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Stone.asset");
+            farm.AddItem(stone);farm.PlantSelected(cell);farm.Water(cell,.1f);farm.Tick(stone.growthSeconds);
+            Check(!Allowed(Query(rules,"InteractionHint",cell)) && !farm.InteractPlot(cell),"Unready producer showed harvestable");
+            farm.Tick(stone.productionSeconds);
+            Check(Allowed(Query(rules,"InteractionHint",cell)) && farm.InteractPlot(cell),"Ready producer not collectible");
+            Check(!Allowed(Query(rules,"InteractionHint",cell)),"Collected producer remained ready");
+            farm.Uproot(cell);farm.AddItem(hoe);farm.PlantSelected(cell);farm.Water(cell,.1f);farm.Tick(hoe.growthSeconds);
+            Check(Allowed(Query(rules,"InteractionHint",cell)) && farm.InteractPlot(cell),"Mature utility plant cannot be harvested");
+        }
+        finally { UnityEngine.Object.DestroyImmediate(transformed); UnityEngine.Object.DestroyImmediate(broken); }
+        Debug.Log("FARMING_FEEDBACK_SUCCESS: shared planting/tool/harvest decisions, invalid items, dry/growing/ready/regrowth/producer states, distance and full-inventory harvest.");
+    }
+}
+
+// Uses the production HUD unchanged while the test freezes input/growth.
+public sealed class FarmingFeedbackGuiProbe : MonoBehaviour
+{
+    public FarmGame farm;
+    private void OnGUI()
+    {
+        if(farm==null) return;
+        var hud=typeof(FarmGame).GetField("hud",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(farm);
+        hud.GetType().GetMethod("Draw").Invoke(hud,null);
+    }
+}

@@ -37,7 +37,9 @@ namespace EverythingGrows
         // E unifies pickup, planting and harvest, without opening NPCs or doors.
         public bool FarmAction(Vector2 point,bool pointerOverUI=false)
         {
-            if(player==null||combat==null||combat.IsGameOver||combat.IsRolling||WorldInputBlocked||GameSession.Busy||pointerOverUI||!Near(point))return false;
+            if(player==null||combat==null||combat.IsGameOver||combat.IsRolling||WorldInputBlocked||GameSession.Busy||pointerOverUI)return false;
+            var hint=FarmHint(point);
+            if(!hint.Allowed) { Notify(hint.Text); return false; }
             if(PieceAt(point)!=null){DetachAt(point);return true;}
             foreach(var building in GetComponentsInChildren<FarmBuilding>())
                 if(building.Contains(point)){HarvestBuildingAt(point);return true;}

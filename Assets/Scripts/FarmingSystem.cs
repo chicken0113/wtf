@@ -26,15 +26,51 @@ namespace EverythingGrows
         }
         public bool Till(Vector2Int cell)
         {
-            if(!farm.CanFarmAt(cell) || plots.ContainsKey(cell)) return false;
+            if(!TillHint(cell).Allowed) return false;
             plots[cell]=new PlantPlot { cell=cell }; visuals.AddPlot(plots[cell]); return true;
+        }
+        public FarmActionHint TillHint(Vector2Int cell)
+        {
+            if(!farm.CanFarmAt(cell)) return new(false,"This ground cannot be tilled.");
+            if(plots.ContainsKey(cell)) return new(false,"Already tilled.");
+            return new(true,"Till soil");
+        }
+        public FarmActionHint PlantHint(Vector2Int cell)
+        {
+            if(!plots.TryGetValue(cell,out var plot)) return new(false,"Till the soil with a hoe first.");
+            if(plot.plant!=null) return new(false,"This patch is occupied.");
+            var item=farm.SelectedItem;
+            if(item==null) return new(false,"Select an item to plant.");
+            if(item.transformed && item.effect!=GrowthEffect.House) return new(false,"Already transformed; use this item instead.");
+            if(item.isSeed && item.harvestResult==null) return new(false,"These seeds have no crop configured.");
+            if(item.effect==GrowthEffect.Crop && !item.isSeed && item.harvestResult==null) return new(false,"Plant seeds, not harvested vegetables.");
+            return new(true,"Plant "+item.label);
+        }
+        public FarmActionHint InteractionHint(Vector2Int cell)
+        {
+            if(!farm.WithinReach(cell)) return new(false,"Walk closer first.");
+            if(!plots.TryGetValue(cell,out var plot))
+                return farm.CanFarmAt(cell)?PlantHint(cell):new(false,"This ground cannot be planted.");
+            if(plot.plant==null) return PlantHint(cell);
+            if(plot.wilted) return new(false,"Use a scythe to clear the dead crop.");
+            if(!plot.mature) return new(false,plot.wet?"Still growing.":"Water this plant first.");
+            if(!plot.CanHarvest) return new(false,"Producing; wait for the next harvest.");
+            return new(true,"Harvest "+plot.HarvestItem.label);
+        }
+        public FarmActionHint ToolHint(Vector2Int cell, GrowthEffect tool)
+        {
+            if(tool==GrowthEffect.Dig) return TillHint(cell);
+            if(tool==GrowthEffect.Water)
+                return plots.ContainsKey(cell)?new(true,"Water soil"):new(false,"Till the soil before watering.");
+            if(tool==GrowthEffect.Scythe)
+                return plots.TryGetValue(cell,out var plot) && plot.wilted?new(true,"Clear dead crop"):new(false,"No dead crop to clear.");
+            return new(false,"");
         }
         public bool PlantSelected(Vector2Int cell)
         {
-            if(farm.SelectedItem==null || !plots.TryGetValue(cell,out var plot) || plot.plant!=null) { farm.Notify("Select an item and an empty tilled patch."); return false; }
-            if(farm.SelectedItem.transformed && farm.SelectedItem.effect!=GrowthEffect.House) { farm.Notify("This item has already transformed. Use it instead of planting again."); return false; }
-            if(farm.SelectedItem.isSeed && farm.SelectedItem.harvestResult==null) { farm.Notify("These seeds have no crop configured."); return false; }
-            if(farm.SelectedItem.effect==GrowthEffect.Crop && !farm.SelectedItem.isSeed && farm.SelectedItem.harvestResult==null) { farm.Notify("Plant seeds, not harvested vegetables."); return false; }
+            var hint=PlantHint(cell);
+            if(!hint.Allowed) { farm.Notify(hint.Text); return false; }
+            var plot=plots[cell];
             plot.wilted=plot.regrowing=false;
             plot.plant=farm.SelectedItem;
             visuals.RefreshPlant(plot);
@@ -75,11 +111,10 @@ namespace EverythingGrows
         }
         public bool InteractPlot(Vector2Int cell)
         {
-            if((!plots.ContainsKey(cell) && !farm.CanFarmAt(cell)) || !farm.WithinReach(cell)) { farm.Notify("Walk closer first."); return false; }
+            var hint=InteractionHint(cell);
+            if(!hint.Allowed) { farm.Notify(hint.Text); return false; }
             if(plots.TryGetValue(cell,out var plot) && plot.plant!=null)
             {
-                if(plot.wilted) { farm.Notify("Use a scythe to clear the dead crop."); return false; }
-                if(!plot.mature) { farm.Notify(plot.wet?"Still growing. Wait before harvesting.":"Water this plant first."); return false; }
                 if(plot.plant.effect==GrowthEffect.Produce || plot.plant.harvestResult!=null) return Collect(cell);
                 return Uproot(cell);
             }

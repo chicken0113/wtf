@@ -67,7 +67,7 @@ namespace EverythingGrows
         {
             var soil = crops[plot.cell].soil;
             if (Art.Available) soil.sprite = Art.Get(plot.wet ? 11 : 10);
-            else if (plot.wet) soil.color = new Color(.18f, .25f, .29f);
+            else soil.color = plot.wet ? new Color(.18f, .25f, .29f) : new Color(.37f, .23f, .14f);
         }
 
         public SpriteRenderer PlantModel(Vector2Int cell) => crops.TryGetValue(cell, out var visual) ? visual.plant : null;

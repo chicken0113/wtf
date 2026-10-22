@@ -153,8 +153,10 @@ namespace EverythingGrows
                 if(!combat.RestoreHeart()) return false;
                 RemoveInventoryItem(selected); message="Heart reattached. Maximum HP restored."; return true;
             }
+            if(Held.effect!=GrowthEffect.Scythe && Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water) return false;
+            var hint=farming.ToolHint(cell,Held.effect);
+            if(!hint.Allowed) { Notify(hint.Text); return false; }
             if(Held.effect==GrowthEffect.Scythe) return ClearDeadCrop(cell);
-            if(Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water) return false;
             bool used=Held.effect==GrowthEffect.Dig?Till(cell):Water(cell,.1f)>0;
             if(used) actionTime=.25f; return used;
         }
@@ -163,30 +165,27 @@ namespace EverythingGrows
         private Vector2Int MouseCell => Vector2Int.RoundToInt(MousePoint);
         private bool Near(Vector2 point) => Vector2.Distance(player.position,point)<=2.8f;
         internal bool WithinReach(Vector2 point) => Near(point);
-        private bool Inside(Vector2Int cell) => CanFarmAt(cell);
         private bool OverUI() => hud.OverUI(new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y));
         private void OnGUI() { if(player!=null) hud?.Draw(); }
         private void OnDestroy() => worldView?.Dispose();
         private void UpdatePlantingPreview()
         {
             var cell=MouseCell;
+            bool visible=ShowFarmingHints && WorldBounds.Contains(MousePoint);
+            var primary=PrimaryFarmHint(MousePoint);
+            var action=FarmHint(MousePoint);
             if(Held!=null && Held.effect==GrowthEffect.House)
             {
                 var source=art.ItemSprite(Held); float scale=Held.matureDisplaySize/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
                 plantingPreview.sprite=source; plantingPreview.transform.localScale=Vector3.one*scale;
                 plantingPreview.transform.position=(Vector2)cell+Vector2.up*(source.bounds.size.y*scale*.5f-.18f);
-                plantingPreview.sortingOrder=100; plantingPreview.enabled=!OverUI();
-                plantingPreview.color=CanPlaceHouse(Held,cell)?new Color(.4f,1,.5f,.5f):new Color(1,.3f,.25f,.5f); return;
+                plantingPreview.sortingOrder=100; plantingPreview.enabled=visible;
+                plantingPreview.color=primary.Allowed?new Color(.4f,1,.5f,.5f):new Color(1,.3f,.25f,.5f); return;
             }
             plantingPreview.sprite=sprite; plantingPreview.transform.localScale=Vector3.one*.95f; plantingPreview.sortingOrder=-2;
-            plantingPreview.enabled=!OverUI() && Inside(cell);
+            plantingPreview.enabled=visible;
             plantingPreview.transform.position=new Vector3(cell.x,cell.y,0);
-            farming.TryGetPlot(cell,out var plot);
-            bool harvest=plot!=null && plot.plant!=null && plot.mature && (plot.plant.effect!=GrowthEffect.Produce || plot.ready);
-            bool canTill=Held!=null && Held.effect==GrowthEffect.Dig && plot==null;
-            bool canPlant=Held!=null && (!Held.transformed || Held.effect==GrowthEffect.House) && plot!=null && plot.plant==null;
-            bool possible=Near(MousePoint) && (harvest || canTill || canPlant);
-            plantingPreview.color=possible?new Color(.4f,.9f,.5f,.35f):new Color(.95f,.3f,.25f,.35f);
+            plantingPreview.color=action.Allowed || primary.Allowed?new Color(.4f,.9f,.5f,.35f):new Color(.95f,.3f,.25f,.35f);
         }
     }
 }
