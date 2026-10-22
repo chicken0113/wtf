@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -14,7 +13,7 @@ public static class ActionFeelCheck
     const BindingFlags Private=BindingFlags.Instance|BindingFlags.NonPublic;
     static ActionFeelCheck(){if(Application.isBatchMode&&SessionState.GetBool(Key,false)){deadline=EditorApplication.timeSinceStartup+90;EditorApplication.update+=Tick;}}
     static void Check(bool value,string message){if(!value)throw new Exception(message);}
-    static object Field(object value,string name)=>value.GetType().GetField(name,BindingFlags.Public|Private).GetValue(value);
+    static object Field(object value,string name)=>CombatCheckAccess.Read(value,name);
     static void Call(object value,string name,params object[] args)=>value.GetType().GetMethod(name,Private).Invoke(value,args);
     public static void Run()
     {
@@ -45,7 +44,7 @@ public static class ActionFeelCheck
             }
             Check(found,"No clear fixture corridor");f.TeleportPlayer(point);
             c.SpawnEnemy(point+Vector2.right*1.4f,false,null,true);
-            var enemies=(IList)Field(c,"enemies");var target=enemies[enemies.Count-1];
+            var enemies=CombatCheckAccess.Enemies(c);var target=enemies[enemies.Count-1];
             var model=(SpriteRenderer)Field(target,"model");Color original=model.color;
             var sword=Resources.Load<PlantDefinition>("Equipment/Sword");var bow=Resources.Load<PlantDefinition>("Equipment/Bow");
             f.RemoveInventoryItem(f.InventoryCount-1);
@@ -64,7 +63,7 @@ public static class ActionFeelCheck
             Check(f.AddItem(bow),"Equip bow");
             float before=(float)Field(target,"health");
             Check(c.Attack(bow,point+Vector2.right*2),"Ranged attack did not start");
-            var shots=(IList)Field(c,"shots");var shot=shots[shots.Count-1];
+            var shots=CombatCheckAccess.Shots(c);var shot=shots[shots.Count-1];
             Check(Mathf.Abs(((Vector2)Field(shot,"velocity")).magnitude-f.Controls.projectileSpeed)<.001f,"Wrong player projectile speed");
             c.TickCombat(.15f);Check((float)Field(target,"health")==before,"Muzzle shot bypassed adjacent wall");
             UnityEngine.Object.DestroyImmediate(wall.gameObject);c.TickCombat(1);

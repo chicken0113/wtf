@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -42,24 +40,23 @@ public static class MovementCollisionCheck
         Check(Vector2.Distance(pair[0].transform.position,pair[1].transform.position)>.5f,"Enemies remained stacked");
         // A fast bullet must hit the wall before an actor behind it, in either direction.
         var combat=farm.Combat; farm.TeleportPlayer(new Vector2(16,8));
-        var shoot=typeof(OpenFieldCombat).GetMethod("Shoot",BindingFlags.Instance|BindingFlags.NonPublic);
         float hp=combat.Health;
-        shoot.Invoke(combat,new object[]{new Vector2(20,8),new Vector2(-100,0),10f,true,2.5f}); combat.TickCombat(.05f);
+        CombatCheckAccess.Shoot(combat,new Vector2(20,8),new Vector2(-100,0),10f,true,2.5f); combat.TickCombat(.05f);
         Check(combat.Health==hp,"Enemy bullet crossed wall");
-        var enemies=(IList)typeof(OpenFieldCombat).GetField("enemies",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(combat);
+        var enemies=CombatCheckAccess.Enemies(combat);
         foreach(var enemy in enemies) enemy.GetType().GetField("health").SetValue(enemy,0f);
         combat.SpawnEnemy(new Vector2(20,8),false); var target=enemies[enemies.Count-1];
         var health=target.GetType().GetField("health");
-        shoot.Invoke(combat,new object[]{new Vector2(16,8),new Vector2(100,0),20f,false,2.5f}); combat.TickCombat(.05f);
+        CombatCheckAccess.Shoot(combat,new Vector2(16,8),new Vector2(100,0),20f,false,2.5f); combat.TickCombat(.05f);
         Check((float)health.GetValue(target)==55f,"Player bullet crossed wall");
         wall.blocksProjectiles=false;
-        shoot.Invoke(combat,new object[]{new Vector2(16,8),new Vector2(100,0),20f,false,2.5f}); combat.TickCombat(.05f);
+        CombatCheckAccess.Shoot(combat,new Vector2(16,8),new Vector2(100,0),20f,false,2.5f); combat.TickCombat(.05f);
         Check((float)health.GetValue(target)<55f,"Pass-through projectile setting failed");
         // Insert far target first: the nearer target must still receive the shot.
         wall.enabled=false; foreach(var enemy in enemies) enemy.GetType().GetField("health").SetValue(enemy,0f);
         combat.SpawnEnemy(new Vector2(20,8),false); var far=enemies[enemies.Count-1];
         combat.SpawnEnemy(new Vector2(18,8),false); var near=enemies[enemies.Count-1];
-        shoot.Invoke(combat,new object[]{new Vector2(16,8),new Vector2(100,0),20f,false,2.5f}); combat.TickCombat(.05f);
+        CombatCheckAccess.Shoot(combat,new Vector2(16,8),new Vector2(100,0),20f,false,2.5f); combat.TickCombat(.05f);
         Check((float)health.GetValue(far)==55f && (float)health.GetValue(near)==35f,"Projectile did not hit nearest target");
         foreach(var enemy in enemies) enemy.GetType().GetField("health").SetValue(enemy,0f);
         wall.enabled=true; wall.blocksProjectiles=true; wall.size=new Vector2(.2f,4);

@@ -16,7 +16,11 @@
 | 무기 반동·캐릭터 동작·카메라 흔들림 | `Assets/Scripts/FarmGame.Feedback.cs` | `AnimateFarmer`, `LateUpdate`, `WeaponFeedback` |
 | 월드 아이템 줍기·드롭·집 배치 | `Assets/Scripts/FarmGame.World.cs` | `DetachAt`, `Spawn`, `CanPlaceHouse`, `PlaceHouse` |
 | NPC 대화·구매·판매 | `Assets/Scripts/NpcManager.cs` | `ShopNpc`, `NpcProfile` 데이터 |
-| 피해·회피·적 행동·탄환 | `Assets/Scripts/OpenFieldCombat.cs` | 이번 분리 작업의 대상 밖. 별도 분리는 다음 단계 |
+| 체력·피해·무적·사망 복귀·회피·공격 대기 | `Assets/Scripts/PlayerCombatState.cs` | `OpenFieldCombat`이 기존 API와 직렬화 설정 유지 |
+| 적 탐지·추적·공격 준비·피격·사망·재등장 | `Assets/Scripts/EnemyCombatSystem.cs` | `TickEnemy`, `MoveEnemy`, `Hit`, `HitMelee` |
+| 탄환 생성·이동·벽 차단·최초 명중·수명 | `Assets/Scripts/ProjectileSystem.cs` | `Spawn`, `Tick`, `ClearHostile` |
+| 전투 궤적·발사·파편·잔상·공격 예고선 | `Assets/Scripts/CombatEffects.cs` | 캐릭터/손 동작과 카메라는 기존 `FarmGame.Feedback.cs` |
+| 전투 연결·처치 수·길드 처치 전달·체력 HUD | `Assets/Scripts/OpenFieldCombat.cs` | `Attack`, `TickCombat`, `EnemyDefeated`, `OnGUI` |
 | 맵/플레이어 저장 연결 | `Assets/Scripts/FarmPersistence.cs` | 각 상태 소유자에게 Capture/Restore 위임 |
 | 파일 저장·백업·맵 이동·저장 오류 | `Assets/Scripts/GameSession.cs` | 의뢰는 `GameSession.Guild.cs` |
 | 저장 파일 필드 | `Assets/Scripts/GameSaveData.cs` | 버전 1 유지 |
@@ -50,6 +54,25 @@
 
 아이템은 `SaveItemCatalog`의 ID로 저장한다. 인벤토리와 밭 복원은 아이템 ID들을 먼저 확인한 뒤 해당 상태를 교체한다. 파일 저장 실패·백업 복구·이동 실패 처리는 기존 `GameSession`을 사용하고 별도의 저장 경로를 만들지 않는다. 전체 맵 복원이 하나의 트랜잭션인 구조는 아니다.
 
+### 공격·피해·처치
+
+`FarmGame.Input → OpenFieldCombat.Attack → PlayerCombatState.TryBeginAttack → EnemyCombatSystem.HitMelee / ProjectileSystem.Spawn`
+
+- 공격 대기와 회피 중 공격 제한은 `PlayerCombatState` 한곳에서 판단한다. 피해·사거리·간격은 기존 무기 데이터를 읽는다.
+- `ProjectileSystem.Tick`은 벽과 대상의 충돌 시점 중 가장 빠른 것을 선택한다. 적 명중은 `EnemyCombatSystem.Hit`, 플레이어 명중은 `PlayerCombatState.Damage`로 전달한다. 별도의 탄환 피해 규칙을 만들지 않는다.
+- 근접 공격의 벽 차단·부채꼴 판정은 `EnemyCombatSystem.HitMelee`를 수정한다. 원거리와 근접의 적 피격 처리는 같은 `Hit`으로 모인다.
+- 일반 적 처치는 `OpenFieldCombat.EnemyDefeated → 처치 수 증가 / GameSession.RecordGuildKill / 드롭` 한 경로로 처리한다. 훈련 표적은 이 콜백을 호출하지 않는다.
+- `PlayerCombatState`와 `EnemyCombatSystem`은 기존 컴포넌트의 직렬화 수치를 참조한다. `startingHearts`, `healthPerHeart`, `enemyRadius` 필드 이름과 컴포넌트 GUID를 유지한다.
+- 저장은 기존 `FarmPersistence → OpenFieldCombat.RestorePlayerState → PlayerCombatState.Restore`로 이어진다. 처치 수는 연결 컴포넌트에서 복원하며 저장 필드·버전은 바꾸지 않는다. 적 개체와 탄환의 저장은 이번에 추가하지 않았다.
+
+### 전투 프레임 순서와 종료
+
+`OpenFieldCombat.TickCombat → 플레이어 타이머/회피 → 적 행동/분리 → 탄환 이동/명중 → 임시 효과 수명`
+
+적이 발사한 탄환은 같은 틱의 탄환 처리에 포함된다. 순서를 바꾸면 회피·공격·명중 시점이 달라질 수 있다. GameOver·메뉴 일시정지의 기존 차단 경로를 유지한다.
+
+`SetNightActive`는 실제 활성 상태가 바뀔 때 적 상태를 전환하고, 비활성 전환 때 적 탄환만 제거한다. 훈련 표적의 활성·재등장은 일반 적과 다르므로 두 경로를 함께 검사한다. 현재 규칙을 보존한 것으로, 과거 논의했던 웨이브 잔류 규칙을 새로 구현한 작업은 아니다.
+
 ## 수치 변경 위치
 
 | 수치 | Unity에서 볼 데이터 |
@@ -69,6 +92,7 @@
 | --- | --- |
 | 인벤토리·농사·수확·집 | `FoundationRefactorCheck.Run` — 기존 슬롯/보관/성장/재수확/하트/집 검사 묶음 |
 | E/F·메뉴 차단·조준·회피 | `BasicControlsCheck.Run` |
+| 전투 분리·하트·길 찾기·탄환 차단·재등장·피격 취소 | `CombatRefactorCheck.Run` — 기존 충돌/하트 검사와 전투 생명주기 검사 |
 | 공격·반동·회피 모습·농기구 연속 사용 | `ActionFeelCheck.Run` |
 | 실제 프레임의 인벤토리/상점 UI·초기 지급 | `OpenFieldPlayCheck.RunInventory` |
 | 상점·맵 왕복·작물/소지품/집 저장 | `InteriorWorldCheck.Run`, 이후 같은 테스트 저장으로 `Resume` |
@@ -76,10 +100,12 @@
 
 이 검사는 프로젝트를 임시 폴더에 복사한 Unity batch 환경에서만 실행한다. Play 검사는 `WTF_SAVE_TEST_DIR`로 별도 저장 위치를 지정한다. 사용자가 연 씬과 실제 자동 저장으로 테스트하지 않는다. 예전 씬 생성 함수가 포함된 검사도 있으므로 검사 프로젝트의 씬/설정/에셋을 본 프로젝트로 통째로 복사하지 않는다.
 
+검사가 적/탄환의 내부 상태나 임의 발사를 필요로 할 때는 `Editor/CombatCheckAccess.cs`를 사용한다. 내부 소유 클래스의 변경 지식은 이 도우미에 모으고, 게임 실행 코드에는 검사 전용 공개 API를 추가하지 않는다.
+
 ## 유지할 경계
 
 - 새 패키지·공통 프레임워크·이벤트 버스 없이 현재 클래스 간 호출로 연결한다.
 - 기존 `.meta`/GUID, 직렬화 필드 이름, 씬 배치, 저장 DTO와 버전을 유지한다. 변경이 필요하면 마이그레이션을 먼저 제안한다.
 - 규칙을 바꾸는 작업과 구조 정리를 구분한다. 리팩터링 중 발견한 새 기획은 확인 없이 추가하지 않는다.
 - 현재 농사는 `FarmGame`의 인벤토리·월드 API에 의존한다. 독립된 서버 시뮬레이션이나 멀티 구조까지 분리한 상태는 아니다.
-- 전투 클래스와 초기화 코드에는 추가 정리 여지가 있다. 이 단계가 프로젝트 전체의 기술 부채 제거를 의미하지 않는다.
+- 전투도 별도 상태 소유 클래스로 분리했다. 상태 클래스는 현재 Unity 월드와 설정 컴포넌트를 참조하며 멀티/서버 전용 시뮬레이션으로 분리한 상태는 아니다. 초기화·HUD 등에는 추가 정리 여지가 있으며 프로젝트 전체의 기술 부채를 제거했다는 의미는 아니다.
