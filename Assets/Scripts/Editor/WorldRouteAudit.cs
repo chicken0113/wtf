@@ -42,7 +42,8 @@ public static class WorldRouteAudit
             field.GetComponentsInChildren<MapExit>().Single(e=>e.destinationScene==CombatTestMapSetup.CombatScene).transform.position);
         inward+=Length(field,field.GetComponentsInChildren<MapArrivalPoint>().Single(a=>a.arrivalId=="field_from_dungeon").transform.position,
             field.GetComponentsInChildren<MapExit>().Single(e=>e.destinationScene==WorldFrameworkSetup.Town).transform.position);
-        System.IO.File.WriteAllText("WorldRouteAudit.txt",$"Maps: {TriangleWorldSetup.Paths.Length}\nApproaches: {routes}\nGuild to dungeon exterior distance: {outward:F1}\nDungeon to guild exterior distance: {inward:F1}\nEstimated movement seconds at speed 3.8, excluding loading: {outward/3.8f:F1} outward, {inward/3.8f:F1} return\n");
+        var settings=Resources.Load<PlayerControlSettings>("PlayerControls");float speed=settings!=null?Mathf.Max(.1f,settings.moveSpeed):4.5f;
+        System.IO.File.WriteAllText("WorldRouteAudit.txt",$"Maps: {TriangleWorldSetup.Paths.Length}\nApproaches: {routes}\nGuild to dungeon exterior distance: {outward:F1}\nDungeon to guild exterior distance: {inward:F1}\nEstimated movement seconds at speed {speed:F1}, excluding loading: {outward/speed:F1} outward, {inward/speed:F1} return\n");
         Debug.Log($"WORLD_ROUTES_AUDITED: {routes} approaches; guild-dungeon {outward:F1}/{inward:F1} units round trip legs.");
     }
 }

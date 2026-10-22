@@ -10,6 +10,8 @@ namespace EverythingGrows
         private Sprite square;
         private float attackCooldown, invulnerability, rollTime, rollCooldown, quietTime;
         private Vector2 rollDirection;
+        private Vector2 bufferedRollDirection;
+        private float rollBufferTime;
         private bool nightActive;
         [SerializeField,Min(.1f)] private float enemyRadius=.35f;
         private MapCollision collision;
@@ -55,7 +57,7 @@ namespace EverythingGrows
         public void RestorePlayerState(float health,int heartsRemoved,int kills,bool gameOver)
         {
             removedHearts=Mathf.Clamp(heartsRemoved,0,startingHearts); Health=Mathf.Clamp(health,0,MaxHealth); Kills=Mathf.Max(0,kills);
-            IsGameOver=gameOver || HeartCount==0; invulnerability=1; rollTime=0;
+            IsGameOver=gameOver || HeartCount==0; invulnerability=1; rollTime=rollBufferTime=0;
         }
         public bool RestoreHeart()
         {
@@ -119,8 +121,18 @@ namespace EverythingGrows
         }
         public bool Roll(Vector2 direction)
         {
-            if(IsGameOver || rollCooldown>0 || direction.sqrMagnitude<.01f) return false;
-            rollDirection=direction.normalized; rollTime=.2f; rollCooldown=.85f; invulnerability=Mathf.Max(invulnerability,.25f); return true;
+            if(IsGameOver || IsRolling || rollCooldown>0 || direction.sqrMagnitude<.01f) return false;
+            rollDirection=direction.normalized;
+            rollTime=farm.Controls!=null?Mathf.Max(.02f,farm.Controls.rollDuration):.22f;
+            rollCooldown=farm.Controls!=null?Mathf.Max(0,farm.Controls.rollCooldown):.65f;
+            invulnerability=Mathf.Max(invulnerability,rollTime);rollBufferTime=0;return true;
+        }
+        public bool RequestRoll(Vector2 direction)
+        {
+            if(IsGameOver||direction.sqrMagnitude<.01f)return false;
+            if(Roll(direction))return true;
+            bufferedRollDirection=direction.normalized;
+            rollBufferTime=farm.Controls!=null?Mathf.Clamp(farm.Controls.rollInputBuffer,0,.3f):.12f;return rollBufferTime>0;
         }
         public bool Attack(PlantDefinition weapon,Vector2 target)
         {
@@ -169,7 +181,7 @@ namespace EverythingGrows
             if(Health<=0)
             {
                 // Solo prototype recovery; inventory is preserved. Planted resurrection is a later milestone.
-                farm.TeleportPlayer(farm.SpawnPosition); Health=MaxHealth; invulnerability=1.5f; rollTime=0;
+                farm.TeleportPlayer(farm.SpawnPosition); Health=MaxHealth; invulnerability=1.5f; rollTime=rollBufferTime=0;
                 farm.Notify("You collapsed. Returned to the farm; your items are safe.");
             }
         }
@@ -178,8 +190,15 @@ namespace EverythingGrows
             if(IsGameOver || seconds<=0 || farm==null) return;
             collision=new MapCollision(farm); enemyCollision=new MapCollision(farm,true);
             attackCooldown=Mathf.Max(0,attackCooldown-seconds); invulnerability=Mathf.Max(0,invulnerability-seconds);
+            float previousRollCooldown=rollCooldown;
             rollCooldown=Mathf.Max(0,rollCooldown-seconds); quietTime+=seconds;
-            if(rollTime>0) { float active=Mathf.Min(rollTime,seconds); farm.MovePlayer(farm.PlayerPosition+rollDirection*active*9); rollTime=Mathf.Max(0,rollTime-seconds); }
+            if(rollBufferTime>0)
+            {
+                bool ready=!IsRolling&&previousRollCooldown<=Mathf.Min(seconds,rollBufferTime);
+                rollBufferTime=Mathf.Max(0,rollBufferTime-seconds);
+                if(ready)Roll(bufferedRollDirection);
+            }
+            if(rollTime>0) { float active=Mathf.Min(rollTime,seconds);float speed=farm.Controls!=null?Mathf.Max(.1f,farm.Controls.rollSpeed):11;farm.MovePlayer(farm.PlayerPosition+rollDirection*active*speed); rollTime=Mathf.Max(0,rollTime-seconds); }
             if(IsSafe(farm.PlayerPosition) && quietTime>2) Health=Mathf.Min(MaxHealth,Health+seconds*14);
             foreach(var enemy in enemies)
             {

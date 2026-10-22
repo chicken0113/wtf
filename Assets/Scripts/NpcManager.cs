@@ -52,6 +52,21 @@ namespace EverythingGrows
             { float d=Vector2.Distance(farm.PlayerPosition,npc.transform.position); if(CanInteract(npc) && npc.IsVisiting && d<=npc.interactionRange && d<distance) { nearest=npc; distance=d; } }
             return Open(nearest);
         }
+        public bool OpenPointed(Vector2 point)
+        {
+            ShopNpc target=null;float nearest=float.PositiveInfinity;
+            foreach(var npc in farm.GetComponentsInChildren<ShopNpc>())
+            {
+                if(!CanInteract(npc)||!npc.IsVisiting||Vector2.Distance(farm.PlayerPosition,npc.transform.position)>npc.interactionRange)continue;
+                foreach(var visual in npc.GetComponentsInChildren<SpriteRenderer>())
+                {
+                    if(!visual.enabled||!new Rect(visual.bounds.min,visual.bounds.size).Contains(point))continue;
+                    float distance=Vector2.Distance(point,npc.transform.position);
+                    if(distance<nearest){target=npc;nearest=distance;}
+                }
+            }
+            return Open(target);
+        }
         public void Close() { activeNpc=null; activeProfile=null; }
         public void CheckDistance() { if(IsOpen && Vector2.Distance(farm.PlayerPosition,activeNpc.transform.position)>activeNpc.interactionRange) Close(); }
         public bool Buy(int index)

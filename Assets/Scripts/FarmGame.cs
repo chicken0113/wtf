@@ -106,6 +106,7 @@ namespace EverythingGrows
             if(player!=null) return;
             if(mapLayout==null) mapLayout=GetComponentInChildren<FarmMapLayout>();
             art=new FarmArt();
+            controlSettings=Resources.Load<PlayerControlSettings>("PlayerControls");
             sprite=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),new Vector2(.5f,.5f),2);
             view=Camera.main;
             if(view==null) { var cameraObject=new GameObject("Main Camera"); view=cameraObject.AddComponent<Camera>(); cameraObject.tag="MainCamera"; }
@@ -161,7 +162,7 @@ namespace EverythingGrows
                         if(!AddItem(entry.item)) Spawn(entry.item,SpawnPosition+Vector2.down*.6f);
                 selected=0;
             }
-            message="RMB: take item. E: plant / harvest. Click: use / attack. Walk outside to fight.";
+            message="E: interact / plant. F: harvest. Click: use / attack. Space or Shift: dodge.";
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(!building.runtimePlaced) authoredBuildingKeys[building]=MapObjectId.Key(building);
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) HouseInteriorLink.EnsureDoor(building);
             if(Application.isPlaying && grantStartingItems) GameSession.Bind(this);
@@ -393,6 +394,7 @@ namespace EverythingGrows
         }
         public bool UseTool(Vector2Int cell)
         {
+            if(combat!=null&&combat.IsRolling)return false;
             if(Held==null) { message="Select a hoe or watering can."; return false; }
             if(Held.effect==GrowthEffect.House) return PlaceHouse(cell);
             if(Held.effect==GrowthEffect.Heart)
@@ -421,6 +423,7 @@ namespace EverythingGrows
         // Return true when the input belongs to a menu, so the same key cannot act on the world.
         public bool ProcessMenuInput(bool inventoryPressed,bool escapePressed,bool mapPressed,bool interactPressed)
         {
+            if(WorldInputBlocked||inventoryPressed||mapPressed)suppressPrimaryUntilRelease=true;
             if(inventoryPressed)
             {
                 bool next=!InventoryOpen; shop?.Close(); showMap=false; SetInventoryOpen(next);
@@ -447,14 +450,16 @@ namespace EverythingGrows
             if(ProcessMenuInput(Input.GetKeyDown(KeyCode.Tab),Input.GetKeyDown(KeyCode.Escape),Input.GetKeyDown(KeyCode.M),Input.GetKeyDown(KeyCode.E))) return;
             var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
             int hoveredHeart=combat.HeartAt(guiMouse);
-            if(Input.GetKeyDown(KeyCode.E) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
-            if(MapExit.TryInteract(this)) { plantingPreview.enabled=false; return; }
+            if(Input.GetKeyDown(KeyCode.F) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
+            if(MapExit.TryAutomatic(this)) { plantingPreview.enabled=false; return; }
             GameSession.AdvanceTime(Time.deltaTime);
             Cycle.Tick(Time.deltaTime);
-            Vector2 move=new Vector2(Input.GetKey(KeyCode.D)?1:Input.GetKey(KeyCode.A)?-1:0,Input.GetKey(KeyCode.W)?1:Input.GetKey(KeyCode.S)?-1:0);
-            if(Input.GetKeyDown(KeyCode.LeftShift)) combat.Roll(move.sqrMagnitude>0?move:MousePoint-PlayerPosition);
-            if(!combat.IsRolling) MovePlayer(PlayerPosition+Vector2.ClampMagnitude(move,1)*3.8f*Time.deltaTime);
+            Vector2 move=MovementInput(Input.GetKey(KeyCode.A),Input.GetKey(KeyCode.D),Input.GetKey(KeyCode.W),Input.GetKey(KeyCode.S));
+            UpdateAim(MousePoint,OverUI());
+            if(Input.GetKeyDown(KeyCode.Space)||Input.GetKeyDown(KeyCode.LeftShift)) combat.RequestRoll(DodgeDirection(move));
+            if(!combat.IsRolling) MovePlayer(PlayerPosition+move*MoveSpeed*Time.deltaTime);
             combat.TickCombat(Time.deltaTime);
+            UpdateAim(MousePoint,OverUI());
             for(int i=0;i<Mathf.Min(9,Capacity);i++) if(Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1+i))) selected=i;
             AnimateFarmer(move);
             float wheel=Input.mouseScrollDelta.y;
@@ -462,29 +467,29 @@ namespace EverythingGrows
             Tick(Time.deltaTime);
             if(Input.GetKeyDown(KeyCode.R)) RestoreSlot();
             if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; RemoveInventoryItem(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }
-            if(Input.GetKeyDown(KeyCode.E) && !OverUI() && HarvestBuildingAt(MousePoint)) return;
-            if(Input.GetKeyDown(KeyCode.E) && shop!=null && shop.OpenNearby()) { plantingPreview.enabled=false; return; }
+            bool pointerOverUI=OverUI();
+            bool primaryAllowed=ProcessPrimaryPointer(Input.GetMouseButton(0),pointerOverUI);
+            if(Input.GetKeyDown(KeyCode.E) && InteractWorld(MousePoint,pointerOverUI)) return;
+            if(Input.GetKeyDown(KeyCode.F) && HarvestWorld(MousePoint,pointerOverUI)) return;
             UpdatePlantingPreview();
             if(OverUI()) return;
             var point=MousePoint; var cell=MouseCell;
-            if(Held!=null && Held.effect==GrowthEffect.Weapon && Input.GetMouseButton(0))
-                if(combat.Attack(Held,point)) actionTime=.25f;
+            if(Held!=null && Held.effect==GrowthEffect.Weapon && primaryAllowed)
+                if(combat.Attack(Held,PlayerPosition+AimDirection)) actionTime=.25f;
             if(!Near(point)) { if(Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(1) || (Input.GetMouseButtonDown(0) && (Held==null || Held.effect!=GrowthEffect.Weapon))) message="Walk closer first."; return; }
             if(Input.GetMouseButtonDown(1))
             {
                 if(PieceAt(point)!=null) DetachAt(point);
                 else if(plots.TryGetValue(cell,out var planted) && planted.plant!=null)
-                { if(planted.plant.isSeed) message="E: harvest ripe crops. Scythe: clear dead crops."; else if(!planted.mature) Uproot(cell); else message="Press E to harvest."; }
+                { if(planted.plant.isSeed) message="F: harvest ripe crops. Scythe: clear dead crops."; else if(!planted.mature) Uproot(cell); else message="Press F to harvest."; }
             }
-            if(Input.GetMouseButtonDown(0))
+            if(Input.GetMouseButtonDown(0) && primaryAllowed)
             {
                 if(Held==null) message="Select a hoe to till soil.";
                 else if(Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe || Held.effect==GrowthEffect.Heart || Held.effect==GrowthEffect.House) UseTool(cell);
                 else if(Held.effect!=GrowthEffect.Weapon) message="This item has no direct use. Press E to plant it.";
                 actionTime=.25f;
             }
-            if(Input.GetKeyDown(KeyCode.F)) UseTool(cell);
-            if(Input.GetKeyDown(KeyCode.E)) InteractPlot(cell);
         }
         private void LateUpdate()
         {
@@ -497,8 +502,8 @@ namespace EverythingGrows
         {
             walkTime+=Time.deltaTime; actionTime=Mathf.Max(0,actionTime-Time.deltaTime);
             bool walking=move.sqrMagnitude>0;
-            if(Held!=null && Held.effect==GrowthEffect.Weapon) move=MousePoint-PlayerPosition;
-            if(move.sqrMagnitude>0) facing=Mathf.Abs(move.x)>Mathf.Abs(move.y)?(move.x<0?2:3):(move.y>0?1:0);
+            var aim=AimDirection;
+            facing=Mathf.Abs(aim.x)>Mathf.Abs(aim.y)?(aim.x<0?2:3):(aim.y>0?1:0);
             if(art.Available) farmer.sprite=art.Get(facing);
             // Sort by feet position so walking behind plants hides the farmer correctly.
             farmer.sortingOrder=30-Mathf.RoundToInt(player.position.y*10);
@@ -509,9 +514,10 @@ namespace EverythingGrows
                 heldModel.sprite=art.ItemSprite(Held);
                 float heldSize=Mathf.Max(heldModel.sprite.bounds.size.x,heldModel.sprite.bounds.size.y);
                 heldModel.transform.localScale=Vector3.one*(.5f/Mathf.Max(.01f,heldSize));
-                heldModel.transform.localPosition=new Vector3(facing==2?-.3f:.3f,-.12f,0);
-                heldModel.transform.localRotation=Quaternion.Euler(0,0,actionTime>0?Mathf.Sin(actionTime/.25f*Mathf.PI)*-80:0);
-                heldModel.sortingOrder=farmer.sortingOrder+1;
+                heldModel.transform.localPosition=(Vector3)(aim*.32f+Vector2.down*.1f);
+                float rotation=Held.effect==GrowthEffect.Weapon?Mathf.Atan2(aim.y,aim.x)*Mathf.Rad2Deg-(Held.ranged?0:90):0;
+                heldModel.transform.localRotation=Quaternion.Euler(0,0,rotation+(actionTime>0?Mathf.Sin(actionTime/.25f*Mathf.PI)*-80:0));
+                heldModel.sortingOrder=farmer.sortingOrder+(aim.y>.35f?-1:1);
             }
             foreach(var piece in pieces) if(piece.model!=null) piece.model.GetComponent<SpriteRenderer>().sortingOrder=30-Mathf.RoundToInt(piece.model.transform.position.y*10);
             foreach(var plot in plots.Values) if(plot.model!=null) plot.model.sortingOrder=29-Mathf.RoundToInt(plot.cell.y*10);
@@ -543,7 +549,7 @@ namespace EverythingGrows
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
                 Vector3 position=view.WorldToScreenPoint((Vector2)plot.cell+Vector2.up*.6f);
-                string status=plot.wilted?"DEAD - scythe":plot.mature?(plot.ready || plot.plant.harvestResult!=null?"E: HARVEST":plot.plant.effect.ToString()):!plot.wet?"Needs water":Mathf.RoundToInt(plot.progress*100)+"%";
+                string status=plot.wilted?"DEAD - scythe":plot.mature?(plot.ready || plot.plant.harvestResult!=null?"F: HARVEST":plot.plant.effect.ToString()):!plot.wet?"Needs water":Mathf.RoundToInt(plot.progress*100)+"%";
                 GUI.Label(new Rect(position.x-70,Screen.height-position.y,140,28),plot.plant.label+" "+status);
                 if(!plot.mature)
                 {
@@ -553,7 +559,7 @@ namespace EverythingGrows
                     GUI.DrawTexture(new Rect(bar.x,bar.y,bar.width*plot.progress,bar.height),Texture2D.whiteTexture); GUI.color=previous;
                 }
             }
-            foreach(var piece in pieces) if(piece.model!=null) { var position=view.WorldToScreenPoint(piece.model.transform.position); GUI.Label(new Rect(position.x-50,Screen.height-position.y+12,100,22),piece.definition.label); }
+            foreach(var piece in pieces) if(piece.model!=null) { var position=view.WorldToScreenPoint(piece.model.transform.position); GUI.Label(new Rect(position.x-60,Screen.height-position.y+12,120,22),"E: "+piece.definition.label); }
         }
         private void DrawInventoryWindow()
         {

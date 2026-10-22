@@ -47,6 +47,23 @@ namespace EverythingGrows
                 if(exit.TryActivate(farm,pressed)) return true;
             return false;
         }
+        public static bool TryAutomatic(FarmGame farm)
+        {
+            foreach(var exit in Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None))
+                if(!exit.requireInteract&&exit.TryActivate(farm,false))return true;
+            return false;
+        }
+        public static bool TryDoor(FarmGame farm)
+        {
+            MapExit nearest=null;float distance=float.PositiveInfinity;
+            foreach(var exit in Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None))
+            {
+                if(!exit.isActiveAndEnabled||!exit.requireInteract||exit.gameObject.scene!=farm.gameObject.scene||!exit.Contains(farm.PlayerPosition))continue;
+                float candidate=Vector2.Distance(farm.PlayerPosition,exit.transform.position);
+                if(candidate<distance){nearest=exit;distance=candidate;}
+            }
+            return nearest!=null&&nearest.TryActivate(farm,true);
+        }
         void OnGUI()
         {
             if(!Application.isPlaying || !requireInteract || GameSession.Busy) return;
