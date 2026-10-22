@@ -15,11 +15,11 @@
 1. 기존 집의 위치나 계층을 편집하기 전에 **Tools > Everything Grows > Map travel > Prepare current map IDs**를 실행하고 씬을 저장한다. 각 집에 고유 저장 ID를 부여하며 위치와 외형은 바꾸지 않는다. 씬을 복제한 뒤에도 해당 메뉴를 사용할 수 있다.
 2. **Assets/Prefabs/Map/MapArrivalPoint.prefab**을 도착할 씬에 놓는다. `Arrival Id`를 지정하고 실제 플레이어가 설 위치로 이동한다. 같은 씬 안에서는 ID를 중복시키지 않는다.
 3. **Assets/Prefabs/Map/MapExit.prefab**을 출발할 씬에 놓는다. Inspector의 `Destination Scene`에 대상 씬 파일을 지정하고, 도착 지점과 같은 `Arrival Id`를 입력한다.
-4. `Area Size`로 출입구 영역을 조절한다. 기본은 영역 안에서 E를 눌러 이동하며 `Require Interact`를 끄면 닿아서 이동한다. 도착 직후에는 1초간 자동 이동을 막는다.
+4. `Area Size`로 출입구 영역을 조절한다. 지역 간 이동에는 `Require Interact`를 꺼서 닿으면 이동하도록 한다. E가 필요한 문은 건물 실내 출입에만 사용한다. 도착 직후에는 1초간 자동 이동을 막는다.
 5. Inspector에 Build Settings 경고가 나타나면 **Enable destination in Build Settings**를 누른다. 출발 씬도 Build Settings에 등록되어 있어야 하며 Tools > Everything Grows > Map travel > Enable current scene in Build Settings로 등록할 수 있다. 대상 씬에는 기본 데이터가 설정된 FarmGame과 활성화된 도착 지점이 필요하다.
 6. 왕복 연결은 반대 방향 출입구와 도착 지점을 별도로 배치한다. GameObject > Everything Grows 메뉴에서도 두 오브젝트를 생성할 수 있다.
 
-출입구와 도착 지점은 Scene에서 초록 영역·청록 표시로 보인다. 플레이 중에는 출입구 영역 안에서 E 이동 안내가 표시된다. 실제 문의 외형은 출입구에 SpriteRenderer나 장식 오브젝트를 붙여 구성할 수 있다.
+출입구와 도착 지점은 Scene에서 초록 영역·청록 표시로 보인다. 플레이 중 실내 출입용 문에만 E 이동 안내가 표시되며 지역 이동에는 E가 필요하지 않다. 실제 문의 외형은 출입구에 SpriteRenderer나 장식 오브젝트를 붙여 구성할 수 있다.
 
 ## 저장 파일과 실패 처리
 
@@ -44,8 +44,8 @@
 
 | 프리팹 | 색상 | 동작 |
 | --- | --- | --- |
-| `Assets/Prefabs/Map/MapDoorExit.prefab` | 청록색 문틀 | 영역 안에서 E를 눌러 이동 |
-| `Assets/Prefabs/Map/MapBoundaryExit.prefab` | 주황색 바닥과 흰 화살표 | 플레이어 몸이 닿으면 자동 이동 |
+| `Assets/Prefabs/Map/MapDoorExit.prefab` | 청록색 문틀 | 건물 실내 출입: 영역 안에서 E를 눌러 이동 |
+| `Assets/Prefabs/Map/MapBoundaryExit.prefab` | 주황색 바닥과 흰 화살표 | 지역 간 이동: 플레이어 몸이 닿으면 자동 이동 |
 
 Hierarchy의 `GameObject > Everything Grows > Door Exit (E)` 또는 `Boundary Exit (Touch)`로도 배치할 수 있습니다. 기존 `MapExit.prefab`은 장식 없는 기본 영역으로 유지합니다.
 
@@ -53,9 +53,9 @@ MapExit Inspector의 **Activation**에서 Door / Boundary를 선택합니다. �
 
 자동 통로는 캐릭터 중심이 아니라 Player Radius를 포함한 몸 판정을 사용합니다. 저장 복원이나 맵 도착 시 자동 통로와 겹치면 한 번 밖으로 나간 후 다시 닿아야 활성화됩니다. 도착 후 짧은 이동 유예도 유지해 즉시 왕복되는 현상을 방지합니다.
 
-기존 청록색 문을 유지하며, 테스트용 주황색 통로를 농장 `(9, 0)`과 전투 맵 `(-10, 2.5)`에 추가했습니다. 각 씬의 `Touch Map Connection` 그룹에서 이동·삭제할 수 있습니다. 자동 통로 도착 지점은 문형 출입구와 별도로 구성합니다.
+지역 사이의 청록색 E 문은 제거했습니다. 주황색 통로는 농장 `(9, 0)`과 전투 맵 `(-10, 2.5)`에서 마을로 이어집니다. 각 씬의 `Touch Map Connection` 그룹에서 이동·삭제할 수 있습니다. 자동 통로 도착 지점은 문형 출입구와 별도로 구성합니다.
 
 
 ## 현재 월드 연결
 
-농장과 던전의 기존 청록색·주황색 입출구는 현재 마을을 경유합니다. Town과 GeneralStore 씬을 추가했고, 전체 배치와 NPC 설정은 [WORLD_FRAMEWORK.md](WORLD_FRAMEWORK.md)를 참고하세요.
+농장과 던전은 주황색 접촉 통로로 마을과 왕복하며 서로 직접 이어지는 자동 통로도 있습니다. 파란 E 문은 Town ↔ GeneralStore 실내 출입에 남겨 둡니다. Town과 GeneralStore 씬을 추가했고, 전체 배치와 NPC 설정은 [WORLD_FRAMEWORK.md](WORLD_FRAMEWORK.md)를 참고하세요.

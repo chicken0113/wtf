@@ -50,6 +50,7 @@ public static class WorldConnectionValidator
                 foreach(var exit in farm.gameObject.scene.GetRootGameObjects().SelectMany(root=>root.GetComponentsInChildren<MapExit>()).Where(exit=>exit.isActiveAndEnabled))
                 {
                     checkedExits++;
+                    if(OutdoorDoorCleanup.IsOutdoor(pair.Key)&&OutdoorDoorCleanup.IsOutdoor(exit.destinationScene)&&exit.requireInteract) Error("Outdoor travel must be automatic: "+exit.name,exit);
                     if(!maps.TryGetValue(exit.destinationScene,out var target)) { Error("Destination outside configured world or missing: "+exit.destinationScene,exit); continue; }
                     var targetPoints=target.gameObject.scene.GetRootGameObjects().SelectMany(root=>root.GetComponentsInChildren<MapArrivalPoint>()).Where(point=>point.isActiveAndEnabled && point.arrivalId==exit.arrivalId).ToArray();
                     if(targetPoints.Length!=1) Error("Destination arrival missing or duplicated: "+exit.arrivalId,exit);

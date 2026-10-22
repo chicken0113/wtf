@@ -81,6 +81,7 @@ public static class WorldFrameworkCheck
             if(!EditorApplication.isPlaying || Time.timeSinceLevelLoad<.3f || GameSession.Busy || Time.unscaledTime<GameSession.ArrivalGraceUntil) return;
             var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); if(farm==null || farm.Combat==null) return;
             Require(string.IsNullOrEmpty(GameSession.LastError),GameSession.LastError);
+            if(OutdoorDoorCleanup.IsOutdoor(farm.gameObject.scene.path)) Require(!farm.GetComponentsInChildren<MapExit>(true).Any(e=>e.requireInteract&&OutdoorDoorCleanup.IsOutdoor(e.destinationScene)),"Outdoor E door remains");
             if(resume)
             {
                 Require(farm.gameObject.scene.path==WorldFrameworkSetup.Town && farm.InventoryCount==4 && farm.InventoryQuantity(2)==10 && farm.Gold>0 && farm.Gold<333,"World did not resume correctly");
@@ -96,11 +97,11 @@ public static class WorldFrameworkCheck
                 var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"); farm.AddItem(seed); farm.TeleportPlayer(new Vector2(0,-2));
                 Require(farm.PlantSelected(new Vector2Int(0,-2)),"Farm crop setup failed"); farm.Water(new Vector2(0,-2),.1f); farm.Tick(seed.growthSeconds);
                 farm.DropItem(Resources.Load<PlantDefinition>("Equipment/Heart"),new Vector2(2,-4));
-                step=1; Travel(farm,WorldFrameworkSetup.Town,true); return;
+                step=1; Travel(farm,WorldFrameworkSetup.Town,false); return;
             }
             if(step==1)
             {
-                At(farm,WorldFrameworkSetup.Town,"town_from_farm_door"); Require(farm.InventoryCount==4 && farm.Gold==333 && farm.Combat.EnemyCount==0,"Town lost state or is hostile");
+                At(farm,WorldFrameworkSetup.Town,"town_from_farm"); Require(farm.InventoryCount==4 && farm.Gold==333 && farm.Combat.EnemyCount==0,"Town lost state or is hostile");
                 Require(farm.GetComponentsInChildren<ShopNpc>().Length==3,"Residents missing");
                 var guide=farm.GetComponentsInChildren<ShopNpc>().Single(n=>n.npcId=="town_guide"); farm.TeleportPlayer((Vector2)guide.transform.position+Vector2.down);
                 Require(farm.Shop.OpenNearby() && farm.InventoryOpen && !farm.Shop.IsTrading && !farm.Shop.Buy(0) && !farm.Shop.Sell(0),"Dialogue unexpectedly trades"); farm.Shop.Close();
@@ -122,9 +123,9 @@ public static class WorldFrameworkCheck
                 Snapshot(farm,"StoreInterior.png",Vector2.zero,6.5f);
                 step=3; Travel(farm,WorldFrameworkSetup.Town,true); return;
             }
-            if(step==3) { At(farm,WorldFrameworkSetup.Town,"town_from_store"); Require(farm.Gold==expectedGold,"Gold lost on store return"); step=4; Travel(farm,CombatTestMapSetup.CombatScene,true); return; }
-            if(step==4) { At(farm,CombatTestMapSetup.CombatScene,"combat_entry"); Require(farm.Combat.EnemyCount==2,"Dungeon enemies missing"); step=5; Travel(farm,WorldFrameworkSetup.Town,true); return; }
-            if(step==5) { At(farm,WorldFrameworkSetup.Town,"town_from_dungeon"); step=6; Travel(farm,CombatTestMapSetup.FarmScene,false); return; }
+            if(step==3) { At(farm,WorldFrameworkSetup.Town,"town_from_store"); Require(farm.Gold==expectedGold,"Gold lost on store return"); step=4; Travel(farm,CombatTestMapSetup.CombatScene,false); return; }
+            if(step==4) { At(farm,CombatTestMapSetup.CombatScene,"combat_path_entry"); Require(farm.Combat.EnemyCount==2,"Dungeon enemies missing"); step=5; Travel(farm,WorldFrameworkSetup.Town,false); return; }
+            if(step==5) { At(farm,WorldFrameworkSetup.Town,"town_from_dungeon_path"); step=6; Travel(farm,CombatTestMapSetup.FarmScene,false); return; }
             if(step==6)
             {
                 At(farm,CombatTestMapSetup.FarmScene,"farm_path_entry"); Require(farm.IsMature(new Vector2Int(0,-2)) && farm.WorldPieceCount==1 && farm.Gold==expectedGold && farm.InventoryCount==4,"Farm state or inventory lost on return");
@@ -135,10 +136,10 @@ public static class WorldFrameworkCheck
             if(step==9)
             {
                 At(farm,WorldFrameworkSetup.Town,"town_from_dungeon_path"); Require(farm.Gold==expectedGold && farm.InventoryCount==4 && File.Exists(GameSession.SavePath),"Final autosave/state incorrect");
-                // Verify town's E route back to the farm as well.
-                step=10; Travel(farm,CombatTestMapSetup.FarmScene,true); return;
+                // Repeat automatic return before checking the direct shortcut.
+                step=10; Travel(farm,CombatTestMapSetup.FarmScene,false); return;
             }
-            if(step==10) { At(farm,CombatTestMapSetup.FarmScene,"farm_from_combat"); step=11; Travel(farm,WorldFrameworkSetup.Town,false); return; }
+            if(step==10) { At(farm,CombatTestMapSetup.FarmScene,"farm_path_entry"); step=11; Travel(farm,WorldFrameworkSetup.Town,false); return; }
             if(step==11) { At(farm,WorldFrameworkSetup.Town,"town_from_farm"); if(farm.GetComponentsInChildren<Transform>().Any(item=>item.name=="Sketch layout 2026-10-21")) { step=12; Travel(farm,CombatTestMapSetup.FarmScene,false); return; } Finish("WORLD_FRAMEWORK_PLAY_SUCCESS: all four scenes, both route types, dialogue and night residents, daytime store, buy/sell, shared gold/inventory, farm crop/drop preservation, collision and autosaves."); }
             if(step==12) { At(farm,CombatTestMapSetup.FarmScene,"farm_path_entry"); step=13; Travel(farm,CombatTestMapSetup.CombatScene,false); return; }
             if(step==13) { At(farm,CombatTestMapSetup.CombatScene,"combat_from_farm"); step=14; Travel(farm,CombatTestMapSetup.FarmScene,false); return; }
