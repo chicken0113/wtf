@@ -91,7 +91,9 @@ public sealed class MapExitInspector : Editor
         EditorGUI.BeginChangeCheck(); selected=(SceneAsset)EditorGUILayout.ObjectField("Destination Scene",selected,typeof(SceneAsset),false);
         if(EditorGUI.EndChangeCheck()) path.stringValue=selected!=null?AssetDatabase.GetAssetPath(selected):"";
         EditorGUILayout.PropertyField(serializedObject.FindProperty("arrivalId")); EditorGUILayout.PropertyField(serializedObject.FindProperty("areaSize")); var interact=serializedObject.FindProperty("requireInteract");
-        interact.boolValue=EditorGUILayout.Popup("Activation",interact.boolValue?0:1,new[]{"Door - press F (teal)","Boundary - touch (orange)"})==0; serializedObject.ApplyModifiedProperties();
+        interact.boolValue=EditorGUILayout.Popup("Activation",interact.boolValue?0:1,new[]{"Door - press F (teal)","Boundary - touch (orange)"})==0;
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("requireClearFloor"),new GUIContent("Require cleared floor"));
+        serializedObject.ApplyModifiedProperties();
         if(!string.IsNullOrEmpty(path.stringValue) && !EditorBuildSettings.scenes.Any(scene=>scene.enabled && scene.path==path.stringValue))
         {
             EditorGUILayout.HelpBox("Destination must be enabled in Build Settings.",MessageType.Warning);

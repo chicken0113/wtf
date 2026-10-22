@@ -23,6 +23,7 @@
 | 탄환 생성·이동·벽 차단·최초 명중·수명 | `Assets/Scripts/ProjectileSystem.cs` | `Spawn`, `Tick`, `ClearHostile` |
 | 전투 궤적·발사·파편·잔상·공격 예고선 | `Assets/Scripts/CombatEffects.cs` | 캐릭터/손 동작과 카메라는 기존 `FarmGame.Feedback.cs` |
 | 전투 연결·처치 수·길드 처치 전달·체력 HUD | `Assets/Scripts/OpenFieldCombat.cs` | `Attack`, `TickCombat`, `EnemyDefeated`, `OnGUI` |
+| 층 전멸 계단 잠금 | `EnemyCombatSystem.LivingHostileCount` → `OpenFieldCombat` | `MapExit.requireClearFloor / IsCombatBlocked / Travel / InteractionPrompt`; 일반 출입구 기본값 false |
 | 탑 1·2층·F 계단 배치 | `Editor/TowerDungeonSetup.cs` | 기존 `MapExit`/`MapArrivalPoint`/`GameSession.Travel`; [TOWER_DUNGEON.md](TOWER_DUNGEON.md) |
 | 맵/플레이어 저장 연결 | `Assets/Scripts/FarmPersistence.cs` | 각 상태 소유자에게 Capture/Restore 위임 |
 | 파일 저장·백업·맵 이동·저장 오류 | `Assets/Scripts/GameSession.cs` | 의뢰는 `GameSession.Guild.cs` |

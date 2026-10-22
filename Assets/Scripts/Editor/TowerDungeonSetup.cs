@@ -30,7 +30,7 @@ public static class TowerDungeonSetup
             PrefabUtility.UnpackPrefabInstance(PrefabUtility.GetOutermostPrefabInstanceRoot(exit.gameObject),PrefabUnpackMode.Completely,InteractionMode.AutomatedAction);
         var oldVisual=exit.GetComponent<MapExitVisual>();if(oldVisual!=null)UnityEngine.Object.DestroyImmediate(oldVisual);
         foreach(Transform child in exit.transform.Cast<Transform>().ToArray())UnityEngine.Object.DestroyImmediate(child.gameObject);
-        exit.name=title;exit.destinationScene=target;exit.arrivalId=arrival;exit.requireInteract=true;exit.areaSize=V(2.4f,2.4f);
+        exit.name=title;exit.destinationScene=target;exit.arrivalId=arrival;exit.requireInteract=true;exit.requireClearFloor=true;exit.areaSize=V(2.4f,2.4f);
         exit.transform.rotation=Quaternion.identity;exit.transform.localScale=Vector3.one;
         Vector2 p=exit.transform.position;
         Draw("Stone stairwell",exit.transform,p,V(2.4f,2.4f),new Color(.16f,.22f,.25f),-80);

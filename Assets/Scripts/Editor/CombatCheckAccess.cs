@@ -18,6 +18,14 @@ public static class CombatCheckAccess
 
     public static IList Enemies(OpenFieldCombat combat) => (IList)Read(Read(combat, "enemySystem"), "enemies");
     public static IList Shots(OpenFieldCombat combat) => (IList)Read(Read(combat, "projectiles"), "shots");
+    // World-route fixtures clear their floor through the existing hit/death path.
+    public static void DefeatHostiles(OpenFieldCombat combat)
+    {
+        var owner=Read(combat,"enemySystem");var hit=owner.GetType().GetMethod("Hit",Fields);
+        foreach(var enemy in Enemies(combat))
+            if(!(bool)Read(enemy,"trainingDummy") && (float)Read(enemy,"health")>0)
+                hit.Invoke(owner,new object[]{enemy,100000f,Vector2.zero});
+    }
     public static void Shoot(OpenFieldCombat combat, Vector2 point, Vector2 velocity, float damage, bool hostile, float life = 2.5f)
     {
         var owner = Read(combat, "projectiles");

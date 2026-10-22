@@ -15,6 +15,7 @@ namespace EverythingGrows
         private bool nightActive;
         public IReadOnlyList<Enemy> Items => enemies;
         public float Radius => settings.EnemyRadius;
+        public int LivingHostileCount { get { int count=0;foreach(var enemy in enemies)if(!enemy.trainingDummy && enemy.health>0)count++;return count; } }
         public int EnemyCount { get { int count=0;foreach(var enemy in enemies)if(nightActive&&enemy.health>0)count++;return count; } }
         public EnemyCombatSystem(FarmGame farm,OpenFieldCombat settings,CombatEffects effects,Action<Enemy> defeated)
         { this.farm=farm;this.settings=settings;this.effects=effects;this.defeated=defeated; }

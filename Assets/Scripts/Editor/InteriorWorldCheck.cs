@@ -51,6 +51,7 @@ public static class InteriorWorldCheck
     static void Travel(FarmGame f,string target)
     {
         var door=f.GetComponentsInChildren<MapExit>().Single(e=>e.destinationScene==target);
+        if(door.IsCombatBlocked(f))CombatCheckAccess.DefeatHostiles(f.Combat);
         f.TeleportPlayer(f.SpawnPosition);door.TryActivate(f,false);f.TeleportPlayer(door.transform.position);
         Check(door.TryActivate(f,door.requireInteract),"Door failed: "+target+" "+GameSession.LastError);
     }

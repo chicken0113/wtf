@@ -14,9 +14,11 @@ public static class GuildQuestCheck
     static string[] StartRoute=>new[]{CombatTestMapSetup.FarmScene,TriangleWorldSetup.Passage,WorldFrameworkSetup.Town,InteriorWorldSetup.Smith,
         WorldFrameworkSetup.Town,InteriorWorldSetup.Guild,WorldFrameworkSetup.Town,TriangleWorldSetup.Field,TriangleWorldSetup.Training,TriangleWorldSetup.Field,
         CombatTestMapSetup.CombatScene,TriangleWorldSetup.Field}
-        .SelectMany(p=>TowerDungeonSetup.Installed&&p==CombatTestMapSetup.CombatScene?new[]{TowerDungeonSetup.Lobby,p,TowerDungeonSetup.Lobby}:new[]{p}).ToArray();
-    static string[] ResumeRoute=>new[]{TriangleWorldSetup.Field,CombatTestMapSetup.CombatScene,TriangleWorldSetup.Field,WorldFrameworkSetup.Town,InteriorWorldSetup.Guild}
-        .SelectMany(p=>TowerDungeonSetup.Installed&&p==CombatTestMapSetup.CombatScene?new[]{TowerDungeonSetup.Lobby,p,TowerDungeonSetup.Lobby}:new[]{p}).ToArray();
+        .Take(TowerDungeonSetup.Installed?11:12)
+        .SelectMany(p=>TowerDungeonSetup.Installed&&p==CombatTestMapSetup.CombatScene?new[]{TowerDungeonSetup.Lobby,p}:new[]{p}).ToArray();
+    static string[] ResumeRoute=>TowerDungeonSetup.Installed
+        ?new[]{CombatTestMapSetup.CombatScene,TowerDungeonSetup.Lobby,TriangleWorldSetup.Field,WorldFrameworkSetup.Town,InteriorWorldSetup.Guild}
+        :new[]{TriangleWorldSetup.Field,CombatTestMapSetup.CombatScene,TriangleWorldSetup.Field,WorldFrameworkSetup.Town,InteriorWorldSetup.Guild};
     static GuildQuestCheck(){if(Application.isBatchMode&&SessionState.GetBool(Key,false)){resume=SessionState.GetBool(Key+"Resume",false);deadline=EditorApplication.timeSinceStartup+180;EditorApplication.update+=Tick;}}
     static void Require(bool ok,string text){if(!ok)throw new Exception(text);}
     public static void Run(){Guard();GuildQuestSetup.Apply();WorldRouteAudit.Validate();Start(false);}
@@ -83,13 +85,15 @@ public static class GuildQuestCheck
                 if(step==StartRoute.Length-1)
                 {
                     Require(GameSession.GuildQuestState("clear_dungeon").progress==1&&f.InventoryCount==5,"Progress/inventory lost on dungeon exit");
+                    Require(GameSession.Save(f),"Failed to checkpoint partial progress inside locked floor");
                     Finish("GUILD_PARTIAL_SAVE_SUCCESS: accepted requests, actual combat, training exclusion, "+walked.ToString("F1")+" collision-checked walking units.");return;
                 }
             }
             else
             {
                 if(step==0)Require(GameSession.GuildQuestState("clear_dungeon").progress==1&&GameSession.GuildQuestState("ranged_watch").progress==0,"Restart lost partial progress");
-                if(f.gameObject.scene.path==CombatTestMapSetup.CombatScene){Kill(f,"Spitter");Require(GameSession.GuildQuestState("clear_dungeon").progress==2&&GameSession.GuildQuestState("ranged_watch").progress==1,"Ranged kill did not complete requests");Require(!GameSession.ClaimGuildQuest(f,"clear_dungeon"),"Claimed reward outside guild");}
+                if(f.gameObject.scene.path==CombatTestMapSetup.CombatScene){Kill(f,"Spitter");Require(GameSession.GuildQuestState("clear_dungeon").progress==2&&GameSession.GuildQuestState("ranged_watch").progress==1,"Ranged kill did not complete requests");Require(!GameSession.ClaimGuildQuest(f,"clear_dungeon"),"Claimed reward outside guild");
+                    if(TowerDungeonSetup.Installed && f.Combat.LivingHostileCount>0){f.Combat.TickCombat(.5f);Kill(f,"Chaser");}}
                 if(step==ResumeRoute.Length-1)
                 {
                     OpenDesk(f,true);int before=f.Gold;

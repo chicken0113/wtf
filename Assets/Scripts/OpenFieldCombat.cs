@@ -27,6 +27,7 @@ namespace EverythingGrows
         public Vector2 RollDirection => playerState!=null?playerState.RollDirection:Vector2.zero;
         public float PlayerHitFlash => playerState!=null?playerState.PlayerHitFlash:0;
         public int Kills { get; private set; }
+        public int LivingHostileCount => enemySystem!=null?enemySystem.LivingHostileCount:0;
         public int EnemyCount => enemySystem!=null?enemySystem.EnemyCount:0;
         public float HeartFill(int index) => playerState.HeartFill(index);
         public Rect HudRect => new Rect(14,14,HeartCount*38,32);

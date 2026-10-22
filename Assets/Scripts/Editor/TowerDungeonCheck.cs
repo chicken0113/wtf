@@ -13,6 +13,7 @@ public static class TowerDungeonCheck
     private static double deadline;
     private static int step;
     private static bool resume;
+    private static int expectedKills=2, expectedBattleDrops=2;
     static TowerDungeonCheck()
     {
         if(Application.isBatchMode && SessionState.GetBool(Key,false))
@@ -55,6 +56,16 @@ public static class TowerDungeonCheck
         else Check(MapExit.TryAutomatic(farm),"Automatic exterior travel failed: "+GameSession.LastError);
         Check(GameSession.Busy,"Travel did not start");
     }
+    private static void CheckStairBlocked(FarmGame farm)
+    {
+        var exit=Exit(farm,TowerDungeonSetup.Lobby);Check(exit.requireClearFloor,"Stair clear-floor setting missing");
+        farm.TeleportPlayer(exit.transform.position);var before=File.ReadAllBytes(GameSession.SavePath);
+        Check(exit.IsCombatBlocked(farm) && exit.InteractionPrompt(farm)=="몬스터를 모두 처치해야 합니다","Locked stair message missing");
+        Check(!farm.InteractWorld(exit.transform.position) && !exit.Travel(farm) && !GameSession.Busy,"Living monster did not block F or direct stair travel");
+        Check(File.ReadAllBytes(GameSession.SavePath).SequenceEqual(before),"Blocked staircase changed the saved game");
+        bool previous=exit.requireClearFloor;exit.requireClearFloor=false;
+        Check(!exit.IsCombatBlocked(farm),"Unrestricted doors were locked by monsters");exit.requireClearFloor=previous;
+    }
     private static void InventoryAndHealth(FarmGame farm,float health,int kills)
     {
         Check(farm.Gold==123 && Mathf.Approximately(farm.Combat.Health,health) && farm.Combat.Kills==kills,"Gold/health/kills lost at "+farm.gameObject.scene.path+": "+farm.Gold+" / "+farm.Combat.Health+" / "+farm.Combat.Kills);
@@ -70,9 +81,9 @@ public static class TowerDungeonCheck
         { farm.Cycle.RestoreElapsed(time);farm.Combat.TickCombat(.1f);Check(farm.Combat.EnemyCount==0,"Night spawned lobby enemies"); }
         farm.Cycle.RestoreElapsed(old);
     }
-    private static void KillOne(FarmGame farm)
+    private static void KillOne(FarmGame farm,string model="Chaser")
     {
-        var target=farm.Combat.GetComponentsInChildren<SpriteRenderer>().First(r=>r.name=="Chaser" && r.enabled);
+        var target=farm.Combat.GetComponentsInChildren<SpriteRenderer>().First(r=>r.name==model && r.enabled);
         Vector2 point=target.transform.position;var collision=new MapCollision(farm);
         var stand=new[]{Vector2.down,Vector2.up,Vector2.left,Vector2.right}.Select(d=>point+d).First(p=>collision.CanStand(p,farm.PlayerRadius) && collision.Trace(p,point,0,true)>=1);
         farm.TeleportPlayer(stand);
@@ -91,10 +102,12 @@ public static class TowerDungeonCheck
             {
                 if(step==0)
                 {
-                    SafeLobby(farm);InventoryAndHealth(farm,60,1);Check(farm.WorldPieceCount==1,"Lobby drop lost after restart");step++;Travel(farm,TowerDungeonSetup.Battle,true);return;
+                    SafeLobby(farm);InventoryAndHealth(farm,60,expectedKills);Check(farm.WorldPieceCount==1,"Lobby drop lost after restart");step++;Travel(farm,TowerDungeonSetup.Battle,true);return;
                 }
-                Check(farm.gameObject.scene.path==TowerDungeonSetup.Battle,"Restart stair did not reach 2F");InventoryAndHealth(farm,60,1);
-                Check(farm.WorldPieceCount==1,"Combat loot lost after restart");step++;Travel(farm,TowerDungeonSetup.Lobby,true);
+                Check(farm.gameObject.scene.path==TowerDungeonSetup.Battle,"Restart stair did not reach 2F");InventoryAndHealth(farm,60,expectedKills);
+                Check(farm.WorldPieceCount==expectedBattleDrops,"Combat loot lost after restart");
+                CheckStairBlocked(farm);KillOne(farm);farm.Combat.TickCombat(.5f);KillOne(farm,"Spitter");expectedKills+=2;expectedBattleDrops+=2;
+                step++;Travel(farm,TowerDungeonSetup.Lobby,true);
                 if(step==2) { SessionState.SetBool(Key+"ResumeFinish",true);resume=false;step=6; }
                 return;
             }
@@ -113,16 +126,20 @@ public static class TowerDungeonCheck
             {
                 Check(farm.gameObject.scene.path==TowerDungeonSetup.Battle && farm.Combat.EnemyCount==2,"2F must contain existing two enemies");InventoryAndHealth(farm,70,0);
                 Check(farm.Layout.combatSchedule==FarmMapLayout.CombatSchedule.Always,"2F enemies depend on time");
-                Capture(farm,"Tower-2F.png");farm.TeleportPlayer(new Vector2(8,-5));farm.Combat.TickCombat(1.1f);farm.Combat.DamagePlayer(10);Check(farm.Combat.Health==60,"Damage fixture remained invulnerable");KillOne(farm);Check(farm.Combat.EnemyCount==1,"Enemy kill not counted");
-                step++;Travel(farm,TowerDungeonSetup.Lobby,true);return; // Retreat works before all enemies are dead.
+                CheckStairBlocked(farm);
+                farm.Combat.SpawnEnemy(new Vector2(9,5),false,null,true); // Living training dummies must not lock stairs.
+                Capture(farm,"Tower-2F.png");farm.TeleportPlayer(new Vector2(8,-5));farm.Combat.TickCombat(1.1f);farm.Combat.DamagePlayer(10);Check(farm.Combat.Health==60,"Damage fixture remained invulnerable");KillOne(farm);Check(farm.Combat.LivingHostileCount==1,"Enemy kill not counted");
+                CheckStairBlocked(farm);farm.Combat.TickCombat(.5f);KillOne(farm,"Spitter");
+                Check(farm.Combat.LivingHostileCount==0 && farm.Combat.EnemyCount==1,"Training dummy affected hostile count");
+                step++;Travel(farm,TowerDungeonSetup.Lobby,true);return;
             }
-            if(step==3) { SafeLobby(farm);InventoryAndHealth(farm,60,1);Check(farm.WorldPieceCount==1,"Lobby item lost");step++;Travel(farm,TriangleWorldSetup.Field,false);return; }
-            if(step==4) { Check(farm.gameObject.scene.path==TriangleWorldSetup.Field,"Wrong exterior return");InventoryAndHealth(farm,60,1);step++;Travel(farm,TowerDungeonSetup.Lobby,false);return; }
-            SafeLobby(farm);InventoryAndHealth(farm,60,1);Check(farm.WorldPieceCount==1,"Lobby state lost after outside loop");Check(GameSession.Save(farm),"Tower autosave failed");
+            if(step==3) { SafeLobby(farm);InventoryAndHealth(farm,60,expectedKills);Check(farm.WorldPieceCount==1,"Lobby item lost");step++;Travel(farm,TriangleWorldSetup.Field,false);return; }
+            if(step==4) { Check(farm.gameObject.scene.path==TriangleWorldSetup.Field,"Wrong exterior return");InventoryAndHealth(farm,60,expectedKills);step++;Travel(farm,TowerDungeonSetup.Lobby,false);return; }
+            SafeLobby(farm);InventoryAndHealth(farm,60,expectedKills);Check(farm.WorldPieceCount==1,"Lobby state lost after outside loop");Check(GameSession.Save(farm),"Tower autosave failed");
             var saved=JsonUtility.FromJson<GameSaveData>(File.ReadAllText(GameSession.SavePath));
-            Check(saved.version==1 && saved.currentScene==TowerDungeonSetup.Lobby && saved.maps.Any(m=>m.scene==TowerDungeonSetup.Battle && m.pieces.Count==1),"Tower map save incomplete");
+            Check(saved.version==1 && saved.currentScene==TowerDungeonSetup.Lobby && saved.maps.Any(m=>m.scene==TowerDungeonSetup.Battle && m.pieces.Count==expectedBattleDrops),"Tower map save incomplete");
             SessionState.SetBool(Key,false);EditorApplication.update-=Tick;
-            Debug.Log(SessionState.GetBool(Key+"ResumeFinish",false)?"TOWER_RESTART_SUCCESS: 1F continue, F upstairs/downstairs, persistent combat loot, gold/items/HP.":"TOWER_PLAY_SUCCESS: safe 1F day/night, 2F existing combat, F-only stairs both ways, retreat with living enemy, automatic exterior, autosaves and per-floor drops.");
+            Debug.Log(SessionState.GetBool(Key+"ResumeFinish",false)?"TOWER_RESTART_SUCCESS: 1F continue, F upstairs/downstairs, persistent combat loot, gold/items/HP.":"TOWER_PLAY_SUCCESS: safe 1F day/night, 2F existing combat, F-only stairs both ways, locked with living enemies, unlocked only after clearing, automatic exterior, autosaves and per-floor drops.");
             EditorApplication.Exit(0);
         }
         catch(Exception problem) { SessionState.SetBool(Key,false);Debug.LogException(problem);EditorApplication.Exit(1); }

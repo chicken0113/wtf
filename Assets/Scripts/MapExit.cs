@@ -8,6 +8,8 @@ namespace EverythingGrows
         public string arrivalId="entry";
         public Vector2 areaSize=new Vector2(1.5f,1.5f);
         public bool requireInteract=true;
+        [Tooltip("Stairs: block travel until all living hostile monsters on the current map are defeated.")]
+        public bool requireClearFloor;
         private bool blockedUntilExit;
         public Color ModeColor => requireInteract?new Color(.3f,.85f,.75f):new Color(1,.62f,.18f);
         public bool TouchesPlayer(FarmGame farm)
@@ -38,8 +40,13 @@ namespace EverythingGrows
             return Travel(farm);
         }
         public bool Contains(Vector2 point) => new Rect(-areaSize*.5f,areaSize).Contains(transform.InverseTransformPoint(point));
-        public bool Travel(FarmGame farm) => TryGetComponent<HouseInteriorLink>(out var house)
-            ? house.Travel(farm,this) : GameSession.Travel(farm,destinationScene,arrivalId);
+        public bool IsCombatBlocked(FarmGame farm) => requireClearFloor && farm!=null && farm.Combat!=null && farm.Combat.LivingHostileCount>0;
+        public string InteractionPrompt(FarmGame farm) => IsCombatBlocked(farm)?"몬스터를 모두 처치해야 합니다":"F: travel";
+        public bool Travel(FarmGame farm)
+        {
+            if(IsCombatBlocked(farm)) { farm.Notify(InteractionPrompt(farm)); return false; }
+            return TryGetComponent<HouseInteriorLink>(out var house)?house.Travel(farm,this):GameSession.Travel(farm,destinationScene,arrivalId);
+        }
         public static bool TryInteract(FarmGame farm)
         {
             bool pressed=Input.GetKeyDown(KeyCode.F);
@@ -70,7 +77,9 @@ namespace EverythingGrows
             var farm=Object.FindFirstObjectByType<FarmGame>();
             if(farm==null || farm.Combat==null || farm.Combat.IsGameOver || farm.WorldInputBlocked || !Contains(farm.PlayerPosition)) return;
             var point=Camera.main.WorldToScreenPoint(transform.position+Vector3.up*.7f);
-            GUI.Label(new Rect(point.x-70,Screen.height-point.y,140,24),"F: travel");
+            var content=new GUIContent(InteractionPrompt(farm));
+            float width=GUI.skin.box.CalcSize(content).x+20;
+            GUI.Box(new Rect(point.x-width*.5f,Screen.height-point.y,width,26),content);
         }
         void OnDrawGizmos()
         {
