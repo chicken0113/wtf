@@ -1,8 +1,21 @@
-# Everything Grows — 농사 + 오픈필드 전투 시제품
+# Everything Grows — 농사 + 던전 전투 시제품
 
+
+## 현재 사용하는 씬
+
+| 씬 | 용도 |
+| --- | --- |
+| `Assets/Scenes/FirstGarden.unity` | 시작 농장·농사·집·상인 |
+| `Assets/Scenes/Town.unity` | 마을·주민·시설 외관 |
+| `Assets/Scenes/GeneralStore.unity` | 잡화점 실내·구매와 판매 |
+| `Assets/Scenes/CombatTest.unity` | 현재 연결된 던전 전투 공간 |
+
+농장·마을·던전은 주황색 자동 통로로 이동하고 잡화점 실내만 파란 E 문으로 출입합니다. `CombatTest`는 현재 실제로 쓰는 던전이므로 유지합니다. 빌드 목록도 위 네 씬만 사용합니다.
+
+이전 중복 샘플 네 씬은 정리했습니다. 현재 씬 경로와 GUID는 유지해 기존 이동·저장 참조를 보존합니다.
 ## 초기 농장과 NPC 상점
 
-`Assets/Scenes/StarterFarm.unity`는 바로 열어 플레이할 수 있는 초기 농장 샘플입니다. 현재 씬에 적용하려면 Tools > Everything Grows > Set up starter farm and shop을 사용합니다.
+`Assets/Scenes/FirstGarden.unity`를 열어 편집하고 Play합니다. 현재 씬에 초기 농장을 적용하는 도구는 Tools > Everything Grows > Set up starter farm and shop입니다.
 현재 농장은 집 한 채, 5×3칸의 경작된 밭, 집 옆 상인으로 구성합니다. 기존 테스트용 길과 바닥 아이템 계층은 비활성 상태로 보관합니다.
 상인 가까이에서 **E**를 누르면 상점이 열립니다. **Buy**로 구매하고, 상점이 열린 동안 **핫바 아이템 우클릭**으로 한 개씩 판매합니다. 이때 우클릭은 인벤토리 칸을 뜯지 않습니다.
 **E / Esc / Close**로 닫습니다. 시작 골드는 기본 100이며 재고는 제한 없이 구매 가능합니다. 골드 또는 인벤토리 공간이 부족하면 구매하지 않습니다.
@@ -20,11 +33,11 @@ NPC 추가는 맵 배치 창의 Npcs > Merchant 프리팹으로 합니다. NPC�
 StartingPlot이 붙은 바닥은 Play 때 경작된 밭으로 초기화합니다. 새로 만든 집 이미지의 생성 기록은 Docs/ART.md에 있습니다.
 
 작업 폴더: `C:/Users/MSI/wtf`. Unity 6000.3.25f1, 2D 탑뷰, Built-in 렌더링.
-현재 열린 `Assets/Scenes/FirstGarden.unity`에 편집용 맵을 연결했습니다. 이 씬에서 직접 배치하고 Play합니다. `EditableField.unity`는 동일한 기본 배치를 가진 별도 샘플입니다. 씬에 저장된 `EditableMap` 배치를 그대로 사용합니다. 배치가 없는 초기 샘플만 실행 시 기본 필드를 생성합니다.
+현재 열린 `Assets/Scenes/FirstGarden.unity`에 편집용 맵을 연결했습니다. 이 씬에서 직접 배치하고 Play합니다. 씬에 저장된 `EditableMap` 배치를 그대로 사용합니다. 배치가 없는 초기 샘플만 실행 시 기본 필드를 생성합니다.
 
 ## 첫 플레이 — 기본 작물 농사
 
-시간 기반 농사 샘플은 Assets/Scenes/DailyFarm.unity입니다. 현재 씬에 씨앗을 추가하려면 Tools > Everything Grows > Set up crop farming을 실행합니다.
+시간 기반 작물 농사는 현재 농장인 `Assets/Scenes/FirstGarden.unity`에서 사용합니다. 현재 씬에 씨앗을 추가하려면 Tools > Everything Grows > Set up crop farming을 실행합니다.
 
 1. 집 옆 상인에게 E로 말을 걸어 괭이·물뿌리개·씨앗을 구매합니다.
 2. 괭이를 선택하고 좌클릭으로 한 칸씩 경작합니다. 맨손으로는 땅을 팔 수 없습니다.

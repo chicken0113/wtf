@@ -62,3 +62,9 @@
 ## 사용자 초안 적용
 
 최신 위치 기준은 [MAP_LAYOUT_PLAN.md](MAP_LAYOUT_PLAN.md)입니다. 마을 동쪽 가장자리에 강과 다리 두 개가 있고 남쪽은 해안입니다. 시설 위치의 최신 기준은 사용자 그림이며, 광장은 맵 중앙에 둡니다. 농장과 던전에는 Farm Dungeon Shortcut을 추가해 마을을 거치지 않고 이동할 수 있습니다. 기존 출입구의 도착 ID와 상점 실내 연결은 유지합니다.
+
+## 씬 정리
+
+2026-10-22 중복·이전 샘플 Garden, StarterFarm, EditableField, DailyFarm을 씬 파일 및 메타와 함께 정리했다. 현재 Assets/Scenes와 빌드 목록은 FirstGarden(농장), Town(마을), GeneralStore(상점 실내), CombatTest(던전) 네 씬만 유지한다. 현재 씬 경로·GUID와 씬 내용은 바꾸지 않았다.
+
+오래된 Create prototype 메뉴는 노출하지 않고, 해당 생성 코드는 임시 프로젝트의 배치 검증에서만 실행하도록 제한해 이전 샘플 씬이 일반 작업 중 다시 생기지 않도록 했다. 삭제 전 자산 참조를 확인했고 별도 Unity 프로젝트에서 출입구 8개 및 실제 Play의 맵 왕복·거래·작물·소지품·골드·자동 저장 유지 검사가 통과했다.

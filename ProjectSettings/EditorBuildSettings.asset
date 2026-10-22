@@ -9,9 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/FirstGarden.unity
     guid: 90ab5f2b487166e4d89fc23b1e4b1aab
   - enabled: 1
-    path: Assets/Scenes/Garden.unity
-    guid: e74f0866e48c45046af5402e7827d290
-  - enabled: 1
     path: Assets/Scenes/CombatTest.unity
     guid: 470e7ae931849f64fb43f1ef8f88283b
   - enabled: 1

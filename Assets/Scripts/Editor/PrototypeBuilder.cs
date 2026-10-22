@@ -6,9 +6,10 @@ using EverythingGrows;
 
 public static class PrototypeBuilder
 {
-    [MenuItem("Tools/Everything Grows/Create prototype")]
+    // Legacy fixture generator; production editing starts from FirstGarden.
     public static void Create()
     {
+        if(!Application.isBatchMode || !System.IO.Path.GetFullPath(Application.dataPath).StartsWith(System.IO.Path.GetFullPath(System.IO.Path.GetTempPath()),StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Legacy scene generation is only available in isolated batch checks.");
         var definitions=new PlantDefinition[5];
         var names=new[]{"Hoe","Watering Can","Stone","Cloud","Inventory Slot"};
         var effects=new[]{GrowthEffect.Dig,GrowthEffect.Water,GrowthEffect.Produce,GrowthEffect.Water,GrowthEffect.Storage};
