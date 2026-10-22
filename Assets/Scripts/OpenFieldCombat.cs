@@ -8,7 +8,7 @@ namespace EverythingGrows
         private FarmGame farm;
         private FarmArt art;
         private Sprite square;
-        private float attackCooldown, invulnerability, rollTime, rollCooldown, quietTime;
+        private float attackCooldown, invulnerability, rollTime, rollCooldown, quietTime, rollDurationAtStart, playerHitTime;
         private Vector2 rollDirection;
         private Vector2 bufferedRollDirection;
         private float rollBufferTime;
@@ -68,6 +68,9 @@ namespace EverythingGrows
         public int Kills { get; private set; }
         public int EnemyCount { get { int n=0; foreach(var enemy in enemies) if(nightActive && enemy.health>0) n++; return n; } }
         public bool IsRolling => rollTime>0;
+        public float RollProgress => rollDurationAtStart>0?Mathf.Clamp01(1-rollTime/rollDurationAtStart):1;
+        public Vector2 RollDirection => rollDirection;
+        public float PlayerHitFlash => Mathf.Clamp01(playerHitTime/.12f);
         public static bool Safe(Vector2 point) => Mathf.Abs(point.x)<=6.5f && Mathf.Abs(point.y)<=4.5f;
         private bool IsSafe(Vector2 point) => farm.IsSafe(point);
         private sealed class Enemy
@@ -77,10 +80,11 @@ namespace EverythingGrows
             public float repath;
             public SpriteRenderer model, warning;
             public bool ranged, trainingDummy;
-            public float health=55,cooldown=1,windup,respawn;
+            public float health=55,cooldown=1,windup,respawn,hitTime,stagger;
+            public Color tint;
         }
         private sealed class Shot { public SpriteRenderer model; public Vector2 velocity; public float damage,life=2.5f; public bool hostile; }
-        private sealed class Flash { public SpriteRenderer model; public float time=.16f; }
+        private sealed class Flash { public SpriteRenderer model; public float time,duration; public Color tint; public Vector2 velocity; }
         public void Initialize(FarmGame owner)
         {
             farm=owner; Health=MaxHealth; art=new FarmArt(); square=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2);
@@ -104,6 +108,7 @@ namespace EverythingGrows
             if(IsSafe(point) && !trainingDummy) return;
             var enemy=new Enemy { home=point,ranged=ranged,trainingDummy=trainingDummy,model=Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
             enemy.model.enabled=Active(enemy); enemy.warning.enabled=false; enemies.Add(enemy);
+            enemy.tint=enemy.model.color;
         }
         public void SetNightActive(bool active)
         {
@@ -124,6 +129,7 @@ namespace EverythingGrows
             if(IsGameOver || IsRolling || rollCooldown>0 || direction.sqrMagnitude<.01f) return false;
             rollDirection=direction.normalized;
             rollTime=farm.Controls!=null?Mathf.Max(.02f,farm.Controls.rollDuration):.22f;
+            rollDurationAtStart=rollTime;
             rollCooldown=farm.Controls!=null?Mathf.Max(0,farm.Controls.rollCooldown):.65f;
             invulnerability=Mathf.Max(invulnerability,rollTime);rollBufferTime=0;return true;
         }
@@ -139,11 +145,30 @@ namespace EverythingGrows
             if(IsGameOver || weapon==null || weapon.effect!=GrowthEffect.Weapon || attackCooldown>0 || IsRolling) return false;
             attackCooldown=weapon.attackInterval;
             Vector2 direction=(target-farm.PlayerPosition).normalized; if(direction.sqrMagnitude<.1f) direction=Vector2.right;
-            if(weapon.ranged) Shoot(farm.PlayerPosition,direction*10,weapon.damage,false,weapon.attackRange/10);
+            farm.WeaponFeedback(direction,weapon.ranged,weapon.attackInterval);
+            if(weapon.ranged)
+            {
+                float speed=farm.Controls!=null?Mathf.Max(1,farm.Controls.projectileSpeed):18;
+                // Keep the flash in front of walls; sweep the shot from the player
+                // so even a target touching the player cannot fall behind its origin.
+                Vector2 start=farm.PlayerPosition, muzzle=start+direction*Mathf.Min(.45f,weapon.attackRange*.25f);
+                float clear=new MapCollision(farm).Trace(start,muzzle,.06f,true);
+                muzzle=Vector2.Lerp(start,muzzle,Mathf.Max(0,clear-.01f));
+                Shoot(start,direction*speed,weapon.damage,false,weapon.attackRange/speed);
+                var flash=Effect("Muzzle flash",muzzle,new Vector2(.3f,.18f),new Color(1,.9f,.45f),.07f);
+                flash.transform.rotation=Quaternion.Euler(0,0,Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg);
+            }
             else
             {
-                var flash=Draw("Sword swing",farm.PlayerPosition+direction*.9f,new Vector2(weapon.attackRange,.13f),new Color(1,.9f,.45f));
-                flash.transform.rotation=Quaternion.Euler(0,0,Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg); flashes.Add(new Flash {model=flash});
+                float angle=Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg;
+                float radius=weapon.attackRange*.8f;
+                for(int i=0;i<12;i++)
+                {
+                    float degrees=angle-65+(i+.5f)*130/12;
+                    Vector2 radial=new Vector2(Mathf.Cos(degrees*Mathf.Deg2Rad),Mathf.Sin(degrees*Mathf.Deg2Rad));
+                    var flash=Effect("Sword swing",farm.PlayerPosition+radial*radius,new Vector2(radius*.2f,.07f),new Color(1,.9f,.45f),.12f);
+                    flash.transform.rotation=Quaternion.Euler(0,0,degrees+90);
+                }
                 var attackCollision=new MapCollision(farm);
                 foreach(var enemy in enemies)
                 {
@@ -155,12 +180,40 @@ namespace EverythingGrows
         }
         private void Shoot(Vector2 point,Vector2 velocity,float damage,bool hostile,float life=2.5f)
         {
-            var model=Draw(hostile?"Enemy shot":"Player shot",point,Vector2.one*(hostile?.22f:.12f),hostile?new Color(1,.35f,.25f):new Color(1,.9f,.45f));
-            shots.Add(new Shot { model=model,velocity=velocity,damage=damage,hostile=hostile,life=Mathf.Max(.1f,life) });
+            var model=Draw(hostile?"Enemy shot":"Player shot",point,hostile?Vector2.one*.22f:new Vector2(.3f,.12f),hostile?new Color(1,.35f,.25f):new Color(1,.9f,.45f));
+            model.transform.rotation=Quaternion.Euler(0,0,Mathf.Atan2(velocity.y,velocity.x)*Mathf.Rad2Deg);
+            shots.Add(new Shot { model=model,velocity=velocity,damage=damage,hostile=hostile,life=Mathf.Max(.001f,life) });
+        }
+        private SpriteRenderer Effect(string name,Vector2 point,Vector2 size,Color tint,float duration,Vector2 velocity=default)
+        {
+            var model=Draw(name,point,size,tint); model.sortingOrder=35-Mathf.RoundToInt(point.y*10);
+            flashes.Add(new Flash {model=model,time=duration,duration=duration,tint=tint,velocity=velocity}); return model;
+        }
+        public void Afterimage(SpriteRenderer source)
+        {
+            var tint=source.color; tint.a=.23f;
+            var model=Effect("Dodge trail",source.transform.position,source.transform.lossyScale,tint,.12f);
+            model.sprite=source.sprite;model.flipX=source.flipX;model.flipY=source.flipY;
+            model.transform.rotation=source.transform.rotation;model.sortingOrder=source.sortingOrder-1;
+        }
+        private void Sparks(Vector2 point,Color tint)
+        {
+            for(int i=0;i<5;i++)
+            {
+                float angle=i*Mathf.PI*2/5;
+                Vector2 velocity=new Vector2(Mathf.Cos(angle),Mathf.Sin(angle))*1.8f;
+                Effect("Impact spark",point,Vector2.one*.09f,tint,.14f,velocity);
+            }
+        }
+        public void ToolEffect(Vector2 point,GrowthEffect kind)
+        {
+            Sparks(point,kind==GrowthEffect.Water?new Color(.35f,.75f,1):kind==GrowthEffect.Scythe?new Color(.6f,.85f,.3f):new Color(.6f,.38f,.18f));
         }
         private void Hit(Enemy enemy,float damage,Vector2 direction)
         {
             enemy.health-=damage;
+            enemy.hitTime=.1f;enemy.stagger=.08f;enemy.windup=0;enemy.warning.enabled=false;enemy.model.color=new Color(1,.4f,.35f);
+            Sparks(enemy.model.transform.position,new Color(1,.9f,.65f));farm.ImpactFeedback(false);
             if(enemy.health<=0)
             {
                 enemy.health=0; enemy.model.enabled=false; enemy.warning.enabled=false; enemy.windup=0; enemy.respawn=25;
@@ -178,6 +231,7 @@ namespace EverythingGrows
             if(IsGameOver || damage<=0 || invulnerability>0 || IsSafe(farm.PlayerPosition)) return;
             float steppedDamage=Mathf.Ceil(damage/HalfHeartHealth)*HalfHeartHealth;
             Health=Mathf.Max(0,Health-steppedDamage); invulnerability=.65f; quietTime=0;
+            playerHitTime=.12f;farm.ImpactFeedback(true);Sparks(farm.PlayerPosition,new Color(1,.4f,.3f));
             if(Health<=0)
             {
                 // Solo prototype recovery; inventory is preserved. Planted resurrection is a later milestone.
@@ -190,6 +244,7 @@ namespace EverythingGrows
             if(IsGameOver || seconds<=0 || farm==null) return;
             collision=new MapCollision(farm); enemyCollision=new MapCollision(farm,true);
             attackCooldown=Mathf.Max(0,attackCooldown-seconds); invulnerability=Mathf.Max(0,invulnerability-seconds);
+            playerHitTime=Mathf.Max(0,playerHitTime-seconds);
             float previousRollCooldown=rollCooldown;
             rollCooldown=Mathf.Max(0,rollCooldown-seconds); quietTime+=seconds;
             if(rollBufferTime>0)
@@ -203,6 +258,8 @@ namespace EverythingGrows
             foreach(var enemy in enemies)
             {
                 if(!Active(enemy)) continue;
+                enemy.hitTime=Mathf.Max(0,enemy.hitTime-seconds);enemy.stagger=Mathf.Max(0,enemy.stagger-seconds);
+                enemy.model.color=Color.Lerp(enemy.tint,new Color(1,.4f,.35f),Mathf.Clamp01(enemy.hitTime/.1f));
                 if(enemy.health<=0)
                 {
                     enemy.respawn-=seconds;
@@ -211,6 +268,7 @@ namespace EverythingGrows
                 }
                 Vector2 point=enemy.model.transform.position, offset=farm.PlayerPosition-point;
                 if(enemy.trainingDummy) { enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10); continue; }
+                if(enemy.stagger>0) continue;
                 bool active=!IsSafe(farm.PlayerPosition) && offset.magnitude<7;
                 enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10);
                 enemy.model.flipX=offset.x<0;
@@ -218,7 +276,12 @@ namespace EverythingGrows
                 if(enemy.windup>0)
                 {
                     enemy.windup-=seconds; enemy.warning.enabled=true;
-                    enemy.warning.transform.position=point+Vector2.up*.65f;
+                    float length=enemy.ranged?4.4f:1.2f;
+                    enemy.warning.transform.position=point+enemy.aim*length*.5f;
+                    enemy.warning.transform.localScale=new Vector3(length,.045f,1);
+                    enemy.warning.transform.rotation=Quaternion.Euler(0,0,Mathf.Atan2(enemy.aim.y,enemy.aim.x)*Mathf.Rad2Deg);
+                    enemy.warning.color=new Color(1,.4f,.18f,.55f);
+                    enemy.warning.sortingOrder=enemy.model.sortingOrder+1;
                     if(enemy.windup<=0)
                     {
                         enemy.warning.enabled=false;
@@ -259,7 +322,13 @@ namespace EverythingGrows
                 shot.model.transform.position=Vector2.Lerp(start,end,first);
                 if(first<1 || shot.life<=0) { Remove(shot.model.gameObject); shots.RemoveAt(i); }
             }
-            for(int i=flashes.Count-1;i>=0;i--) { flashes[i].time-=seconds; if(flashes[i].time<=0) { Remove(flashes[i].model.gameObject); flashes.RemoveAt(i); } }
+            for(int i=flashes.Count-1;i>=0;i--)
+            {
+                var flash=flashes[i];flash.time-=seconds;
+                if(flash.time<=0) { Remove(flash.model.gameObject); flashes.RemoveAt(i);continue; }
+                flash.model.transform.position+=(Vector3)(flash.velocity*seconds);
+                var tint=flash.tint;tint.a*=flash.time/flash.duration;flash.model.color=tint;
+            }
         }
         private void MoveEnemy(Enemy enemy,Vector2 target,float distance,float seconds)
         {

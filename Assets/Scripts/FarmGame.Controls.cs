@@ -20,7 +20,7 @@ namespace EverythingGrows
         // A UI click must finish before the same held button can use a world item.
         public bool ProcessPrimaryPointer(bool held,bool pointerOverUI)
         {
-            if(!held)suppressPrimaryUntilRelease=false;
+            if(!held){suppressPrimaryUntilRelease=false;toolCellValid=false;}
             else if(pointerOverUI)suppressPrimaryUntilRelease=true;
             return held&&!pointerOverUI&&!suppressPrimaryUntilRelease;
         }
