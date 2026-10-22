@@ -42,7 +42,7 @@ namespace EverythingGrows
             foreach(var building in GetComponentsInChildren<FarmBuilding>())
                 if(building.Contains(point)){HarvestBuildingAt(point);return true;}
             var cell=Vector2Int.RoundToInt(point);
-            if(plots.ContainsKey(cell)){InteractPlot(cell);return true;}
+            if(farming.HasPlot(cell)){InteractPlot(cell);return true;}
             Notify("E: pick up, plant or harvest. Till empty soil with a hoe first.");return false;
         }
     }

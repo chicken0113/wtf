@@ -1,0 +1,54 @@
+using UnityEngine;
+
+namespace EverythingGrows
+{
+    public sealed partial class FarmGame
+    {
+        private readonly InventoryState inventory = new();
+        private int selected { get => inventory.Selected; set => inventory.Selected = value; }
+        internal int SelectedIndex => selected;
+        internal void SelectSlot(int index) => selected = index;
+        public int Capacity => inventory.Capacity(StorageBonus);
+        public int InventoryCount => inventory.Count;
+        public int RemovedSlots => inventory.RemovedSlots;
+        private PlantDefinition Held => inventory.Held;
+        public PlantDefinition InventoryItem(int index) => inventory.ItemAt(index);
+        public int InventoryQuantity(int index) => inventory.QuantityAt(index);
+        public bool CanAddItem(PlantDefinition item) => inventory.CanAdd(item, Capacity);
+        public bool RemoveInventoryItem(int index) => inventory.RemoveOne(index, Capacity);
+        public bool AddItem(PlantDefinition item)
+        {
+            if (inventory.TryAdd(item, Capacity)) return true;
+            message = "No space. Plant or drop an item first."; return false;
+        }
+        internal void ReconcileInventoryCapacity() => DropOverflow();
+        public bool ReceiveHarvest(PlantDefinition item)
+        {
+            if(item==null) return false;
+            if(AddItem(item)) { message="Harvested "+item.label+"."; return true; }
+            Spawn(item,PlayerPosition+Vector2.down*.65f); message="Inventory full. Harvest dropped at your feet."; return true;
+        }
+        private void DropOverflow()
+        {
+            int dropped=0;
+            while(inventory.Count>Capacity)
+            {
+                int index=inventory.Count-1; var item=inventory.ItemAt(index); int count=inventory.QuantityAt(index);
+                for(int i=0;i<count;i++) { RemoveInventoryItem(index); Spawn(item,PlayerPosition+Vector2.down*.65f+Vector2.right*(dropped++%3)*.12f); }
+            }
+        }
+        public bool DetachSlot()
+        {
+            var slot = definitions != null && definitions.Length >= 5 ? definitions[4] : null;
+            if (!inventory.TryDetachSlot(slot, Capacity))
+            { message="Keep the final slot and enough room to carry the detached slot."; return false; }
+            message="A slot was detached. Your storage capacity decreased."; return true;
+        }
+        public bool RestoreSlot()
+        {
+            var slot = definitions != null && definitions.Length >= 5 ? definitions[4] : null;
+            if (!inventory.TryRestoreSlot(slot, Capacity)) return false;
+            message="The detached slot was reattached to the inventory."; return true;
+        }
+    }
+}

@@ -40,5 +40,54 @@ namespace EverythingGrows
             if(repeatable)combat.ToolEffect(cell,lastTool.effect);
             return true;
         }
+        private void LateUpdate()
+        {
+            if(player==null || view==null) return;
+            if(combat!=null&&!WorldInputBlocked&&!combat.IsGameOver&&!GameSession.Busy&&string.IsNullOrEmpty(GameSession.LastError))
+            {TickFeedback(Time.deltaTime);AnimateFarmer(frameMovement);}
+            float halfHeight=view.orthographicSize, halfWidth=halfHeight*view.aspect;
+            var center=new Vector2(ClampCamera(player.position.x,WorldBounds.xMin,WorldBounds.xMax,halfWidth),ClampCamera(player.position.y,WorldBounds.yMin,WorldBounds.yMax,halfHeight));
+            var shaken=center+CameraFeedback();
+            shaken=new Vector2(ClampCamera(shaken.x,WorldBounds.xMin,WorldBounds.xMax,halfWidth),ClampCamera(shaken.y,WorldBounds.yMin,WorldBounds.yMax,halfHeight));
+            cameraFeedbackOffset=shaken-center;view.transform.position=new Vector3(shaken.x,shaken.y,-10);
+        }
+        private static float ClampCamera(float value,float min,float max,float half) => max-min<=half*2?(min+max)*.5f:Mathf.Clamp(value,min+half,max-half);
+        private void AnimateFarmer(Vector2 move)
+        {
+            walkTime+=Time.deltaTime; actionTime=Mathf.Max(0,actionTime-Time.deltaTime);
+            bool walking=move.sqrMagnitude>0;
+            var aim=AimDirection;
+            facing=Mathf.Abs(aim.x)>Mathf.Abs(aim.y)?(aim.x<0?2:3):(aim.y>0?1:0);
+            if(art.Available) farmer.sprite=art.Get(facing);
+            // Sort by feet position so walking behind plants hides the farmer correctly.
+            farmer.sortingOrder=30-Mathf.RoundToInt(player.position.y*10);
+            farmer.transform.localScale=new Vector3(1.1f,1.1f+(walking?Mathf.Sin(walkTime*18)*.025f:0),1);
+            farmer.transform.localRotation=Quaternion.identity;
+            farmer.color=Color.Lerp(new Color(.96f,.73f,.35f),Color.white,combat.PlayerHitFlash);
+            if(combat.IsRolling)
+            {
+                float roll=combat.RollProgress;
+                farmer.transform.localRotation=Quaternion.Euler(0,0,(combat.RollDirection.x<0?1:-1)*roll*360);
+                farmer.transform.localScale=new Vector3(1.1f+Mathf.Sin(roll*Mathf.PI)*.13f,1.1f-Mathf.Sin(roll*Mathf.PI)*.2f,1);
+                if(ghostDelay<=0){combat.Afterimage(farmer);ghostDelay=.04f;}
+            }
+            heldModel.enabled=Held!=null && art.Available&&!combat.IsRolling;
+            if(heldModel.enabled)
+            {
+                heldModel.sprite=art.ItemSprite(Held);
+                float heldSize=Mathf.Max(heldModel.sprite.bounds.size.x,heldModel.sprite.bounds.size.y);
+                heldModel.transform.localScale=Vector3.one*(.5f/Mathf.Max(.01f,heldSize));
+                float action=weaponFeedbackDuration>0?Mathf.Clamp01(weaponFeedbackTime/weaponFeedbackDuration):0;
+                var heldAim=Held.effect==GrowthEffect.Weapon&&action>0&&!rangedFeedback?actionAim:aim;
+                float recoil=Controls!=null?Controls.weaponRecoil:.12f;
+                heldModel.transform.localPosition=(Vector3)(heldAim*(.32f-(rangedFeedback?action*recoil:0))+Vector2.down*.1f);
+                float rotation=Held.effect==GrowthEffect.Weapon?Mathf.Atan2(heldAim.y,heldAim.x)*Mathf.Rad2Deg-(Held.ranged?0:90):Mathf.Atan2(aim.y,aim.x)*Mathf.Rad2Deg-90;
+                float swing=Held.effect==GrowthEffect.Weapon?(rangedFeedback?action*12:Mathf.Lerp(-65,65,1-action)):actionTime>0?Mathf.Sin(actionTime/.25f*Mathf.PI)*-70:0;
+                heldModel.transform.localRotation=Quaternion.Euler(0,0,rotation+(Held.effect==GrowthEffect.Weapon&&action<=0?0:swing));
+                heldModel.sortingOrder=farmer.sortingOrder+(aim.y>.35f?-1:1);
+            }
+            foreach(var piece in pieces) if(piece.model!=null) piece.model.GetComponent<SpriteRenderer>().sortingOrder=30-Mathf.RoundToInt(piece.model.transform.position.y*10);
+            worldView.SortPlants();
+        }
     }
 }
