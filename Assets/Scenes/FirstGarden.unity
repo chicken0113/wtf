@@ -53359,52 +53359,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8991681132003842119, guid: 65fb41e16b612cb4ea27f187193c8cbd, type: 3}
   m_PrefabInstance: {fileID: 777311826}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &777405641
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 777405642}
-  - component: {fileID: 777405643}
-  m_Layer: 0
-  m_Name: Dungeon path
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &777405642
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 777405641}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.5000002, y: -0.00000023841858, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1346995181}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &777405643
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 777405641}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 248e68500a2b42289cedf1e636e88b46, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.WorldLabel
-  text: Dungeon path
-  visibleDistance: 6
 --- !u!1001 &777625143
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53479,6 +53433,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1674332607612379456, guid: 1b20c097ed2255c4bb2d7aac6f9b5025, type: 3}
   m_PrefabInstance: {fileID: 777625143}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &778629908
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 778629909}
+  - component: {fileID: 778629910}
+  m_Layer: 0
+  m_Name: Sign - Town passage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &778629909
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 778629908}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1829349730}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &778629910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 778629908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 248e68500a2b42289cedf1e636e88b46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.WorldLabel
+  text: Town passage
+  visibleDistance: 6
 --- !u!1001 &781847299
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -64069,6 +64069,38 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1674332607612379456, guid: 1b20c097ed2255c4bb2d7aac6f9b5025, type: 3}
   m_PrefabInstance: {fileID: 924399523}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &925401866
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 925401867}
+  m_Layer: 0
+  m_Name: Travel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &925401867
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 925401866}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 926754202}
+  m_Father: {fileID: 1098746509}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &926509008
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -64139,6 +64171,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 155635976727908521, guid: 801b8c67530000644b2f1aff9e18d644, type: 3}
   m_PrefabInstance: {fileID: 926509008}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &926754201
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 926754202}
+  - component: {fileID: 926754203}
+  m_Layer: 0
+  m_Name: Arrival - farm_from_dungeon_field
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &926754202
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 926754201}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3, y: 10, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 925401867}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &926754203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 926754201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 432190e3a4bb48a6919dcbd5e58ad0bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MapArrivalPoint
+  arrivalId: farm_from_dungeon_field
 --- !u!1001 &926875339
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74499,6 +74576,8 @@ Transform:
   - {fileID: 1988787558}
   - {fileID: 833834236}
   - {fileID: 1204240448}
+  - {fileID: 925401867}
+  - {fileID: 1459693603}
   m_Father: {fileID: 134020442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1099091964
@@ -78968,52 +79047,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1674332607612379456, guid: 1b20c097ed2255c4bb2d7aac6f9b5025, type: 3}
   m_PrefabInstance: {fileID: 1130567430}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1132498277
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1132498278}
-  - component: {fileID: 1132498279}
-  m_Layer: 0
-  m_Name: Town route label
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1132498278
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1132498277}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.5, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1829349730}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1132498279
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1132498277}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 248e68500a2b42289cedf1e636e88b46, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.WorldLabel
-  text: Town
-  visibleDistance: 6
 --- !u!1001 &1134147871
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -95194,11 +95227,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: arrivalId
-      value: combat_from_farm
+      value: field_from_farm
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/CombatTest.unity
+      value: Assets/Scenes/DungeonEntrance.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -95245,7 +95278,7 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 777405642}
+      addedObject: {fileID: 1895208209}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
 --- !u!4 &1346995181 stripped
@@ -102319,6 +102352,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1674332607612379456, guid: 1b20c097ed2255c4bb2d7aac6f9b5025, type: 3}
   m_PrefabInstance: {fileID: 1458929247}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1459693602
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1459693603}
+  m_Layer: 0
+  m_Name: Triangle world 2026-10-22
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1459693603
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1459693602}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1098746509}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1462514699
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -127190,11 +127254,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: arrivalId
-      value: town_from_farm
+      value: passage_from_farm
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/Town.unity
+      value: Assets/Scenes/FarmTownPassage.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -127241,7 +127305,7 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1132498278}
+      addedObject: {fileID: 778629909}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
 --- !u!4 &1829349730 stripped
@@ -132009,6 +132073,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1674332607612379456, guid: 1b20c097ed2255c4bb2d7aac6f9b5025, type: 3}
   m_PrefabInstance: {fileID: 1894207512}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1895208208
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1895208209}
+  - component: {fileID: 1895208210}
+  m_Layer: 0
+  m_Name: Sign - Dungeon entrance field
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1895208209
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1895208208}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.3000003, y: -0.00000011920929, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1346995181}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1895208210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1895208208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 248e68500a2b42289cedf1e636e88b46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.WorldLabel
+  text: Dungeon entrance field
+  visibleDistance: 6
 --- !u!1001 &1896305586
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -17,5 +17,17 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GeneralStore.unity
     guid: d3438668c19f30747a1acc5e0b6eab5b
+  - enabled: 1
+    path: Assets/Scenes/FarmTownPassage.unity
+    guid: 17fd75b3ae67c984b8ccd11698a0a5f3
+  - enabled: 1
+    path: Assets/Scenes/DungeonEntrance.unity
+    guid: 636f84d5b2f02a547af361f9af05c1ed
+  - enabled: 1
+    path: Assets/Scenes/ForestClearing.unity
+    guid: b92330e40a4efa5449915fff309e288c
+  - enabled: 1
+    path: Assets/Scenes/TrainingGround.unity
+    guid: 361665cc3f48f3045ab0124f2af398d4
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

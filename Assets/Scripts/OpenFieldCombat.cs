@@ -74,7 +74,7 @@ namespace EverythingGrows
             public List<Vector2> path=new();
             public float repath;
             public SpriteRenderer model, warning;
-            public bool ranged;
+            public bool ranged, trainingDummy;
             public float health=55,cooldown=1,windup,respawn;
         }
         private sealed class Shot { public SpriteRenderer model; public Vector2 velocity; public float damage,life=2.5f; public bool hostile; }
@@ -84,7 +84,7 @@ namespace EverythingGrows
             farm=owner; Health=MaxHealth; art=new FarmArt(); square=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2);
             if(farm.Layout!=null)
             {
-                foreach(var marker in farm.Layout.GetComponentsInChildren<EnemyPlacement>()) SpawnEnemy(marker.transform.position,marker.ranged,new Vector2(Mathf.Abs(marker.transform.lossyScale.x),Mathf.Abs(marker.transform.lossyScale.y)));
+                foreach(var marker in farm.Layout.GetComponentsInChildren<EnemyPlacement>()) SpawnEnemy(marker.transform.position,marker.ranged,new Vector2(Mathf.Abs(marker.transform.lossyScale.x),Mathf.Abs(marker.transform.lossyScale.y)),marker.trainingDummy);
                 return;
             }
             SpawnEnemy(new Vector2(10,2),false); SpawnEnemy(new Vector2(12,-3),true);
@@ -96,11 +96,12 @@ namespace EverythingGrows
             var root=new GameObject(name); root.transform.SetParent(transform,false); root.transform.position=point; root.transform.localScale=new Vector3(size.x,size.y,1);
             var renderer=root.AddComponent<SpriteRenderer>(); renderer.sprite=icon<0?square:art.Get(icon); renderer.color=color; renderer.sortingOrder=50; return renderer;
         }
-        public void SpawnEnemy(Vector2 point,bool ranged,Vector2? size=null)
+        private bool Active(Enemy enemy) => nightActive || enemy.trainingDummy;
+        public void SpawnEnemy(Vector2 point,bool ranged,Vector2? size=null,bool trainingDummy=false)
         {
-            if(IsSafe(point)) return;
-            var enemy=new Enemy { home=point,ranged=ranged,model=Draw(ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,Color.white,ranged?21:20),warning=Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
-            enemy.model.enabled=nightActive; enemy.warning.enabled=false; enemies.Add(enemy);
+            if(IsSafe(point) && !trainingDummy) return;
+            var enemy=new Enemy { home=point,ranged=ranged,trainingDummy=trainingDummy,model=Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
+            enemy.model.enabled=Active(enemy); enemy.warning.enabled=false; enemies.Add(enemy);
         }
         public void SetNightActive(bool active)
         {
@@ -108,6 +109,7 @@ namespace EverythingGrows
             nightActive=active;
             foreach(var enemy in enemies)
             {
+                if(enemy.trainingDummy) continue;
                 enemy.windup=0; enemy.warning.enabled=false; enemy.path.Clear(); enemy.repath=0;
                 if(active) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.cooldown=1; enemy.respawn=0; }
                 enemy.model.enabled=active && enemy.health>0;
@@ -134,7 +136,7 @@ namespace EverythingGrows
                 foreach(var enemy in enemies)
                 {
                     Vector2 offset=(Vector2)enemy.model.transform.position-farm.PlayerPosition;
-                    if(nightActive && enemy.health>0 && offset.magnitude<=weapon.attackRange+.35f && attackCollision.Trace(farm.PlayerPosition,enemy.model.transform.position,0,true)>=1 && (offset.magnitude<.35f || Vector2.Dot(direction,offset.normalized)>.35f)) Hit(enemy,weapon.damage,direction);
+                    if(Active(enemy) && enemy.health>0 && offset.magnitude<=weapon.attackRange+.35f && attackCollision.Trace(farm.PlayerPosition,enemy.model.transform.position,0,true)>=1 && (offset.magnitude<.35f || Vector2.Dot(direction,offset.normalized)>.35f)) Hit(enemy,weapon.damage,direction);
                 }
             }
             return true;
@@ -150,9 +152,10 @@ namespace EverythingGrows
             if(enemy.health<=0)
             {
                 enemy.health=0; enemy.model.enabled=false; enemy.warning.enabled=false; enemy.windup=0; enemy.respawn=25;
-                Kills++; farm.DropCombatMaterial(enemy.model.transform.position,enemy.ranged);
+                if(enemy.trainingDummy) enemy.respawn=3;
+                else { Kills++; farm.DropCombatMaterial(enemy.model.transform.position,enemy.ranged); }
             }
-            else
+            else if(!enemy.trainingDummy)
             {
                 Vector2 pushed=(Vector2)enemy.model.transform.position+direction*.35f;
                 enemy.model.transform.position=new MapCollision(farm,true).Move(enemy.model.transform.position,pushed,enemyRadius);
@@ -180,14 +183,15 @@ namespace EverythingGrows
             if(IsSafe(farm.PlayerPosition) && quietTime>2) Health=Mathf.Min(MaxHealth,Health+seconds*14);
             foreach(var enemy in enemies)
             {
-                if(!nightActive) continue;
+                if(!Active(enemy)) continue;
                 if(enemy.health<=0)
                 {
                     enemy.respawn-=seconds;
-                    if(enemy.respawn<=0 && Vector2.Distance(farm.PlayerPosition,enemy.home)>4) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.model.enabled=true; enemy.cooldown=1; }
+                    if(enemy.respawn<=0 && (enemy.trainingDummy || Vector2.Distance(farm.PlayerPosition,enemy.home)>4)) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.model.enabled=true; enemy.cooldown=1; }
                     continue;
                 }
                 Vector2 point=enemy.model.transform.position, offset=farm.PlayerPosition-point;
+                if(enemy.trainingDummy) { enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10); continue; }
                 bool active=!IsSafe(farm.PlayerPosition) && offset.magnitude<7;
                 enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10);
                 enemy.model.flipX=offset.x<0;
@@ -228,7 +232,7 @@ namespace EverythingGrows
                 }
                 else foreach(var enemy in enemies)
                 {
-                    if(nightActive && enemy.health>0 && SegmentCircle(start,end,enemy.model.transform.position,enemyRadius+radius,out float entry) && entry<first)
+                    if(Active(enemy) && enemy.health>0 && SegmentCircle(start,end,enemy.model.transform.position,enemyRadius+radius,out float entry) && entry<first)
                     { first=entry; victim=enemy; }
                 }
                 if(playerHit) DamagePlayer(shot.damage);
@@ -259,7 +263,7 @@ namespace EverythingGrows
             if(!nightActive) return;
             for(int i=0;i<enemies.Count;i++) for(int j=i+1;j<enemies.Count;j++)
             {
-                var a=enemies[i]; var b=enemies[j]; if(a.health<=0 || b.health<=0) continue;
+                var a=enemies[i]; var b=enemies[j]; if(a.health<=0 || b.health<=0 || a.trainingDummy || b.trainingDummy) continue;
                 Vector2 pa=a.model.transform.position,pb=b.model.transform.position,delta=pa-pb;
                 float distance=delta.magnitude; if(distance>=enemyRadius*2) continue;
                 Vector2 direction=distance>.001f?delta/distance:((i+j)%2==0?Vector2.right:Vector2.up);
@@ -310,7 +314,7 @@ namespace EverythingGrows
                 GUI.depth=previousDepth; return;
             }
             var camera=Camera.main;
-            foreach(var enemy in enemies) if(nightActive && enemy.health>0 && Vector2.Distance(farm.PlayerPosition,enemy.model.transform.position)<7)
+            foreach(var enemy in enemies) if(Active(enemy) && enemy.health>0 && Vector2.Distance(farm.PlayerPosition,enemy.model.transform.position)<7)
             {
                 var point=camera.WorldToScreenPoint(enemy.model.transform.position+Vector3.up*.7f);
                 if(point.z<0) continue;

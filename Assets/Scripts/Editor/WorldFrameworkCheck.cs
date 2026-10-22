@@ -56,6 +56,7 @@ public static class WorldFrameworkCheck
     public static void Resume() { Start(true); }
     static void Start(bool value)
     {
+        if(TriangleWorldSetup.Installed && !value) { TriangleWorldCheck.Run(); return; }
         if(!Application.isBatchMode || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR"))) throw new Exception("Use isolated project and test saves.");
         EditorSceneManager.OpenScene(CombatTestMapSetup.FarmScene); WorldFrameworkSetup.Connect();
         SessionState.SetBool(Key,true); SessionState.SetBool(Key+"Resume",value); EditorApplication.isPlaying=true;

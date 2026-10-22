@@ -116,6 +116,7 @@ public static class WorldFrameworkSetup
     [MenuItem("Tools/Everything Grows/World/Connect farm, town and dungeon")]
     public static void Connect()
     {
+        if(TriangleWorldSetup.Installed) { Debug.Log("Triangle world connections preserved."); return; }
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play before connecting the world.");
         if(AssetDatabase.LoadAssetAtPath<SceneAsset>(Town)==null || AssetDatabase.LoadAssetAtPath<SceneAsset>(Store)==null) throw new Exception("Town and GeneralStore scenes are required.");
         var active=SceneManager.GetActiveScene();

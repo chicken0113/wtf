@@ -18,7 +18,7 @@ public static class WorldConnectionValidator
     public static void Validate()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play before validating scene assets.");
-        string[] paths={CombatTestMapSetup.FarmScene,WorldFrameworkSetup.Town,WorldFrameworkSetup.Store,CombatTestMapSetup.CombatScene};
+        string[] paths=TriangleWorldSetup.Installed?TriangleWorldSetup.Paths:new[]{CombatTestMapSetup.FarmScene,WorldFrameworkSetup.Town,WorldFrameworkSetup.Store,CombatTestMapSetup.CombatScene};
         var opened=new List<Scene>(); var maps=new Dictionary<string,FarmGame>(); var active=SceneManager.GetActiveScene(); int errors=0,checkedExits=0;
         void Error(string text,UnityEngine.Object context=null) { errors++; Debug.LogError("World connection: "+text,context); }
         try

@@ -11,7 +11,7 @@ public static class SceneAssetCleanup
 {
     const string Request="Library/SceneAssetCleanup.request",Result="Library/SceneAssetCleanup.result";
     static readonly string[] Retired={"Assets/Scenes/Garden.unity","Assets/Scenes/StarterFarm.unity","Assets/Scenes/EditableField.unity","Assets/Scenes/DailyFarm.unity"};
-    static readonly string[] Current={CombatTestMapSetup.FarmScene,WorldFrameworkSetup.Town,WorldFrameworkSetup.Store,CombatTestMapSetup.CombatScene};
+    static string[] Current=>TriangleWorldSetup.Installed?TriangleWorldSetup.Paths:new[]{CombatTestMapSetup.FarmScene,WorldFrameworkSetup.Town,WorldFrameworkSetup.Store,CombatTestMapSetup.CombatScene};
     static SceneAssetCleanup(){if(!Application.isBatchMode)EditorApplication.update+=Tick;}
     static void Tick()
     {
@@ -48,12 +48,12 @@ public static class SceneAssetCleanup
         }
         EditorBuildSettings.scenes=EditorBuildSettings.scenes.Where(s=>Current.Contains(s.path)).ToArray();
         int removed=0;foreach(var path in Retired)if(AssetDatabase.LoadAssetAtPath<SceneAsset>(path)!=null){if(!AssetDatabase.DeleteAsset(path))throw new Exception("Could not remove "+path);removed++;}
-        AssetDatabase.SaveAssets();Debug.Log("UNUSED_SCENES_CLEANED: "+removed+" old samples removed; four current maps retained.");
+        AssetDatabase.SaveAssets();Debug.Log("UNUSED_SCENES_CLEANED: "+removed+" old samples removed; current world maps retained.");
     }
     public static void Verify()
     {
         if(!Application.isBatchMode||string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR")))throw new Exception("Use isolated project and saves.");
-        Apply();if(Retired.Any(p=>File.Exists(p)||File.Exists(p+".meta"))||EditorBuildSettings.scenes.Length!=4)throw new Exception("Scene cleanup incomplete.");
+        Apply();if(Retired.Any(p=>File.Exists(p)||File.Exists(p+".meta"))||EditorBuildSettings.scenes.Length!=Current.Length)throw new Exception("Scene cleanup incomplete.");
         WorldConnectionValidator.Validate();WorldFrameworkCheck.Run();
     }
 }

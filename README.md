@@ -9,8 +9,14 @@
 | `Assets/Scenes/Town.unity` | 마을·주민·시설 외관 |
 | `Assets/Scenes/GeneralStore.unity` | 잡화점 실내·구매와 판매 |
 | `Assets/Scenes/CombatTest.unity` | 현재 연결된 던전 전투 공간 |
+| `Assets/Scenes/FarmTownPassage.unity` | 농장과 마을 사이 연결 통로 |
+| `Assets/Scenes/DungeonEntrance.unity` | 농장·마을·던전을 연결하는 입구 필드 |
+| `Assets/Scenes/ForestClearing.unity` | 기존 물건 줍기를 사용하는 숲·버려진 공터 |
+| `Assets/Scenes/TrainingGround.unity` | 기존 무기 피격 처리를 사용하는 연습 표적 |
 
-농장·마을·던전은 주황색 자동 통로로 이동하고 잡화점 실내만 파란 E 문으로 출입합니다. `CombatTest`는 현재 실제로 쓰는 던전이므로 유지합니다. 빌드 목록도 위 네 씬만 사용합니다.
+야외 맵 사이는 주황색 자동 통로로 이동하고 잡화점 실내만 파란 E 문으로 출입합니다. `CombatTest`는 현재 실제로 쓰는 던전이므로 유지합니다. 빌드 목록은 위 여덟 씬을 사용합니다.
+
+농장 ↔ 연결 통로 ↔ 마을, 농장 ↔ 던전 입구 필드 ↔ 마을의 삼각형 구조입니다. 입구 필드에서 던전·숲·훈련장으로 갈 수 있습니다. Scene의 `EditableMap` 아래 지형·장식·아이템·Travel을 직접 편집합니다. 훈련 표적은 공격하지 않고, 보상 없이 3초 후 회복합니다. 숲의 물건과 훈련장의 검·활은 기존 획득 기능을 사용합니다.
 
 이전 중복 샘플 네 씬은 정리했습니다. 현재 씬 경로와 GUID는 유지해 기존 이동·저장 참조를 보존합니다.
 ## 초기 농장과 NPC 상점

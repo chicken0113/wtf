@@ -13,7 +13,7 @@ public static class OutdoorDoorCleanup
 {
     const string Request="Library/OutdoorDoorCleanup.request",Result="Library/OutdoorDoorCleanup.result";
     static readonly string[] Outdoors={CombatTestMapSetup.FarmScene,WorldFrameworkSetup.Town,CombatTestMapSetup.CombatScene};
-    public static bool IsOutdoor(string path)=>Outdoors.Contains(path);
+    public static bool IsOutdoor(string path)=>Outdoors.Contains(path)||new[]{TriangleWorldSetup.Passage,TriangleWorldSetup.Field,TriangleWorldSetup.Forest,TriangleWorldSetup.Training}.Contains(path);
     static OutdoorDoorCleanup(){if(!Application.isBatchMode)EditorApplication.update+=Tick;}
     static bool Dirty()=>Enumerable.Range(0,SceneManager.sceneCount).Select(SceneManager.GetSceneAt).Any(s=>s.isDirty&&IsOutdoor(s.path));
     static void Tick()
