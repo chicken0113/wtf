@@ -32,37 +32,38 @@ public static class BasicControlsCheck
                 Check(f.AimDirection==Vector2.right,"Movement overwrote aim");f.UpdateAim(new Vector2(0,5),true);Check(f.AimDirection==Vector2.right,"UI mouse changed aim");
                 f.UpdateAim(f.PlayerPosition,false);Check(f.AimDirection==Vector2.right,"Center cursor erased aim");
                 Check(f.DodgeDirection(Vector2.up)==Vector2.up&&f.DodgeDirection(Vector2.zero)==Vector2.right,"Dodge direction priority wrong");
-                f.ProcessMenuInput(true,false,false,false);Check(f.InventoryOpen&&!f.InteractWorld(Vector2.zero)&&!f.HarvestWorld(Vector2.zero),"World action behind menu");
+                f.ProcessMenuInput(true,false,false,false);Check(f.InventoryOpen&&!f.InteractWorld(Vector2.zero)&&!f.FarmAction(Vector2.zero),"World action behind menu");
                 f.ProcessMenuInput(false,true,false,false);Check(!f.ProcessPrimaryPointer(true,false),"Menu close leaked held attack");
                 f.ProcessPrimaryPointer(false,false);Check(f.ProcessPrimaryPointer(true,false),"Released click stayed blocked");
                 Check(!f.ProcessPrimaryPointer(true,true)&&!f.ProcessPrimaryPointer(true,false),"Dragging UI click into world used item");f.ProcessPrimaryPointer(false,false);
                 var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds");f.AddItem(seed);int count=f.InventoryQuantity(2);
                 f.TeleportPlayer(new Vector2(.5f,.5f));
-                Check(!f.HarvestWorld(new Vector2(0,-2))&&f.InventoryQuantity(2)==count,"Harvest key planted on empty soil");
-                Check(f.InteractWorld(new Vector2(0,-2))&&!f.Shop.IsOpen&&f.InventoryQuantity(2)==count-1,"E planting opened nearby NPC");
+                f.InteractWorld(new Vector2(0,-2));Check(f.InventoryQuantity(2)==count,"F planted on empty soil");f.Shop.Close();
+                Check(f.FarmAction(new Vector2(0,-2))&&!f.Shop.IsOpen&&f.InventoryQuantity(2)==count-1,"E planting opened nearby NPC");
                 f.Water(new Vector2(0,-2),.1f);f.Tick(seed.growthSeconds);
-                Check(f.InteractWorld(new Vector2(0,-2))&&f.IsMature(new Vector2Int(0,-2)),"E harvested a crop");
-                Check(f.HarvestWorld(new Vector2(0,-2))&&!f.IsMature(new Vector2Int(0,-2))&&f.InventoryCount==5,"F crop harvest failed");f.RemoveInventoryItem(4);
+                f.InteractWorld(new Vector2(0,-2));Check(f.IsMature(new Vector2Int(0,-2)),"F harvested a crop");f.Shop.Close();
+                Check(f.FarmAction(new Vector2(0,-2))&&!f.IsMature(new Vector2Int(0,-2))&&f.InventoryCount==5,"E crop harvest failed");f.RemoveInventoryItem(4);
                 var npc=f.GetComponentInChildren<ShopNpc>();
-                Check(!f.InteractWorld(npc.transform.position,true)&&!f.Shop.IsOpen,"HUD E opened NPC");
+                Check(!f.InteractWorld(npc.transform.position,true)&&!f.Shop.IsOpen,"HUD F opened NPC");
                 Check(f.InteractWorld(npc.transform.position)&&f.Shop.IsOpen,"Pointed NPC did not interact");f.ProcessMenuInput(false,false,false,true);
-                Check(!f.HarvestWorld(npc.transform.position)&&!f.Shop.IsOpen,"F opened NPC");
+                Check(!f.FarmAction(npc.transform.position)&&!f.Shop.IsOpen,"E opened NPC");
                 var house=f.GetComponentInChildren<FarmBuilding>();var door=house.GetComponentInChildren<MapExit>();f.TeleportPlayer(door.transform.position);
-                Check(!f.InteractWorld(house.transform.position,true)&&house.gameObject.activeInHierarchy,"UI harvested house");
-                step=1;Check(f.InteractWorld(house.transform.position)&&GameSession.Busy,"E did not enter house from doormat");return;
+                Check(!f.FarmAction(house.transform.position,true)&&house.gameObject.activeInHierarchy,"UI harvested house");
+                Check(!door.GetComponentInChildren<WorldLabel>().DisplayText.Contains("[E]"),"Door label still displays E");
+                step=1;Check(f.InteractWorld(house.transform.position)&&GameSession.Busy,"F did not enter house from doormat");return;
             }
             if(step==1)
             {
-                Check(f.gameObject.scene.path==InteriorWorldSetup.Home,"E did not enter room");
+                Check(f.gameObject.scene.path==InteriorWorldSetup.Home,"F did not enter room");
                 var door=f.GetComponentInChildren<MapExit>();f.TeleportPlayer(door.transform.position);
-                Check(!f.HarvestWorld(door.transform.position)&&!GameSession.Busy,"F triggered door travel");
-                step=2;Check(f.InteractWorld(new Vector2(50,50))&&GameSession.Busy,"E did not exit room");return;
+                Check(!f.FarmAction(door.transform.position)&&!GameSession.Busy,"E triggered door travel");
+                step=2;Check(f.InteractWorld(new Vector2(50,50))&&GameSession.Busy,"F did not exit room");return;
             }
             if(step==2)
             {
                 var house=f.GetComponentInChildren<FarmBuilding>();var body=house.GetComponentsInChildren<SpriteRenderer>().First(r=>r.GetComponentInParent<MapExit>()==null);
                 var point=new Vector2(body.bounds.center.x,body.bounds.min.y+.1f);
-                Check(f.HarvestWorld(point)&&!GameSession.Busy&&f.GetComponentsInChildren<FarmBuilding>().Length==0,"F house harvest triggered travel");
+                Check(f.FarmAction(point)&&!GameSession.Busy&&f.GetComponentsInChildren<FarmBuilding>().Length==0,"E house harvest triggered travel");
                 step=3;Check(GameSession.Travel(f,CombatTestMapSetup.CombatScene,"combat_path_entry"),"Combat fixture travel failed");return;
             }
             f.TeleportPlayer(new Vector2(7,-5));var combat=f.Combat;combat.TickCombat(1.1f);float hp=combat.Health;
@@ -74,7 +75,7 @@ public static class BasicControlsCheck
             combat.RequestRoll(Vector2.up);combat.TickCombat(.4f);Check(!combat.IsRolling,"Expired buffered input triggered a later dodge");
             combat.TickCombat(.5f);f.TeleportPlayer(new Vector2(10.8f,-5));Check(combat.RequestRoll(Vector2.right),"Wall test dodge failed");combat.TickCombat(.3f);
             Check(f.PlayerPosition.x<=11.26f&&new MapCollision(f).CanStand(f.PlayerPosition,f.PlayerRadius),"Dodge crossed wall");
-            SessionState.SetBool(Key,false);EditorApplication.update-=Tick;Debug.Log("BASIC_CONTROLS_SUCCESS: movement/aim separation, diagonal/opposite keys, UI click isolation, E interaction/planting vs F harvest, NPC/house doors, roll invulnerability/buffer/expiry/walls.");EditorApplication.Exit(0);
+            SessionState.SetBool(Key,false);EditorApplication.update-=Tick;Debug.Log("BASIC_CONTROLS_SUCCESS: E pickup/plant/harvest, F NPC/doors, updated door labels, movement/aim/UI isolation and dodge guards.");EditorApplication.Exit(0);
         }
         catch(Exception e){SessionState.SetBool(Key,false);Debug.LogException(e);EditorApplication.Exit(1);}
     }

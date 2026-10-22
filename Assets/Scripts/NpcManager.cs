@@ -100,7 +100,7 @@ namespace EverythingGrows
                 {
                     var position=Camera.main.WorldToScreenPoint(npc.transform.position+Vector3.up*.7f);
                     var profile=npcs.Find(entry=>entry!=null && entry.id==npc.npcId);
-                    GUI.Label(new Rect(position.x-90,Screen.height-position.y,180,24),profile!=null&&profile.guildQuestGiver?"E: guild requests":profile!=null && profile.shopEnabled && CanTrade?"E: open shop":"E: talk");
+                    GUI.Label(new Rect(position.x-90,Screen.height-position.y,180,24),profile!=null&&profile.guildQuestGiver?"F: guild requests":profile!=null && profile.shopEnabled && CanTrade?"F: open shop":"F: talk");
                 }
                 return;
             }
@@ -117,7 +117,7 @@ namespace EverythingGrows
             Rect panel=new Rect(Screen.width*.5f-width-8,farm.InventoryPanelRect.y,width,height);
             GUI.Box(panel,activeProfile.displayName);
             if(GUI.Button(new Rect(panel.xMax-65,panel.y+4,56,24),"Close")) { Close(); return; }
-            GUI.Label(new Rect(panel.x+12,panel.y+29,width-24,22),"RMB item: sell | Tab / E / Esc: close");
+            GUI.Label(new Rect(panel.x+12,panel.y+29,width-24,22),"RMB item: sell | Tab / F / Esc: close");
             Rect viewport=new Rect(panel.x+10,panel.y+58,width-20,height-68);
             scroll=GUI.BeginScrollView(viewport,scroll,new Rect(0,0,width-40,activeProfile.offers.Count*48));
             for(int i=0;i<activeProfile.offers.Count;i++)

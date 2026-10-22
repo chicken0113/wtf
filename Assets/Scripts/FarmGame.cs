@@ -162,7 +162,7 @@ namespace EverythingGrows
                         if(!AddItem(entry.item)) Spawn(entry.item,SpawnPosition+Vector2.down*.6f);
                 selected=0;
             }
-            message="E: interact / plant. F: harvest. Click: use / attack. Space or Shift: dodge.";
+            message="E: pickup / plant / harvest. F: talk / enter. Click: use / attack. Space or Shift: dodge.";
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(!building.runtimePlaced) authoredBuildingKeys[building]=MapObjectId.Key(building);
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) HouseInteriorLink.EnsureDoor(building);
             if(Application.isPlaying && grantStartingItems) GameSession.Bind(this);
@@ -447,10 +447,10 @@ namespace EverythingGrows
         {
             if(player==null) return;
             if(combat.IsGameOver || GameSession.Busy || !string.IsNullOrEmpty(GameSession.LastError)) { plantingPreview.enabled=false; return; }
-            if(ProcessMenuInput(Input.GetKeyDown(KeyCode.Tab),Input.GetKeyDown(KeyCode.Escape),Input.GetKeyDown(KeyCode.M),Input.GetKeyDown(KeyCode.E))) return;
+            if(ProcessMenuInput(Input.GetKeyDown(KeyCode.Tab),Input.GetKeyDown(KeyCode.Escape),Input.GetKeyDown(KeyCode.M),Input.GetKeyDown(KeyCode.F))) return;
             var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
             int hoveredHeart=combat.HeartAt(guiMouse);
-            if(Input.GetKeyDown(KeyCode.F) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
+            if(Input.GetKeyDown(KeyCode.E) && hoveredHeart>=0) { combat.HarvestHeart(hoveredHeart); return; }
             if(MapExit.TryAutomatic(this)) { plantingPreview.enabled=false; return; }
             GameSession.AdvanceTime(Time.deltaTime);
             Cycle.Tick(Time.deltaTime);
@@ -469,8 +469,8 @@ namespace EverythingGrows
             if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; RemoveInventoryItem(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }
             bool pointerOverUI=OverUI();
             bool primaryAllowed=ProcessPrimaryPointer(Input.GetMouseButton(0),pointerOverUI);
-            if(Input.GetKeyDown(KeyCode.E) && InteractWorld(MousePoint,pointerOverUI)) return;
-            if(Input.GetKeyDown(KeyCode.F) && HarvestWorld(MousePoint,pointerOverUI)) return;
+            if(Input.GetKeyDown(KeyCode.E) && FarmAction(MousePoint,pointerOverUI)) return;
+            if(Input.GetKeyDown(KeyCode.F) && InteractWorld(MousePoint,pointerOverUI)) return;
             UpdatePlantingPreview();
             if(OverUI()) return;
             var point=MousePoint; var cell=MouseCell;
@@ -481,7 +481,7 @@ namespace EverythingGrows
             {
                 if(PieceAt(point)!=null) DetachAt(point);
                 else if(plots.TryGetValue(cell,out var planted) && planted.plant!=null)
-                { if(planted.plant.isSeed) message="F: harvest ripe crops. Scythe: clear dead crops."; else if(!planted.mature) Uproot(cell); else message="Press F to harvest."; }
+                { if(planted.plant.isSeed) message="E: harvest ripe crops. Scythe: clear dead crops."; else if(!planted.mature) Uproot(cell); else message="Press E to harvest."; }
             }
             if(Input.GetMouseButtonDown(0) && primaryAllowed)
             {
@@ -549,7 +549,7 @@ namespace EverythingGrows
             foreach(var plot in plots.Values) if(plot.plant!=null)
             {
                 Vector3 position=view.WorldToScreenPoint((Vector2)plot.cell+Vector2.up*.6f);
-                string status=plot.wilted?"DEAD - scythe":plot.mature?(plot.ready || plot.plant.harvestResult!=null?"F: HARVEST":plot.plant.effect.ToString()):!plot.wet?"Needs water":Mathf.RoundToInt(plot.progress*100)+"%";
+                string status=plot.wilted?"DEAD - scythe":plot.mature?(plot.ready || plot.plant.harvestResult!=null?"E: HARVEST":plot.plant.effect.ToString()):!plot.wet?"Needs water":Mathf.RoundToInt(plot.progress*100)+"%";
                 GUI.Label(new Rect(position.x-70,Screen.height-position.y,140,28),plot.plant.label+" "+status);
                 if(!plot.mature)
                 {

@@ -42,7 +42,7 @@ namespace EverythingGrows
             ? house.Travel(farm,this) : GameSession.Travel(farm,destinationScene,arrivalId);
         public static bool TryInteract(FarmGame farm)
         {
-            bool pressed=Input.GetKeyDown(KeyCode.E);
+            bool pressed=Input.GetKeyDown(KeyCode.F);
             foreach(var exit in Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None))
                 if(exit.TryActivate(farm,pressed)) return true;
             return false;
@@ -70,7 +70,7 @@ namespace EverythingGrows
             var farm=Object.FindFirstObjectByType<FarmGame>();
             if(farm==null || farm.Combat==null || farm.Combat.IsGameOver || farm.WorldInputBlocked || !Contains(farm.PlayerPosition)) return;
             var point=Camera.main.WorldToScreenPoint(transform.position+Vector3.up*.7f);
-            GUI.Label(new Rect(point.x-70,Screen.height-point.y,140,24),"E: travel");
+            GUI.Label(new Rect(point.x-70,Screen.height-point.y,140,24),"F: travel");
         }
         void OnDrawGizmos()
         {

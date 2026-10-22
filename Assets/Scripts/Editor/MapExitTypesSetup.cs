@@ -27,7 +27,7 @@ public static class MapExitTypesSetup
     static void MakePrefab(string path,bool door)
     {
         if(AssetDatabase.LoadAssetAtPath<GameObject>(path)!=null) return;
-        var root=new GameObject(door?"Door Exit - E":"Boundary Exit - Touch"); var exit=root.AddComponent<MapExit>(); exit.requireInteract=door; exit.areaSize=door?new Vector2(1.8f,2.4f):new Vector2(2.4f,1.2f);
+        var root=new GameObject(door?"Door Exit - F":"Boundary Exit - Touch"); var exit=root.AddComponent<MapExit>(); exit.requireInteract=door; exit.areaSize=door?new Vector2(1.8f,2.4f):new Vector2(2.4f,1.2f);
         var visual=root.AddComponent<MapExitVisual>(); visual.floor=Part(root.transform,"Travel area",Vector2.zero,exit.areaSize,-30);
         if(door) visual.accents=new[]{Part(root.transform,"Left post",Vector2.left,new Vector2(.2f,2.6f),20),Part(root.transform,"Right post",Vector2.right,new Vector2(.2f,2.6f),20),Part(root.transform,"Lintel",Vector2.up*1.3f,new Vector2(2.2f,.2f),21)};
         else
@@ -39,7 +39,7 @@ public static class MapExitTypesSetup
         visual.Refresh(); PrefabUtility.SaveAsPrefabAsset(root,path); UnityEngine.Object.DestroyImmediate(root);
     }
     public static void GeneratePrefabs() { MakePrefab(DoorPath,true); MakePrefab(TouchPath,false); }
-    [MenuItem("GameObject/Everything Grows/Door Exit (E)",false,23)]
+    [MenuItem("GameObject/Everything Grows/Door Exit (F)",false,23)]
     public static void Door() { Place(DoorPath); }
     [MenuItem("GameObject/Everything Grows/Boundary Exit (Touch)",false,24)]
     public static void Touch() { Place(TouchPath); }

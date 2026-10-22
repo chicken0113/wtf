@@ -25,38 +25,25 @@ namespace EverythingGrows
             return held&&!pointerOverUI&&!suppressPrimaryUntilRelease;
         }
 
-        // True means this E press was handled, including a targeted action that cannot succeed.
+        // F handles people and doors only; farming never falls through to this action.
         public bool InteractWorld(Vector2 point,bool pointerOverUI=false)
         {
             if(player==null||combat==null||combat.IsGameOver||combat.IsRolling||WorldInputBlocked||GameSession.Busy||pointerOverUI)return false;
             if(shop!=null&&shop.OpenPointed(point)){plantingPreview.enabled=false;return true;}
-            if(Near(point))
-            {
-                if(PieceAt(point)!=null){DetachAt(point);return true;}
-                var cell=Vector2Int.RoundToInt(point);
-                if(plots.TryGetValue(cell,out var plot))
-                {
-                    if(plot.plant!=null)Notify("F: harvest. E: plant on empty tilled soil.");else PlantSelected(cell);
-                    return true;
-                }
-                foreach(var building in GetComponentsInChildren<FarmBuilding>())
-                    if(building.Contains(point))
-                    {if(!MapExit.TryDoor(this))Notify("E: enter from the blue doormat. F: harvest this house.");return true;}
-            }
             if(MapExit.TryDoor(this)){plantingPreview.enabled=false;return true;}
             if(shop!=null&&shop.OpenNearby()){plantingPreview.enabled=false;return true;}
-            if(Near(point)&&Inside(Vector2Int.RoundToInt(point)))Notify("Till the soil with a hoe, then press E to plant.");
-            else Notify("Walk closer to interact.");
-            return true;
+            Notify("Walk closer to a person or stand on a blue doormat, then press F.");return false;
         }
-        public bool HarvestWorld(Vector2 point,bool pointerOverUI=false)
+        // E unifies pickup, planting and harvest, without opening NPCs or doors.
+        public bool FarmAction(Vector2 point,bool pointerOverUI=false)
         {
             if(player==null||combat==null||combat.IsGameOver||combat.IsRolling||WorldInputBlocked||GameSession.Busy||pointerOverUI||!Near(point))return false;
+            if(PieceAt(point)!=null){DetachAt(point);return true;}
             foreach(var building in GetComponentsInChildren<FarmBuilding>())
                 if(building.Contains(point)){HarvestBuildingAt(point);return true;}
             var cell=Vector2Int.RoundToInt(point);
-            if(plots.TryGetValue(cell,out var plot)&&plot.plant!=null){InteractPlot(cell);return true;}
-            Notify("Point at a grown plant or a house, then press F.");return false;
+            if(plots.ContainsKey(cell)){InteractPlot(cell);return true;}
+            Notify("E: pick up, plant or harvest. Till empty soil with a hoe first.");return false;
         }
     }
 }

@@ -91,7 +91,7 @@ public sealed class MapExitInspector : Editor
         EditorGUI.BeginChangeCheck(); selected=(SceneAsset)EditorGUILayout.ObjectField("Destination Scene",selected,typeof(SceneAsset),false);
         if(EditorGUI.EndChangeCheck()) path.stringValue=selected!=null?AssetDatabase.GetAssetPath(selected):"";
         EditorGUILayout.PropertyField(serializedObject.FindProperty("arrivalId")); EditorGUILayout.PropertyField(serializedObject.FindProperty("areaSize")); var interact=serializedObject.FindProperty("requireInteract");
-        interact.boolValue=EditorGUILayout.Popup("Activation",interact.boolValue?0:1,new[]{"Door - press E (teal)","Boundary - touch (orange)"})==0; serializedObject.ApplyModifiedProperties();
+        interact.boolValue=EditorGUILayout.Popup("Activation",interact.boolValue?0:1,new[]{"Door - press F (teal)","Boundary - touch (orange)"})==0; serializedObject.ApplyModifiedProperties();
         if(!string.IsNullOrEmpty(path.stringValue) && !EditorBuildSettings.scenes.Any(scene=>scene.enabled && scene.path==path.stringValue))
         {
             EditorGUILayout.HelpBox("Destination must be enabled in Build Settings.",MessageType.Warning);
@@ -101,9 +101,9 @@ public sealed class MapExitInspector : Editor
                 if(found!=null) found.enabled=true; else scenes.Add(new EditorBuildSettingsScene(path.stringValue,true)); EditorBuildSettings.scenes=scenes.ToArray();
             }
         }
-        EditorGUILayout.HelpBox("Place this area in the Scene. The target scene needs a FarmGame and an active Map Arrival Point with the same Arrival Id. Door: stand inside and press E. Boundary: touch the orange area to travel automatically.",MessageType.Info);
+        EditorGUILayout.HelpBox("Place this area in the Scene. The target scene needs a FarmGame and an active Map Arrival Point with the same Arrival Id. Door: stand inside and press F. Boundary: touch the orange area to travel automatically.",MessageType.Info);
     }
-    void OnSceneGUI() { var exit=(MapExit)target; Handles.Label(exit.transform.position+Vector3.up,(exit.requireInteract?"[E Door] ":"[Touch] ")+exit.arrivalId+" → "+System.IO.Path.GetFileNameWithoutExtension(exit.destinationScene)); }
+    void OnSceneGUI() { var exit=(MapExit)target; Handles.Label(exit.transform.position+Vector3.up,(exit.requireInteract?"[F Door] ":"[Touch] ")+exit.arrivalId+" → "+System.IO.Path.GetFileNameWithoutExtension(exit.destinationScene)); }
 }
 [CustomEditor(typeof(MapArrivalPoint))]
 public sealed class MapArrivalInspector : Editor
