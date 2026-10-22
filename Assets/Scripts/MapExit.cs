@@ -38,7 +38,8 @@ namespace EverythingGrows
             return Travel(farm);
         }
         public bool Contains(Vector2 point) => new Rect(-areaSize*.5f,areaSize).Contains(transform.InverseTransformPoint(point));
-        public bool Travel(FarmGame farm) => GameSession.Travel(farm,destinationScene,arrivalId);
+        public bool Travel(FarmGame farm) => TryGetComponent<HouseInteriorLink>(out var house)
+            ? house.Travel(farm,this) : GameSession.Travel(farm,destinationScene,arrivalId);
         public static bool TryInteract(FarmGame farm)
         {
             bool pressed=Input.GetKeyDown(KeyCode.E);

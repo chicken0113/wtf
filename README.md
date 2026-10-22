@@ -13,8 +13,11 @@
 | `Assets/Scenes/DungeonEntrance.unity` | 농장·마을·던전을 연결하는 입구 필드 |
 | `Assets/Scenes/ForestClearing.unity` | 기존 물건 줍기를 사용하는 숲·버려진 공터 |
 | `Assets/Scenes/TrainingGround.unity` | 기존 무기 피격 처리를 사용하는 연습 표적 |
+| `Assets/Scenes/FarmHouseInterior.unity` | 플레이어 집 실내·가구 |
+| `Assets/Scenes/GuildInterior.unity` | 길드 실내·접수 NPC 대화 |
+| `Assets/Scenes/SmithInterior.unity` | 대장간 실내·기존 무기 구매와 아이템 판매 |
 
-야외 맵 사이는 주황색 자동 통로로 이동하고 잡화점 실내만 파란 E 문으로 출입합니다. `CombatTest`는 현재 실제로 쓰는 던전이므로 유지합니다. 빌드 목록은 위 여덟 씬을 사용합니다.
+야외 맵 사이는 주황색 자동 통로로 이동하고 집·길드·대장간·잡화점 실내는 파란 발판에서 E로 출입합니다. `CombatTest`는 현재 실제로 쓰는 던전이므로 유지합니다. 빌드 목록은 위 열한 씬을 사용합니다.
 
 농장 ↔ 연결 통로 ↔ 마을, 농장 ↔ 던전 입구 필드 ↔ 마을의 삼각형 구조입니다. 입구 필드에서 던전·숲·훈련장으로 갈 수 있습니다. Scene의 `EditableMap` 아래 지형·장식·아이템·Travel을 직접 편집합니다. 훈련 표적은 공격하지 않고, 보상 없이 3초 후 회복합니다. 숲의 물건과 훈련장의 검·활은 기존 획득 기능을 사용합니다.
 
@@ -35,7 +38,7 @@
 - NPC 설정과 가격 저장: 씬 설정과 아이템 자산을 저장합니다. 설정은 Play 밖에서 수정합니다.
 
 NPC 추가는 맵 배치 창의 Npcs > Merchant 프리팹으로 합니다. NPC마다 고유한 Id와 프로필을 지정하면 서로 다른 상점을 사용할 수 있습니다.
-집은 Farmhouse 프리팹으로 직접 이동·배치할 수 있습니다. 현재 내부 진입 기능은 없으며 하단 몸체 영역은 이동과 경작을 막습니다.
+집은 Farmhouse 프리팹으로 직접 이동·배치할 수 있습니다. 하단 몸체 영역은 이동과 경작을 막고 앞의 파란 발판에서 E로 실내에 진입합니다. 수확 후 다시 설치한 집도 출입할 수 있습니다. 나올 때는 들어갔던 집 앞으로 돌아옵니다. 실내 배치·NPC 설정은 [건물 내부 안내](Docs/BUILDING_INTERIORS.md)를 참고합니다.
 StartingPlot이 붙은 바닥은 Play 때 경작된 밭으로 초기화합니다. 새로 만든 집 이미지의 생성 기록은 Docs/ART.md에 있습니다.
 
 작업 폴더: `C:/Users/MSI/wtf`. Unity 6000.3.25f1, 2D 탑뷰, Built-in 렌더링.

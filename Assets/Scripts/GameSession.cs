@@ -13,6 +13,7 @@ namespace EverythingGrows
         static FarmGame current;
         static bool loaded,blocked;
         static string pendingScene,pendingArrival;
+        static Vector2? pendingPosition;
         static string error;
         public static bool Busy { get; private set; }
         public static float ArrivalGraceUntil { get; private set; }
@@ -35,7 +36,7 @@ namespace EverythingGrows
             return total;
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetRuntime() { runner=null; data=null; catalog=null; current=null; loaded=blocked=Busy=false; pendingScene=pendingArrival=error=null; ArrivalGraceUntil=0; }
+        static void ResetRuntime() { runner=null; data=null; catalog=null; current=null; loaded=blocked=Busy=false; pendingScene=pendingArrival=error=null; pendingPosition=null; ArrivalGraceUntil=0; }
         public static void ResetForTests() { ResetRuntime(); }
         static void EnsureRunner()
         {
@@ -107,12 +108,17 @@ namespace EverythingGrows
                     }
                 }
                 if(arrival!=null) farm.TeleportPlayer(arrival.transform.position);
+                if(pendingScene==scene && pendingPosition.HasValue)
+                {
+                    var position=pendingPosition.Value;
+                    farm.TeleportPlayer(new MapCollision(farm).CanStand(position,farm.PlayerRadius)?position:farm.SpawnPosition);
+                }
                 if(map!=null) farm.Tick(Mathf.Max(0,(float)(data.worldSeconds-map.updatedAt)));
                 farm.ReconcileRestoredInventory();
                 MapExit.PrepareArrival(farm);
                 current=farm;
                 ArrivalGraceUntil=Time.unscaledTime+1;
-                if(pendingScene==scene) { pendingScene=pendingArrival=null; }
+                if(pendingScene==scene) { pendingScene=pendingArrival=null; pendingPosition=null; }
                 // Do not write on entry until the arriving map has been validated by the travel coroutine.
                 if(string.IsNullOrEmpty(data.currentScene)) Save(farm);
             }
@@ -139,15 +145,29 @@ namespace EverythingGrows
             catch(Exception problem) { error="Autosave failed: "+problem.Message; Debug.LogError(error); return false; }
         }
         public static bool SaveAfterHouseTime(FarmGame farm) => Save(farm);
-        public static bool Travel(FarmGame farm,string target,string arrival)
+        public static bool EnterHouse(FarmGame farm,string target,string arrival)
+        {
+            Load();if(data==null||Busy||farm==null)return false;
+            string previous=data.houseReturnScene;Vector2 position=data.houseReturnPosition;
+            data.houseReturnScene=farm.gameObject.scene.path;data.houseReturnPosition=farm.PlayerPosition;
+            if(Travel(farm,target,arrival))return true;
+            data.houseReturnScene=previous;data.houseReturnPosition=position;return false;
+        }
+        public static bool ReturnFromHouse(FarmGame farm,string fallbackScene,string fallbackArrival)
+        {
+            Load();return data!=null&&!string.IsNullOrEmpty(data.houseReturnScene)
+                ? Travel(farm,data.houseReturnScene,null,data.houseReturnPosition)
+                : Travel(farm,fallbackScene,fallbackArrival);
+        }
+        public static bool Travel(FarmGame farm,string target,string arrival,Vector2? position=null)
         {
             if(!Application.isPlaying || Busy || blocked || farm==null || farm.Combat.IsGameOver) return false;
             if(string.IsNullOrEmpty(target) || SceneUtility.GetBuildIndexByScenePath(target)<0)
             { error="Destination scene is not enabled in Build Settings."; return false; }
             if(SceneUtility.GetBuildIndexByScenePath(farm.gameObject.scene.path)<0) { error="Enable the current scene in Build Settings before travelling."; return false; }
-            if(string.IsNullOrWhiteSpace(arrival)) { error="Set the destination arrival ID."; return false; }
+            if(!position.HasValue && string.IsNullOrWhiteSpace(arrival)) { error="Set the destination arrival ID."; return false; }
             if(!Save(farm)) return false;
-            error=null; EnsureRunner(); pendingScene=target; pendingArrival=arrival; Busy=true;
+            error=null; EnsureRunner(); pendingScene=target; pendingArrival=arrival; pendingPosition=position; Busy=true;
             runner.StartCoroutine(runner.LoadMap(target,farm.gameObject.scene.path)); return true;
         }
         IEnumerator LoadMap(string target,string origin)
@@ -155,13 +175,13 @@ namespace EverythingGrows
             AsyncOperation operation=null;
             try { operation=SceneManager.LoadSceneAsync(target,LoadSceneMode.Single); }
             catch(Exception problem) { error="Could not load destination: "+problem.Message; }
-            if(operation==null) { Busy=false; pendingScene=pendingArrival=null; yield break; }
+            if(operation==null) { Busy=false; pendingScene=pendingArrival=null; pendingPosition=null; yield break; }
             yield return operation;
             var scene=SceneManager.GetActiveScene();
             if(current==null || current.gameObject.scene!=scene || !string.IsNullOrEmpty(pendingScene))
             {
                 error=error??"Destination scene needs an initialized FarmGame.";
-                pendingScene=origin; pendingArrival=null;
+                pendingScene=origin; pendingArrival=null; pendingPosition=null;
                 operation=null;
                 try { operation=SceneManager.LoadSceneAsync(origin,LoadSceneMode.Single); }
                 catch(Exception problem) { error+=" Return failed: "+problem.Message; }

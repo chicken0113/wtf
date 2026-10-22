@@ -7,6 +7,8 @@ namespace EverythingGrows
     {
         public int version=1;
         public string currentScene;
+        public string houseReturnScene;
+        public Vector2 houseReturnPosition;
         public double worldSeconds;
         public PlayerSave player=new();
         public List<MapSave> maps=new();

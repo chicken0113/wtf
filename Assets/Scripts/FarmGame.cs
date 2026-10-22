@@ -163,6 +163,7 @@ namespace EverythingGrows
             }
             message="RMB: take item. E: plant / harvest. Click: use / attack. Walk outside to fight.";
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(!building.runtimePlaced) authoredBuildingKeys[building]=MapObjectId.Key(building);
+            foreach(var building in GetComponentsInChildren<FarmBuilding>()) HouseInteriorLink.EnsureDoor(building);
             if(Application.isPlaying && grantStartingItems) GameSession.Bind(this);
         }
         private SpriteRenderer Draw(string label,Vector2 position,Vector2 size,Color color,int order)
@@ -276,6 +277,7 @@ namespace EverythingGrows
         {
             if(item==null || item.effect!=GrowthEffect.House || combat.IsGameOver || !Near(point)) return false;
             var footprint=HouseFootprint(item,point);
+            if(!new MapCollision(this).CanStand(new Vector2(footprint.center.x,footprint.yMin-.7f),playerRadius)) return false;
             var source=art.ItemSprite(item); float height=item.matureDisplaySize*source.bounds.size.y/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
             var visual=new Rect(point+new Vector2(-item.matureDisplaySize*.5f,-.18f),new Vector2(item.matureDisplaySize,height));
             if(!WorldBounds.Contains(visual.min) || !WorldBounds.Contains(visual.max) || footprint.Overlaps(new Rect(PlayerPosition-Vector2.one*playerRadius,Vector2.one*playerRadius*2))) return false;
@@ -299,7 +301,7 @@ namespace EverythingGrows
             if(mapLayout!=null) renderer.transform.SetParent(mapLayout.transform,true);
             var building=renderer.gameObject.AddComponent<FarmBuilding>(); building.item=item; building.runtimePlaced=true; building.placementAnchor=point;
             building.footprint=new Vector2(item.matureDisplaySize*.85f,height*.32f)/scale;
-            building.offset=new Vector2(0,-height*.34f)/scale; return building;
+            building.offset=new Vector2(0,-height*.34f)/scale; HouseInteriorLink.EnsureDoor(building); return building;
         }
         public bool HarvestBuildingAt(Vector2 point)
         {

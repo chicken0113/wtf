@@ -29,5 +29,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TrainingGround.unity
     guid: 361665cc3f48f3045ab0124f2af398d4
+  - enabled: 1
+    path: Assets/Scenes/FarmHouseInterior.unity
+    guid: 114b7edb252557a4ea70f98e6bbed57f
+  - enabled: 1
+    path: Assets/Scenes/GuildInterior.unity
+    guid: 8b1183716d5fb0e41bd3a47688372816
+  - enabled: 1
+    path: Assets/Scenes/SmithInterior.unity
+    guid: 9fc611890dbb8e34599612c4fcaf2196
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
