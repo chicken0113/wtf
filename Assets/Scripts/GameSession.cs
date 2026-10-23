@@ -32,7 +32,7 @@ namespace EverythingGrows
             {
                 if(!plot.mature || string.IsNullOrEmpty(plot.item)) continue;
                 var item=catalog.Resolve(plot.item);
-                if(item.effect==GrowthEffect.Storage) total+=(item.harvestResult!=null?item.harvestResult:item).storageBonus;
+                if(item.Function==PlantFunction.Storage) total+=item.HarvestItem.storageBonus;
             }
             return total;
         }

@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Inventory Slot
   color: {r: 0.85, g: 0.6, b: 0.9, a: 1}
+  growthType: 3
+  growthFunction: 3
+  harvestQuantity: 1
+  functionSeconds: 0
   effect: 3
   requiredFarmingLevel: 1
   harvestExperience: 10

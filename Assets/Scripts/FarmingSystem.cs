@@ -20,7 +20,7 @@ namespace EverythingGrows
             {
                 int total = 0;
                 foreach (var plot in plots.Values)
-                    if (plot.plant != null && plot.mature && plot.plant.effect == GrowthEffect.Storage) total += plot.HarvestItem.storageBonus;
+                    if (plot.plant != null && plot.mature && plot.plant.Function == PlantFunction.Storage) total += plot.HarvestItem.storageBonus;
                 return total;
             }
         }
@@ -43,8 +43,8 @@ namespace EverythingGrows
             if(item==null) return new(false,"Select an item to plant.");
             if(farm.FarmingLevel<item.requiredFarmingLevel) return new(false,"Requires farming level "+item.requiredFarmingLevel+".");
             if(item.transformed && item.effect!=GrowthEffect.House) return new(false,"Already transformed; use this item instead.");
-            if(item.isSeed && item.harvestResult==null) return new(false,"These seeds have no crop configured.");
-            if(item.effect==GrowthEffect.Crop && !item.isSeed && item.harvestResult==null) return new(false,"Plant seeds, not harvested vegetables.");
+            if(item.isSeed && item.GrowthType!=PlantGrowthType.Functional && item.harvestResult==null) return new(false,"These seeds have no crop configured.");
+            if(item.GrowthType==PlantGrowthType.Harvest && item.effect==GrowthEffect.Crop && !item.isSeed && item.harvestResult==null) return new(false,"Plant seeds, not harvested vegetables.");
             return new(true,"Plant "+item.label);
         }
         public FarmActionHint InteractionHint(Vector2Int cell)
@@ -101,13 +101,24 @@ namespace EverythingGrows
                     visuals.RefreshPlant(plot);
                 }
                 if(!plot.mature) continue;
-                switch(plot.plant.effect)
+                if(plot.plant.GrowthType==PlantGrowthType.Producer && !plot.plant.UsesRegrowth)
                 {
-                    case GrowthEffect.Dig:
-                        Till(plot.cell+Vector2Int.left); Till(plot.cell+Vector2Int.right); Till(plot.cell+Vector2Int.up); Till(plot.cell+Vector2Int.down); break;
-                    case GrowthEffect.Water: Water(plot.cell,plot.plant.effectRadius); break;
-                    case GrowthEffect.Produce:
-                        plot.production+=activeSeconds; if(plot.production>=plot.plant.productionSeconds) plot.ready=true; break;
+                    plot.production=Mathf.Min(plot.plant.productionSeconds,plot.production+activeSeconds);
+                    if(plot.production>=plot.plant.productionSeconds)plot.ready=true;
+                }
+                else if(plot.plant.GrowthType==PlantGrowthType.Functional)
+                {
+                    if(plot.plant.Function==PlantFunction.Storage || plot.plant.Function==PlantFunction.None)continue;
+                    float interval=plot.plant.FunctionInterval;
+                    plot.production+=activeSeconds;
+                    if(interval>0 && plot.production<interval)continue;
+                    plot.production=interval>0?plot.production%interval:0;
+                    switch(plot.plant.Function)
+                    {
+                        case PlantFunction.Till:
+                            Till(plot.cell+Vector2Int.left); Till(plot.cell+Vector2Int.right); Till(plot.cell+Vector2Int.up); Till(plot.cell+Vector2Int.down); break;
+                        case PlantFunction.Water: Water(plot.cell,plot.plant.effectRadius); break;
+                    }
                 }
             }
         }
@@ -117,35 +128,35 @@ namespace EverythingGrows
             if(!hint.Allowed) { farm.Notify(hint.Text); return false; }
             if(plots.TryGetValue(cell,out var plot) && plot.plant!=null)
             {
-                if(plot.plant.effect==GrowthEffect.Produce || plot.plant.harvestResult!=null) return Collect(cell);
-                return Uproot(cell);
+                return Collect(cell);
             }
             return PlantSelected(cell);
         }
         public bool Collect(Vector2Int cell)
         {
-            if(!plots.TryGetValue(cell,out var plot)) return false;
-            if(plot.mature && plot.plant!=null && plot.plant.harvestResult!=null)
+            if(!plots.TryGetValue(cell,out var plot) || !plot.CanHarvest)return false;
+            var planted=plot.plant;
+            if(planted.GrowthType!=PlantGrowthType.Producer)return Uproot(cell);
+            if(!farm.ReceiveHarvest(plot.HarvestItem,planted.harvestQuantity))return false;
+            if(planted.UsesRegrowth)
             {
-                if(plot.plant.isSeed && plot.plant.regrowSeconds>0)
-                {
-                    if(!farm.ReceiveHarvest(plot.plant.harvestResult)) return false;
-                    plot.mature=false; plot.regrowing=true; plot.progress=0; plot.wet=false;
-                    visuals.RefreshPlant(plot);
-                    visuals.RefreshSoil(plot);
-                    farm.Notify("Harvested. Water again for the next harvest."); farm.RecordFarmHarvest(plot.plant); return true;
-                }
-                return Uproot(cell);
+                plot.mature=false;plot.regrowing=true;plot.progress=0;plot.wet=false;
+                visuals.RefreshPlant(plot);visuals.RefreshSoil(plot);
+                farm.Notify("Harvested. Water again for the next harvest.");
             }
-            if(!plot.ready || !farm.ReceiveHarvest(plot.plant)) return false;
-            plot.ready=false; plot.production=0; farm.Notify("Collected a new "+plot.plant.label+"."); farm.RecordFarmHarvest(plot.plant); return true;
+            else
+            {
+                plot.ready=false;plot.production=0;farm.Notify("Collected a new "+plot.HarvestItem.label+".");
+            }
+            farm.RecordFarmHarvest(planted);return true;
         }
         public bool Uproot(Vector2Int cell)
         {
             if(!plots.TryGetValue(cell,out var plot) || plot.plant==null || !plot.mature || plot.wilted) return false;
             var item=plot.HarvestItem;var planted=plot.plant;
             ClearPlant(plot);
-            if(!farm.ReceiveHarvest(item))return false;
+            int quantity=planted.GrowthType==PlantGrowthType.Harvest?planted.harvestQuantity:1;
+            if(!farm.ReceiveHarvest(item,quantity))return false;
             farm.RecordFarmHarvest(planted);return true;
         }
         public bool UseHoe(Vector2Int cell)

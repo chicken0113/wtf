@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Tomato Seeds
   color: {r: 0.5, g: 0.8, b: 0.3, a: 1}
+  growthType: 2
+  growthFunction: 0
+  harvestQuantity: 1
+  functionSeconds: 0
   effect: 5
   requiredFarmingLevel: 1
   harvestExperience: 10

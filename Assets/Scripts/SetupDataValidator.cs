@@ -98,10 +98,19 @@ namespace EverythingGrows
             Positive(item, "matureDisplaySize", item.matureDisplaySize, report);
             Range(item, "regrowSeconds", item.regrowSeconds, 0, float.MaxValue, report);
             if (item.sellPrice < 0 || item.storageBonus < 0) report.Error("ITEM_VALUE", item, "sellPrice / storageBonus", "음수 설정입니다.", "0 이상의 값으로 설정하세요.");
-            if (item.isSeed && item.harvestResult == null) report.Error("SEED_RESULT", item, "harvestResult", "씨앗의 수확 결과가 없습니다.", "자랄 작물을 연결하세요.");
+            if (item.isSeed && item.GrowthType!=PlantGrowthType.Functional && item.harvestResult == null) report.Error("SEED_RESULT", item, "harvestResult", "씨앗의 수확 결과가 없습니다.", "자랄 작물을 연결하세요.");
             if (item.effect == GrowthEffect.Weapon) { Positive(item, "damage", item.damage, report); Positive(item, "attackRange", item.attackRange, report); Positive(item, "attackInterval", item.attackInterval, report); }
             if (item.effect == GrowthEffect.Water) Positive(item, "effectRadius", item.effectRadius, report);
-            if (item.effect == GrowthEffect.Produce) Positive(item, "productionSeconds", item.productionSeconds, report);
+            if(!System.Enum.IsDefined(typeof(PlantGrowthType),item.growthType) || !System.Enum.IsDefined(typeof(PlantFunction),item.growthFunction))
+                report.Error("GROWTH_TYPE",item,"growthType / growthFunction","알 수 없는 성장 유형 또는 기능입니다.","Inspector에서 성장 유형과 기능을 다시 선택하세요.");
+            if(item.harvestQuantity<1)report.Error("HARVEST_QUANTITY",item,"harvestQuantity","수확 수량은 1 이상이어야 합니다.","1 이상의 수량을 설정하세요.");
+            if(item.GrowthType==PlantGrowthType.Producer && !item.UsesRegrowth) Positive(item,"productionSeconds",item.productionSeconds,report);
+            if(item.GrowthType==PlantGrowthType.Functional)
+            {
+                Range(item,"functionSeconds",item.FunctionInterval,0,float.MaxValue,report);
+                if(item.Function==PlantFunction.Water)Positive(item,"effectRadius",item.effectRadius,report);
+                if(item.Function==PlantFunction.None)report.Error("PLANT_FUNCTION",item,"growthFunction","기능형의 기능이 없습니다.","경작/물주기/보관 중 하나를 선택하세요.");
+            }
             CheckItem(item.harvestResult, catalog, report, visited, saving);
         }
         public static void Positive(Object context, string field, float value, SetupValidationReport report)

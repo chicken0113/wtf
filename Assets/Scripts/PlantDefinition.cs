@@ -2,6 +2,8 @@ using UnityEngine;
 namespace EverythingGrows
 {
     public enum GrowthEffect { Dig, Water, Produce, Storage, Weapon, Crop, Scythe, Heart, House }
+    public enum PlantGrowthType { Legacy, Harvest, Producer, Functional }
+    public enum PlantFunction { None, Till, Water, Storage }
     [CreateAssetMenu(menuName="Everything Grows/Plant Definition")]
     public sealed class PlantDefinition : ScriptableObject
     {
@@ -14,6 +16,23 @@ namespace EverythingGrows
         public int requiredFarmingLevel = 1;
         [Min(0), Tooltip("XP per successful harvest of this planted item, including repeat harvests. Not awarded by pickup or hoe removal.")]
         public int harvestExperience = 10;
+        [Header("Planted growth")]
+        [Tooltip("Legacy is retained for old assets only. Select a growth type in the Inspector.")]
+        public PlantGrowthType growthType;
+        public PlantFunction growthFunction;
+        [Min(1)] public int harvestQuantity = 1;
+        [Min(0), Tooltip("0 performs the function every tick. Storage is always passive.")]
+        public float functionSeconds = 1;
+        public PlantGrowthType GrowthType => growthType!=PlantGrowthType.Legacy?growthType:
+            (isSeed && regrowSeconds>0 && harvestResult!=null?PlantGrowthType.Producer:
+            effect==GrowthEffect.Produce && harvestResult==null?PlantGrowthType.Producer:
+            effect==GrowthEffect.Dig || effect==GrowthEffect.Water || effect==GrowthEffect.Storage?PlantGrowthType.Functional:PlantGrowthType.Harvest);
+        public PlantFunction Function => GrowthType!=PlantGrowthType.Functional?PlantFunction.None:
+            growthType!=PlantGrowthType.Legacy?growthFunction:
+            effect==GrowthEffect.Dig?PlantFunction.Till:effect==GrowthEffect.Water?PlantFunction.Water:effect==GrowthEffect.Storage?PlantFunction.Storage:PlantFunction.None;
+        public float FunctionInterval => growthType==PlantGrowthType.Legacy?0:functionSeconds;
+        public PlantDefinition HarvestItem => harvestResult!=null?harvestResult:this;
+        public bool UsesRegrowth => GrowthType==PlantGrowthType.Producer && regrowSeconds>0;
         [Min(.1f)] public float growthSeconds = 6;
         [Min(.1f)] public float effectRadius = 2;
         [Min(.1f)] public float productionSeconds = 8;

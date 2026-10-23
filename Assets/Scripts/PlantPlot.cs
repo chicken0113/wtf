@@ -9,7 +9,7 @@ namespace EverythingGrows
         public PlantDefinition plant;
         public bool wet, mature, ready, wilted, regrowing;
         public float progress, production;
-        public bool CanHarvest => plant != null && !wilted && mature && (plant.effect != GrowthEffect.Produce || plant.harvestResult != null || ready);
-        public PlantDefinition HarvestItem => plant != null && plant.harvestResult != null ? plant.harvestResult : plant;
+        public bool CanHarvest => plant != null && !wilted && mature && (plant.GrowthType != PlantGrowthType.Producer || plant.UsesRegrowth || ready);
+        public PlantDefinition HarvestItem => plant != null ? plant.HarvestItem : null;
     }
 }

@@ -32,11 +32,15 @@ namespace EverythingGrows
             message = "No space. Plant or drop an item first."; return false;
         }
         internal void ReconcileInventoryCapacity() => DropOverflow();
-        public bool ReceiveHarvest(PlantDefinition item)
+        public bool ReceiveHarvest(PlantDefinition item) => ReceiveHarvest(item,1);
+        public bool ReceiveHarvest(PlantDefinition item,int quantity)
         {
-            if(item==null) return false;
-            if(AddItem(item)) { message="Harvested "+item.label+"."; return true; }
-            Spawn(item,PlayerPosition+Vector2.down*.65f); message="Inventory full. Harvest dropped at your feet."; return true;
+            if(item==null || quantity<1) return false;
+            bool dropped=false;
+            for(int i=0;i<quantity;i++)
+                if(!inventory.TryAdd(item,Capacity)) { Spawn(item,PlayerPosition+Vector2.down*.65f);dropped=true; }
+            message=dropped?"Inventory full. Harvest dropped at your feet.":"Harvested "+item.label+" x"+quantity+".";
+            return true;
         }
         private void DropOverflow()
         {
