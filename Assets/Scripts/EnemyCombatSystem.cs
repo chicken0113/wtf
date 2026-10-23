@@ -12,7 +12,9 @@ namespace EverythingGrows
         private readonly CombatEffects effects;
         private readonly Action<Enemy> defeated;
         private readonly List<Enemy> enemies = new();
-        private bool nightActive;
+        private bool nightActive,hasPlacedHostiles;
+        private readonly HashSet<string> defeatedPlacements=new();
+        public bool FloorCleared { get; private set; }
         public IReadOnlyList<Enemy> Items => enemies;
         public float Radius => settings.EnemyRadius;
         public int LivingHostileCount { get { int count=0;foreach(var enemy in enemies)if(!enemy.trainingDummy && enemy.health>0)count++;return count; } }
@@ -22,6 +24,7 @@ namespace EverythingGrows
         internal sealed class Enemy
         {
             public Vector2 home, aim, pathGoal;
+            public string placementId;
             public List<Vector2> path=new();
             public float repath;
             public SpriteRenderer model, warning;
@@ -30,12 +33,31 @@ namespace EverythingGrows
             public Color tint;
         }
         public bool Active(Enemy enemy) => nightActive || enemy.trainingDummy;
-        public void Spawn(Vector2 point,bool ranged,Vector2? size=null,bool trainingDummy=false)
+        public void Spawn(Vector2 point,bool ranged,Vector2? size=null,bool trainingDummy=false,string placementId=null)
         {
-            if(farm.IsSafe(point) && !trainingDummy) return;
-            var enemy=new Enemy { home=point,ranged=ranged,trainingDummy=trainingDummy,model=effects.Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=effects.Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
+            if((farm.IsSafe(point) || FloorCleared) && !trainingDummy) return;
+            if(!trainingDummy && !string.IsNullOrEmpty(placementId))hasPlacedHostiles=true;
+            var enemy=new Enemy { placementId=placementId, home=point,ranged=ranged,trainingDummy=trainingDummy,model=effects.Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=effects.Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
             enemy.model.enabled=Active(enemy); enemy.warning.enabled=false; enemies.Add(enemy);
             enemy.tint=enemy.model.color;
+        }
+        public void CaptureState(MapSave state)
+        {
+            state.combatCleared=FloorCleared;
+            state.defeatedEnemies=new List<string>(defeatedPlacements);
+            state.defeatedEnemies.Sort(System.StringComparer.Ordinal);
+        }
+        public void RestoreState(MapSave state)
+        {
+            FloorCleared=state.combatCleared;
+            defeatedPlacements.Clear();
+            if(state.defeatedEnemies!=null)foreach(var id in state.defeatedEnemies)defeatedPlacements.Add(id);
+            foreach(var enemy in enemies)
+            {
+                if(enemy.trainingDummy || (!FloorCleared && !defeatedPlacements.Contains(enemy.placementId??"")))continue;
+                enemy.health=0;enemy.windup=0;enemy.path.Clear();enemy.warning.enabled=false;enemy.model.enabled=false;
+            }
+            if(hasPlacedHostiles && LivingHostileCount==0)FloorCleared=true;
         }
         public bool SetNightActive(bool active)
         {
@@ -45,21 +67,27 @@ namespace EverythingGrows
             {
                 if(enemy.trainingDummy) continue;
                 enemy.windup=0; enemy.warning.enabled=false; enemy.path.Clear(); enemy.repath=0;
-                if(active) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.cooldown=1; enemy.respawn=0; }
+                if(active && enemy.health>0) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.cooldown=1; enemy.respawn=0; }
                 enemy.model.enabled=active && enemy.health>0;
             }
             return true;
         }
         public void Hit(Enemy enemy,float damage,Vector2 direction)
         {
+            if(enemy.health<=0 || damage<=0)return;
             enemy.health-=damage;
             enemy.hitTime=.1f;enemy.stagger=.08f;enemy.windup=0;enemy.warning.enabled=false;enemy.model.color=new Color(1,.4f,.35f);
             effects.Sparks(enemy.model.transform.position,new Color(1,.9f,.65f));farm.ImpactFeedback(false);
             if(enemy.health<=0)
             {
-                enemy.health=0; enemy.model.enabled=false; enemy.warning.enabled=false; enemy.windup=0; enemy.respawn=25;
+                enemy.health=0; enemy.model.enabled=false; enemy.warning.enabled=false; enemy.windup=0; enemy.respawn=0;
                 if(enemy.trainingDummy) enemy.respawn=3;
-                else defeated(enemy);
+                else
+                {
+                    if(!string.IsNullOrEmpty(enemy.placementId))defeatedPlacements.Add(enemy.placementId);
+                    if(hasPlacedHostiles && LivingHostileCount==0)FloorCleared=true;
+                    defeated(enemy);
+                }
             }
             else if(!enemy.trainingDummy)
             {
@@ -89,8 +117,9 @@ namespace EverythingGrows
             enemy.model.color=Color.Lerp(enemy.tint,new Color(1,.4f,.35f),Mathf.Clamp01(enemy.hitTime/.1f));
             if(enemy.health<=0)
             {
+                if(!enemy.trainingDummy)return;
                 enemy.respawn-=seconds;
-                if(enemy.respawn<=0 && (enemy.trainingDummy || Vector2.Distance(farm.PlayerPosition,enemy.home)>4)) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.model.enabled=true; enemy.cooldown=1; }
+                if(enemy.respawn<=0) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.model.enabled=true; enemy.cooldown=1; }
                 return;
             }
             Vector2 point=enemy.model.transform.position, offset=farm.PlayerPosition-point;

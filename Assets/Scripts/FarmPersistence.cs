@@ -26,6 +26,7 @@ namespace EverythingGrows
         {
             var state=new MapSave {scene=gameObject.scene.path,updatedAt=worldSeconds,removedObjects=new List<string>(removedMapObjects)};
             state.plots=farming.CapturePlots(catalog);
+            combat.CaptureMapState(state);
             foreach(var piece in pieces) if(piece.model!=null)
                 state.pieces.Add(new PieceSave {item=catalog.Id(piece.definition),position=piece.model.transform.position,size=(Vector2)piece.model.transform.lossyScale*Mathf.Max(piece.model.GetComponent<SpriteRenderer>().sprite.bounds.size.x,piece.model.GetComponent<SpriteRenderer>().sprite.bounds.size.y)});
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(building.runtimePlaced)
@@ -34,6 +35,7 @@ namespace EverythingGrows
         }
         public void RestoreMap(MapSave state,SaveItemCatalog catalog)
         {
+            combat.RestoreMapState(state);
             foreach(var piece in pieces) if(piece.model!=null) Remove(piece.model); pieces.Clear();
             removedMapObjects.Clear(); foreach(var id in state.removedObjects) removedMapObjects.Add(id);
             foreach(var building in GetComponentsInChildren<FarmBuilding>())

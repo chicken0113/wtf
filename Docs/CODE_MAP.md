@@ -19,10 +19,11 @@
 | 월드 아이템 줍기·드롭·집 배치 | `Assets/Scripts/FarmGame.World.cs` | `DetachAt`, `Spawn`, `CanPlaceHouse`, `PlaceHouse` |
 | NPC 대화·구매·판매 | `Assets/Scripts/NpcManager.cs` | `ShopNpc`, `NpcProfile` 데이터 |
 | 체력·피해·무적·사망 복귀·회피·공격 대기 | `Assets/Scripts/PlayerCombatState.cs` | `OpenFieldCombat`이 기존 API와 직렬화 설정 유지 |
-| 적 탐지·추적·공격 준비·피격·사망·재등장 | `Assets/Scripts/EnemyCombatSystem.cs` | `TickEnemy`, `MoveEnemy`, `Hit`, `HitMelee` |
+| 적 탐지·추적·공격 준비·피격·사망·훈련 표적 회복 | `Assets/Scripts/EnemyCombatSystem.cs` | `TickEnemy`, `MoveEnemy`, `Hit`, `HitMelee` |
 | 탄환 생성·이동·벽 차단·최초 명중·수명 | `Assets/Scripts/ProjectileSystem.cs` | `Spawn`, `Tick`, `ClearHostile` |
 | 전투 궤적·발사·파편·잔상·공격 예고선 | `Assets/Scripts/CombatEffects.cs` | 캐릭터/손 동작과 카메라는 기존 `FarmGame.Feedback.cs` |
 | 전투 연결·처치 수·길드 처치 전달·체력 HUD | `Assets/Scripts/OpenFieldCombat.cs` | `Attack`, `TickCombat`, `EnemyDefeated`, `OnGUI` |
+| 층 클리어·처치 ID 유지 | `EnemyCombatSystem.CaptureState / RestoreState / FloorCleared` | `FarmPersistence` → `MapSave.combatCleared / defeatedEnemies`; 배치 ID는 `MapSaveAuthoring` → `MapObjectId` |
 | 층 전멸 계단 잠금 | `EnemyCombatSystem.LivingHostileCount` → `OpenFieldCombat` | `MapExit.requireClearFloor / IsCombatBlocked / Travel / InteractionPrompt`; 일반 출입구 기본값 false |
 | 탑 1·2층·F 계단 배치 | `Editor/TowerDungeonSetup.cs` | 기존 `MapExit`/`MapArrivalPoint`/`GameSession.Travel`; [TOWER_DUNGEON.md](TOWER_DUNGEON.md) |
 | 맵/플레이어 저장 연결 | `Assets/Scripts/FarmPersistence.cs` | 각 상태 소유자에게 Capture/Restore 위임 |
@@ -123,3 +124,7 @@
 - 규칙을 바꾸는 작업과 구조 정리를 구분한다. 리팩터링 중 발견한 새 기획은 확인 없이 추가하지 않는다.
 - 현재 농사는 `FarmGame`의 인벤토리·월드 API에 의존한다. 독립된 서버 시뮬레이션이나 멀티 구조까지 분리한 상태는 아니다.
 - 전투도 별도 상태 소유 클래스로 분리했다. 상태 클래스는 현재 Unity 월드와 설정 컴포넌트를 참조하며 멀티/서버 전용 시뮬레이션으로 분리한 상태는 아니다. 초기화·HUD 등에는 추가 정리 여지가 있으며 프로젝트 전체의 기술 부채를 제거했다는 의미는 아니다.
+
+### 일반 적의 영구 처치
+
+일반 적은 사망 후 자동 재등장하지 않는다. 배치 적의 ID와 층 클리어 상태는 맵별 저장에 포함되며 재입장·탑 외부 이동·재실행에도 유지한다. 복원은 보상 콜백을 호출하지 않는다. 마지막 처치의 보상/드롭 이후 `OpenFieldCombat.EnemyDefeated`가 기존 자동 저장을 호출한다. 훈련 표적의 3초 회복은 유지한다. 버전 1의 이전 저장은 새 필드가 없으면 미클리어로 읽는다.

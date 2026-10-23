@@ -40,5 +40,8 @@ namespace EverythingGrows
         public List<PieceSave> pieces=new();
         public List<BuildingSave> buildings=new();
         public List<string> removedObjects=new();
+        // Optional version-1 fields: missing legacy data means no recorded clear/kills.
+        public bool combatCleared;
+        public List<string> defeatedEnemies=new();
     }
 }

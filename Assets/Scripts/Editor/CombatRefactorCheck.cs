@@ -16,7 +16,7 @@ public static class CombatRefactorCheck
         MovementCollisionCheck.Run();
         HeartHarvestCheck.Run();
         CheckLifecycle();
-        Debug.Log("COMBAT_REFACTOR_SUCCESS: existing collision/heart checks, enemy respawn and interruption, hostile shot cleanup, training exclusion, restored HP/kills/immunity and avoidable enemy shots.");
+        Debug.Log("COMBAT_REFACTOR_SUCCESS: existing collision/heart checks, ordinary enemy persistence, dummy recovery and interruption, hostile shot cleanup, training exclusion, restored HP/kills/immunity and avoidable enemy shots.");
     }
 
     private static void CheckLifecycle()
@@ -45,7 +45,13 @@ public static class CombatRefactorCheck
         Check(!model.enabled && combat.Kills == 1, "Enemy respawned beside player or death counted twice");
         farm.TeleportPlayer(new Vector2(12, -12));
         combat.TickCombat(.1f);
-        Check(model.enabled && (float)CombatCheckAccess.Read(enemy, "health") == 55, "Distant enemy did not respawn");
+        Check(!model.enabled && (float)CombatCheckAccess.Read(enemy, "health") == 0, "Defeated ordinary enemy respawned");
+        combat.SetNightActive(false);combat.SetNightActive(true);
+        Check(!model.enabled && (float)CombatCheckAccess.Read(enemy, "health") == 0, "Phase toggle revived defeated enemy");
+        combat.SpawnEnemy(new Vector2(20, -12), false);
+        enemy = enemies[enemies.Count - 1];
+        model = (SpriteRenderer)CombatCheckAccess.Read(enemy, "model");
+        warning = (SpriteRenderer)CombatCheckAccess.Read(enemy, "warning");
         farm.TeleportPlayer(new Vector2(19, -12));
         combat.TickCombat(1.1f);
         combat.TickCombat(.1f);

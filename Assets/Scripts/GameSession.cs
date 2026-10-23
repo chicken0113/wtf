@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace EverythingGrows
@@ -75,6 +76,9 @@ namespace EverythingGrows
             foreach(var map in candidate.maps)
             {
                 if(map==null || map.plots==null || map.pieces==null || map.buildings==null || map.removedObjects==null) throw new InvalidDataException("Invalid map save.");
+                map.defeatedEnemies ??= new System.Collections.Generic.List<string>();
+                if(map.defeatedEnemies.Any(string.IsNullOrWhiteSpace) || map.defeatedEnemies.Distinct().Count()!=map.defeatedEnemies.Count)
+                    throw new InvalidDataException("Invalid defeated-enemy IDs in map: "+map.scene);
                 foreach(var plot in map.plots) if(!string.IsNullOrEmpty(plot.item)) catalog.Resolve(plot.item);
                 foreach(var piece in map.pieces) catalog.Resolve(piece.item);
                 foreach(var building in map.buildings) if(catalog.Resolve(building.item).effect!=GrowthEffect.House) throw new InvalidDataException("Invalid house item.");

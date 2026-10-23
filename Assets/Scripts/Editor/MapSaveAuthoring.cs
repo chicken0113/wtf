@@ -33,9 +33,10 @@ public static class MapSaveAuthoring
     public static void PrepareCurrentMap()
     {
         var scene=UnityEngine.SceneManagement.SceneManager.GetActiveScene(); var used=new System.Collections.Generic.HashSet<string>();
-        foreach(var root in scene.GetRootGameObjects()) foreach(var building in root.GetComponentsInChildren<FarmBuilding>(true))
+        foreach(var root in scene.GetRootGameObjects()) foreach(var target in root.GetComponentsInChildren<FarmBuilding>(true).Cast<Component>()
+            .Concat(root.GetComponentsInChildren<EnemyPlacement>(true).Where(enemy=>!enemy.trainingDummy).Cast<Component>()))
         {
-            var marker=building.GetComponent<MapObjectId>(); if(marker==null) marker=Undo.AddComponent<MapObjectId>(building.gameObject);
+            var marker=target.GetComponent<MapObjectId>(); if(marker==null) marker=Undo.AddComponent<MapObjectId>(target.gameObject);
             if(string.IsNullOrEmpty(marker.Id) || !used.Add(marker.Id)) { Undo.RecordObject(marker,"Assign unique map object ID"); marker.AssignNew(); used.Add(marker.Id); }
             PrefabUtility.RecordPrefabInstancePropertyModifications(marker); EditorUtility.SetDirty(marker);
         }

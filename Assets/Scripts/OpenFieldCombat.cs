@@ -27,6 +27,9 @@ namespace EverythingGrows
         public Vector2 RollDirection => playerState!=null?playerState.RollDirection:Vector2.zero;
         public float PlayerHitFlash => playerState!=null?playerState.PlayerHitFlash:0;
         public int Kills { get; private set; }
+        public bool FloorCleared => enemySystem!=null && enemySystem.FloorCleared;
+        internal void CaptureMapState(MapSave state) => enemySystem.CaptureState(state);
+        internal void RestoreMapState(MapSave state) => enemySystem.RestoreState(state);
         public int LivingHostileCount => enemySystem!=null?enemySystem.LivingHostileCount:0;
         public int EnemyCount => enemySystem!=null?enemySystem.EnemyCount:0;
         public float HeartFill(int index) => playerState.HeartFill(index);
@@ -60,6 +63,7 @@ namespace EverythingGrows
             Kills++;
             GameSession.RecordGuildKill(farm,enemy.ranged);
             farm.DropCombatMaterial(enemy.model.transform.position,enemy.ranged);
+            if(FloorCleared)GameSession.Save(farm);
         }
         public void Initialize(FarmGame owner)
         {
@@ -70,7 +74,7 @@ namespace EverythingGrows
             projectiles=new ProjectileSystem(farm,effects);
             if(farm.Layout!=null)
             {
-                foreach(var marker in farm.Layout.GetComponentsInChildren<EnemyPlacement>()) SpawnEnemy(marker.transform.position,marker.ranged,new Vector2(Mathf.Abs(marker.transform.lossyScale.x),Mathf.Abs(marker.transform.lossyScale.y)),marker.trainingDummy);
+                foreach(var marker in farm.Layout.GetComponentsInChildren<EnemyPlacement>()) enemySystem.Spawn(marker.transform.position,marker.ranged,new Vector2(Mathf.Abs(marker.transform.lossyScale.x),Mathf.Abs(marker.transform.lossyScale.y)),marker.trainingDummy,MapObjectId.Key(marker));
                 return;
             }
             SpawnEnemy(new Vector2(10,2),false); SpawnEnemy(new Vector2(12,-3),true);

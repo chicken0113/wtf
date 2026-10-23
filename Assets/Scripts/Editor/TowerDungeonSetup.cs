@@ -90,7 +90,7 @@ public static class TowerDungeonSetup
         var down=farm.GetComponentsInChildren<MapExit>().Single(e=>e.destinationScene==TriangleWorldSetup.Field);
         Stairs(down,Lobby,"tower_from_second","Down to 1F",false);
         farm.Layout.combatSchedule=FarmMapLayout.CombatSchedule.Always;farm.Layout.dayNightLighting=false;
-        Label(farm.Layout.transform,"Tower 2F",V(-7,4.2f));Root(Marker,farm.Layout.transform,Vector2.zero);Save(farm);
+        Label(farm.Layout.transform,"Tower 2F",V(-7,4.2f));Root(Marker,farm.Layout.transform,Vector2.zero);MapSaveAuthoring.PrepareCurrentMap();Save(farm);
     }
     private static void ConnectExterior()
     {

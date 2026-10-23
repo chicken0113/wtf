@@ -26,6 +26,13 @@ public static class TowerDungeonCheck
             !Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Use isolated temporary project and saves.");
     }
+    public static void PrepareEnemyIds()
+    {
+        if(!Application.isBatchMode || !Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Prepare IDs in isolated copy.");
+        EditorSceneManager.OpenScene(TowerDungeonSetup.Battle);MapSaveAuthoring.PrepareCurrentMap();
+        EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+    }
     public static void Run()
     {
         Guard();ProjectSetupCheck.Run();WorldRouteAudit.Validate();
@@ -106,9 +113,11 @@ public static class TowerDungeonCheck
                 }
                 Check(farm.gameObject.scene.path==TowerDungeonSetup.Battle,"Restart stair did not reach 2F");InventoryAndHealth(farm,60,expectedKills);
                 Check(farm.WorldPieceCount==expectedBattleDrops,"Combat loot lost after restart");
-                CheckStairBlocked(farm);KillOne(farm);farm.Combat.TickCombat(.5f);KillOne(farm,"Spitter");expectedKills+=2;expectedBattleDrops+=2;
+                Check(farm.Combat.FloorCleared && farm.Combat.LivingHostileCount==0,"Cleared floor repopulated after restart");
+                farm.TeleportPlayer(new Vector2(8,-5));farm.Combat.TickCombat(90);
+                Check(farm.Combat.LivingHostileCount==0,"Cleared floor respawned over time");
                 step++;Travel(farm,TowerDungeonSetup.Lobby,true);
-                if(step==2) { SessionState.SetBool(Key+"ResumeFinish",true);resume=false;step=6; }
+                if(step==2) { SessionState.SetBool(Key+"ResumeFinish",true);resume=false;step=7; }
                 return;
             }
             if(step==0)
@@ -130,11 +139,22 @@ public static class TowerDungeonCheck
                 farm.Combat.SpawnEnemy(new Vector2(9,5),false,null,true); // Living training dummies must not lock stairs.
                 Capture(farm,"Tower-2F.png");farm.TeleportPlayer(new Vector2(8,-5));farm.Combat.TickCombat(1.1f);farm.Combat.DamagePlayer(10);Check(farm.Combat.Health==60,"Damage fixture remained invulnerable");KillOne(farm);Check(farm.Combat.LivingHostileCount==1,"Enemy kill not counted");
                 CheckStairBlocked(farm);farm.Combat.TickCombat(.5f);KillOne(farm,"Spitter");
-                Check(farm.Combat.LivingHostileCount==0 && farm.Combat.EnemyCount==1,"Training dummy affected hostile count");
+                Check(farm.Combat.LivingHostileCount==0 && farm.Combat.EnemyCount==1 && farm.Combat.FloorCleared,"Training dummy affected floor clear");
+                var snapshot=JsonUtility.FromJson<GameSaveData>(File.ReadAllText(GameSession.SavePath)).maps.Single(m=>m.scene==TowerDungeonSetup.Battle);
+                Check(snapshot.combatCleared && snapshot.defeatedEnemies.Count==2 && snapshot.pieces.Count==2,"Final kill did not autosave clear and loot");
+                farm.TeleportPlayer(new Vector2(8,-5));farm.Combat.TickCombat(90);
+                Check(farm.Combat.FloorCleared && farm.Combat.LivingHostileCount==0,"Ordinary enemies respawned after clear");
                 step++;Travel(farm,TowerDungeonSetup.Lobby,true);return;
             }
             if(step==3) { SafeLobby(farm);InventoryAndHealth(farm,60,expectedKills);Check(farm.WorldPieceCount==1,"Lobby item lost");step++;Travel(farm,TriangleWorldSetup.Field,false);return; }
             if(step==4) { Check(farm.gameObject.scene.path==TriangleWorldSetup.Field,"Wrong exterior return");InventoryAndHealth(farm,60,expectedKills);step++;Travel(farm,TowerDungeonSetup.Lobby,false);return; }
+            if(step==5) { SafeLobby(farm);step=6;Travel(farm,TowerDungeonSetup.Battle,true);return; }
+            if(step==6)
+            {
+                Check(farm.gameObject.scene.path==TowerDungeonSetup.Battle && farm.Combat.FloorCleared && farm.Combat.LivingHostileCount==0,"Leaving tower reset cleared floor");
+                InventoryAndHealth(farm,60,expectedKills);Check(farm.WorldPieceCount==expectedBattleDrops,"Restoring clear duplicated or lost loot");
+                step=7;Travel(farm,TowerDungeonSetup.Lobby,true);return;
+            }
             SafeLobby(farm);InventoryAndHealth(farm,60,expectedKills);Check(farm.WorldPieceCount==1,"Lobby state lost after outside loop");Check(GameSession.Save(farm),"Tower autosave failed");
             var saved=JsonUtility.FromJson<GameSaveData>(File.ReadAllText(GameSession.SavePath));
             Check(saved.version==1 && saved.currentScene==TowerDungeonSetup.Lobby && saved.maps.Any(m=>m.scene==TowerDungeonSetup.Battle && m.pieces.Count==expectedBattleDrops),"Tower map save incomplete");
