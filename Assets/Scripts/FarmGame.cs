@@ -74,7 +74,7 @@ namespace EverythingGrows
             Vector2 point=player!=null?PlayerPosition:SpawnPosition;
             Gizmos.DrawWireCube(point,Vector2.one*playerRadius*2);
         }
-        public void DropCombatMaterial(Vector2 point,bool ranged) { var item=Resources.Load<PlantDefinition>("Equipment/"+(ranged?"Bow":"Sword")); if(item!=null) Spawn(item,point); }
+        public void DropCombatMaterial(Vector2 point,bool ranged) => MonsterRewardSystem.Grant(this,MonsterType.Default(ranged),point);
         public void Configure(PlantDefinition[] data) => definitions=data;
         private void Awake() { if(Application.isPlaying) Initialize(); }
         private void InitializeRuntime(bool grantStartingItems, GameSetupResources resources)

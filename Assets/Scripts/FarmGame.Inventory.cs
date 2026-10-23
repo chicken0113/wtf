@@ -32,6 +32,12 @@ namespace EverythingGrows
             message = "No space. Plant or drop an item first."; return false;
         }
         internal void ReconcileInventoryCapacity() => DropOverflow();
+        internal void AddRewardGold(int amount)
+        {
+            if(amount<0)throw new System.ArgumentOutOfRangeException(nameof(amount));
+            carriedGold=(int)System.Math.Min(int.MaxValue,(long)Gold+amount);
+            shop?.RestoreGold(carriedGold);
+        }
         public bool ReceiveHarvest(PlantDefinition item) => ReceiveHarvest(item,1);
         public bool ReceiveHarvest(PlantDefinition item,int quantity)
         {

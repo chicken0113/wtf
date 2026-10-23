@@ -38,6 +38,11 @@ namespace EverythingGrows
             if (data.Items != null) foreach (var item in data.Items) CheckItem(item, data.Catalog, report, visited, saving);
             if (data.Catalog != null && data.Catalog.entries != null)
                 foreach (var entry in data.Catalog.entries) if (entry != null && entry.item != null) CheckItem(entry.item, data.Catalog, report, visited, saving);
+            if(data.MeleeMonster==null || data.RangedMonster==null)
+                report.Error("MONSTER_DEFAULTS",null,"Resources/Monsters/Chaser / Spitter","기본 몬스터 종류 설정이 없습니다.","Chaser.asset과 Spitter.asset을 복원하세요.");
+            CheckMonsterType(data.MeleeMonster,data.Catalog,report,visited,saving);
+            CheckMonsterType(data.RangedMonster,data.Catalog,report,visited,saving);
+            if(data.MonsterTypes!=null)foreach(var type in data.MonsterTypes)CheckMonsterType(type,data.Catalog,report,visited,saving);
             if (!startingItems) return;
             if (data.Starting == null || data.Starting.items == null || data.Starting.items.Length == 0)
                 report.Error("STARTING_MISSING", data.Starting, "Resources/StartingInventory.items", "기본 지급 아이템 목록이 없습니다.", "StartingInventory.asset에 시작 아이템을 연결하세요.");
@@ -112,6 +117,20 @@ namespace EverythingGrows
                 if(item.Function==PlantFunction.None)report.Error("PLANT_FUNCTION",item,"growthFunction","기능형의 기능이 없습니다.","경작/물주기/보관 중 하나를 선택하세요.");
             }
             CheckItem(item.harvestResult, catalog, report, visited, saving);
+        }
+        public static void CheckMonsterType(MonsterType type,SaveItemCatalog catalog,SetupValidationReport report,HashSet<PlantDefinition> visited,bool saving)
+        {
+            if(type==null)return;
+            if(type.gold<0 || type.drops==null)
+            { report.Error("MONSTER_REWARDS",type,"gold / drops","골드가 음수이거나 드롭 목록이 없습니다.","골드를 0 이상으로, 드롭 목록을 유효한 배열로 설정하세요. 아이템을 주지 않으려면 목록을 비우세요.");return; }
+            for(int i=0;i<type.drops.Length;i++)
+            {
+                var drop=type.drops[i];string field="drops["+i+"]";
+                if(drop==null || drop.item==null) { report.Error("MONSTER_DROP_ITEM",type,field,"드롭 아이템이 비어 있습니다.","아이템을 연결하거나 행을 제거하세요.");continue; }
+                Range(type,field+".probability",drop.probability,0,1,report);
+                if(drop.minimum<1 || drop.maximum<drop.minimum)report.Error("MONSTER_DROP_AMOUNT",type,field+".minimum / maximum","드롭 수량 범위가 잘못됐습니다.","최소 1 이상, 최대는 최소 이상으로 설정하세요.");
+                CheckItem(drop.item,catalog,report,visited,saving);
+            }
         }
         public static void Positive(Object context, string field, float value, SetupValidationReport report)
         {

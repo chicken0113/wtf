@@ -27,6 +27,8 @@ namespace EverythingGrows
             }
             SetupDataValidator.Positive(farm, "playerRadius", farm.PlayerRadius, report);
             var layout = farm.Layout != null ? farm.Layout : farm.GetComponentInChildren<FarmMapLayout>();
+            foreach(var marker in layout!=null?layout.GetComponentsInChildren<EnemyPlacement>():farm.GetComponentsInChildren<EnemyPlacement>())
+                if(!marker.trainingDummy)SetupDataValidator.CheckMonsterType(marker.monsterType,data.Catalog,report,visited,saving);
             if (layout != null)
             {
                 var bounds = layout.World;

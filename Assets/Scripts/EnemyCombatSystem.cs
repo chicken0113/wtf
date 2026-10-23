@@ -25,6 +25,7 @@ namespace EverythingGrows
         {
             public Vector2 home, aim, pathGoal;
             public string placementId;
+            public MonsterType monsterType;
             public List<Vector2> path=new();
             public float repath;
             public SpriteRenderer model, warning;
@@ -33,11 +34,11 @@ namespace EverythingGrows
             public Color tint;
         }
         public bool Active(Enemy enemy) => nightActive || enemy.trainingDummy;
-        public void Spawn(Vector2 point,bool ranged,Vector2? size=null,bool trainingDummy=false,string placementId=null)
+        public void Spawn(Vector2 point,bool ranged,Vector2? size=null,bool trainingDummy=false,string placementId=null,MonsterType monsterType=null)
         {
             if((farm.IsSafe(point) || FloorCleared) && !trainingDummy) return;
             if(!trainingDummy && !string.IsNullOrEmpty(placementId))hasPlacedHostiles=true;
-            var enemy=new Enemy { placementId=placementId, home=point,ranged=ranged,trainingDummy=trainingDummy,model=effects.Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=effects.Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
+            var enemy=new Enemy { monsterType=trainingDummy?null:monsterType!=null?monsterType:MonsterType.Default(ranged), placementId=placementId, home=point,ranged=ranged,trainingDummy=trainingDummy,model=effects.Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=effects.Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
             enemy.model.enabled=Active(enemy); enemy.warning.enabled=false; enemies.Add(enemy);
             enemy.tint=enemy.model.color;
         }

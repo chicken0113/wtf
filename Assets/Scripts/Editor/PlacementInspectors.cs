@@ -29,6 +29,6 @@ public sealed class EnemyPlacementInspector : Editor
             var enemy=(EnemyPlacement)value; var renderer=enemy.GetComponent<SpriteRenderer>(); if(renderer==null) continue;
             Undo.RecordObject(renderer,"Update enemy preview"); renderer.sprite=EditableMapBuilder.PreviewIcon(enemy.ranged?21:20); EditorUtility.SetDirty(renderer);
         }
-        EditorGUILayout.HelpBox("Ranged를 켜면 원거리 적, 끄면 추격형 적입니다. 안전 구역 안에서는 생성되지 않습니다.",MessageType.Info);
+        EditorGUILayout.HelpBox("Monster Type은 종류별 공통 보상 에셋입니다. 비우면 Ranged에 따라 Chaser/Spitter를 사용합니다. Ranged는 공격 방식만 정하며 훈련 표적은 보상을 주지 않습니다.",MessageType.Info);
     }
 }

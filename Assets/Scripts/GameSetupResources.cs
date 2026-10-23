@@ -14,6 +14,8 @@ namespace EverythingGrows
         public PlantDefinition Heart;
         public GameObject HouseDoor;
         public PlantDefinition[] Items;
+        public MonsterType[] MonsterTypes;
+        public MonsterType MeleeMonster,RangedMonster;
         public static GameSetupResources Load() => new GameSetupResources {
             Cycle = Resources.Load<DayNightSettings>("WorldCycle"),
             Controls = Resources.Load<PlayerControlSettings>("PlayerControls"),
@@ -23,7 +25,9 @@ namespace EverythingGrows
             Atlas = Resources.Load<Texture2D>("FarmAtlas"),
             Heart = Resources.Load<PlantDefinition>("Equipment/Heart"),
             HouseDoor = Resources.Load<GameObject>("Buildings/HouseDoor"),
-            Items = Resources.LoadAll<PlantDefinition>("")
+            Items = Resources.LoadAll<PlantDefinition>(""),
+            MonsterTypes = Resources.LoadAll<MonsterType>(""),
+            MeleeMonster = MonsterType.Default(false), RangedMonster = MonsterType.Default(true)
         };
     }
 }

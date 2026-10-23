@@ -22,6 +22,7 @@
 | NPC 대화·구매·판매 | `Assets/Scripts/NpcManager.cs` | `ShopNpc`, `NpcProfile` 데이터 |
 | 체력·피해·무적·사망 복귀·회피·공격 대기 | `Assets/Scripts/PlayerCombatState.cs` | `OpenFieldCombat`이 기존 API와 직렬화 설정 유지 |
 | 적 탐지·추적·공격 준비·피격·사망·훈련 표적 회복 | `Assets/Scripts/EnemyCombatSystem.cs` | `TickEnemy`, `MoveEnemy`, `Hit`, `HitMelee` |
+| 몬스터 종류별 드롭·골드 | `MonsterType`, `MonsterRewardSystem.Grant` | `EnemyPlacement.monsterType` → `EnemyCombatSystem` → 기존 `OpenFieldCombat.EnemyDefeated`; [MONSTER_REWARDS.md](MONSTER_REWARDS.md) |
 | 탄환 생성·이동·벽 차단·최초 명중·수명 | `Assets/Scripts/ProjectileSystem.cs` | `Spawn`, `Tick`, `ClearHostile` |
 | 전투 궤적·발사·파편·잔상·공격 예고선 | `Assets/Scripts/CombatEffects.cs` | 캐릭터/손 동작과 카메라는 기존 `FarmGame.Feedback.cs` |
 | 전투 연결·처치 수·길드 처치 전달·체력 HUD | `Assets/Scripts/OpenFieldCombat.cs` | `Attack`, `TickCombat`, `EnemyDefeated`, `OnGUI` |
@@ -76,7 +77,7 @@
 - 공격 대기와 회피 중 공격 제한은 `PlayerCombatState` 한곳에서 판단한다. 피해·사거리·간격은 기존 무기 데이터를 읽는다.
 - `ProjectileSystem.Tick`은 벽과 대상의 충돌 시점 중 가장 빠른 것을 선택한다. 적 명중은 `EnemyCombatSystem.Hit`, 플레이어 명중은 `PlayerCombatState.Damage`로 전달한다. 별도의 탄환 피해 규칙을 만들지 않는다.
 - 근접 공격의 벽 차단·부채꼴 판정은 `EnemyCombatSystem.HitMelee`를 수정한다. 원거리와 근접의 적 피격 처리는 같은 `Hit`으로 모인다.
-- 일반 적 처치는 `OpenFieldCombat.EnemyDefeated → 처치 수 증가 / GameSession.RecordGuildKill / 드롭` 한 경로로 처리한다. 훈련 표적은 이 콜백을 호출하지 않는다.
+- 일반 적 처치는 `OpenFieldCombat.EnemyDefeated → 처치 수 증가 / GameSession.RecordGuildKill / MonsterRewardSystem.Grant` 한 경로로 처리한다. 훈련 표적은 이 콜백을 호출하지 않는다.
 - `PlayerCombatState`와 `EnemyCombatSystem`은 기존 컴포넌트의 직렬화 수치를 참조한다. `startingHearts`, `healthPerHeart`, `enemyRadius` 필드 이름과 컴포넌트 GUID를 유지한다.
 - 저장은 기존 `FarmPersistence → OpenFieldCombat.RestorePlayerState → PlayerCombatState.Restore`로 이어진다. 처치 수는 연결 컴포넌트에서 복원하며 저장 필드·버전은 바꾸지 않는다. 적 개체와 탄환의 저장은 이번에 추가하지 않았다.
 
