@@ -11,6 +11,9 @@ namespace EverythingGrows
         [TextArea(2,5)] public string description;
         public Color color = Color.white;
         public GrowthEffect effect;
+        [Tooltip("Optional special action. Empty uses the existing weapon/tool behavior.")]
+        public ItemUseEffect useEffect;
+        public bool consumeOnUse;
         [Header("Farming progression")]
         [Min(1), Tooltip("Required farming level to plant this item. Does not restrict use, trade or pickup.")]
         public int requiredFarmingLevel = 1;

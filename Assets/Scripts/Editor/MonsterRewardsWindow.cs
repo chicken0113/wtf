@@ -14,8 +14,8 @@ public sealed class MonsterRewardsWindow : EditorWindow
     private SetupValidationReport report;
     private Vector2 listScroll,detailScroll;
 
-    [MenuItem("Tools/Everything Grows/몬스터 보상 관리")]
-    public static void Open() => GetWindow<MonsterRewardsWindow>("몬스터 보상 관리");
+    [MenuItem("Tools/Everything Grows/몬스터 관리")]
+    public static void Open() => GetWindow<MonsterRewardsWindow>("몬스터 관리");
     private void OnEnable()
     {
         minSize=new Vector2(680,400);Refresh();
@@ -114,6 +114,8 @@ public sealed class MonsterRewardsWindow : EditorWindow
         using(new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
             EditorGUILayout.PropertyField(data.FindProperty("label"),new GUIContent("종류 이름"));
+            EditorGUILayout.LabelField("행동과 능력치",EditorStyles.boldLabel);
+            foreach(string field in new[]{"behavior","maxHealth","moveSpeed","returnSpeed","detectionRange","attackRange","meleeHitRange","attackHalfHearts","windupSeconds","attackCooldown","projectileSpeed","projectileLifetime"})EditorGUILayout.PropertyField(data.FindProperty(field));
             EditorGUILayout.PropertyField(data.FindProperty("gold"),new GUIContent("골드 보상"));
             var drops=data.FindProperty("drops");
             EditorGUILayout.Space();EditorGUILayout.LabelField("드롭 목록",EditorStyles.boldLabel);

@@ -30,7 +30,7 @@ namespace EverythingGrows
         private string message = "RMB: pick up, plant or harvest. Left click: use tools.";
         public bool MapOpen => showMap;
         public void SetMapOpen(bool open) => showMap = open;
-        public bool WorldInputBlocked => InventoryOpen || showMap;
+        public bool WorldInputBlocked => InventoryOpen || showMap || GameMenu.IsBlocking;
         public bool InventoryOpen => showInventory || (shop != null && shop.IsOpen);
         internal bool PersonalInventoryOpen => showInventory;
         public void SetInventoryOpen(bool open) => showInventory = open;

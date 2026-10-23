@@ -21,8 +21,8 @@ public static class ManagementToolsCheck
         if(!Application.isBatchMode || !Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase))throw new Exception("Isolated project only.");
         var menus=typeof(ItemManagerWindow).Assembly.GetTypes().SelectMany(t=>t.GetMethods(BindingFlags.Static|BindingFlags.Public|BindingFlags.NonPublic))
             .SelectMany(m=>m.GetCustomAttributes<MenuItem>()).Select(a=>a.menuItem).Where(m=>m.StartsWith("Tools/Everything Grows/")).ToArray();
-        Check(menus.Length==14 && menus.Distinct().Count()==14,"Unexpected menu count/duplicates: "+menus.Length);
-        foreach(string name in new[]{"아이템 관리","NPC 관리","길드 의뢰","맵 연결 관리","몬스터 보상 관리","맵 배치"})Check(menus.Contains("Tools/Everything Grows/"+name),"Missing tool "+name);
+        Check(menus.Length==15 && menus.Distinct().Count()==15,"Unexpected menu count/duplicates: "+menus.Length);
+        foreach(string name in new[]{"아이템 관리","NPC 관리","길드 의뢰","맵 연결 관리","몬스터 관리","맵 배치"})Check(menus.Contains("Tools/Everything Grows/"+name),"Missing tool "+name);
         Check(!menus.Any(m=>m.Contains("Apply ") || m.Contains("Set up ") || m.Contains("Connect current farm")),"One-time menus still exposed");
         var items=ItemManagerWindow.FindItems();var item=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds");
         Check(items.Contains(item) && ManagementEditorUI.Matches("Parsnip Seeds","parsnip"),"Item discovery/search failed");
@@ -41,7 +41,7 @@ public static class ManagementToolsCheck
         var exitData=new SerializedObject(exit);Undo.IncrementCurrentGroup();exitData.FindProperty("arrivalId").stringValue="missing_test_arrival";exitData.ApplyModifiedProperties();
         Check(MapConnectionsWindow.CheckExit(exit).HasErrors,"Missing arrival not reported");Undo.FlushUndoRecordObjects();Undo.PerformUndo();
         Check(!MapConnectionsWindow.CheckExit(exit).HasErrors && SceneManager.sceneCount==count && scene.isDirty && work!=null && File.ReadAllText(path)==saved,"Preview validation lost/saved dirty scene work or changed scene graph");
-        Debug.Log("MANAGEMENT_TOOLS_RULES_SUCCESS: 14 menus, item discovery/search/Undo, guild diagnostics, NPC Undo, arrival errors and preview scene/unsaved work preservation.");
+        Debug.Log("MANAGEMENT_TOOLS_RULES_SUCCESS: 15 menus, item discovery/search/Undo, guild diagnostics, NPC Undo, arrival errors and preview scene/unsaved work preservation.");
         Application.logMessageReceived+=OnLog;
         windows=new EditorWindow[]{EditorWindow.GetWindow<ItemManagerWindow>(),EditorWindow.GetWindow<NpcManagerWindow>(),EditorWindow.GetWindow<GuildQuestWindow>(),EditorWindow.GetWindow<MapConnectionsWindow>()};
         for(int i=0;i<windows.Length;i++) { windows[i].position=new Rect(30+i*30,30+i*30,900,650);windows[i].Show();windows[i].Repaint(); }

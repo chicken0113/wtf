@@ -17,6 +17,7 @@ public sealed class PlantDefinitionInspector : Editor
         serializedObject.Update();
         using(new EditorGUI.DisabledScope(true))Field("m_Script");
         Field("label");Field("description");Field("effect","Item use (held)");
+        Field("useEffect","Special use effect");Field("consumeOnUse","Consume on successful use");
         Field("stackable");Field("sellPrice");Field("transformed");Field("isSeed");
         Section("Farming progression");Field("requiredFarmingLevel");Field("harvestExperience");
         Section("Planted growth / 성장 설정");
@@ -63,6 +64,7 @@ public sealed class PlantDefinitionInspector : Editor
         if(held==GrowthEffect.Storage && active!=PlantGrowthType.Functional) { Section("Storage item");Field("storageBonus"); }
         if(held==GrowthEffect.Weapon)
         { Section("Combat");Field("ranged");Field("damage");Field("attackRange");Field("attackInterval"); }
+        else if(item.useEffect!=null) { Section("Special use");Field("attackInterval","Use interval (seconds)"); }
         serializedObject.ApplyModifiedProperties();
     }
 }

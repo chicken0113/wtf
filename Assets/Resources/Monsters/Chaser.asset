@@ -12,6 +12,18 @@ MonoBehaviour:
   m_Name: Chaser
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MonsterType
   label: Chaser
+  behavior: 1
+  maxHealth: 55
+  moveSpeed: 2
+  returnSpeed: 1.7
+  detectionRange: 7
+  attackRange: 1.05
+  meleeHitRange: 1.35
+  attackHalfHearts: 1
+  windupSeconds: 0.5
+  attackCooldown: 1
+  projectileSpeed: 4.5
+  projectileLifetime: 2.5
   gold: 0
   drops:
   - item: {fileID: 11400000, guid: e9d801efa39c41d7a5b31b8ef0def9c8, type: 2}

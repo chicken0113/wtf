@@ -2,7 +2,7 @@
 
 ## 통합 관리 창
 
-`Tools → Everything Grows → 몬스터 보상 관리`에서 모든 MonsterType 에셋을 한 창에서 편집한다.
+`Tools → Everything Grows → 몬스터 관리`에서 모든 MonsterType 에셋을 한 창에서 편집한다.
 
 - 왼쪽 목록은 종류 이름/파일 이름/경로로 검색한다. Resources 밖의 Assets 에셋도 표시한다.
 - 오른쪽에서 종류 이름, 골드, 드롭 항목의 아이템/확률(0~100%)/최소·최대 수량을 수정한다.
@@ -48,3 +48,7 @@
 - 사망한 적을 다시 때려도 재지급하지 않으며, 저장에서 처치 상태를 복원하는 과정은 보상 콜백을 실행하지 않는다. 보상 결과는 기존 골드와 바닥 아이템으로 저장한다. 저장 버전/아이템 ID/적 배치 ID 변경 없음.
 - `SetupDataValidator.CheckMonsterType`이 음수 골드, 누락 아이템, 잘못된 확률/수량과 저장 미등록 아이템을 확인한다. Resources의 종류와 씬에서 참조한 종류 모두 검사한다.
 - 테스트는 `Editor/MonsterRewardsCheck.Run`을 격리 Unity 프로젝트와 테스트 저장으로 실행한다. 기본 드롭·공유 종류·확률 0/1·수량·골드·빈 보상·훈련 제외·중복 타격·저장 복원·잘못된 설정을 확인한다.
+
+## 종류별 행동·능력치 확장
+
+현재 몬스터 관리 창에는 기존 보상 외에 체력/이동/탐지/행동/공격·탄환 수치도 있다. 명시된 Behavior가 배치의 Ranged보다 우선하며, LegacyPlacement에서만 Ranged를 사용한다. 상세는 FOUNDATION_EXPANSION.md 참조.

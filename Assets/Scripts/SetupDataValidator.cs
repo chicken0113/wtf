@@ -104,6 +104,7 @@ namespace EverythingGrows
             Range(item, "regrowSeconds", item.regrowSeconds, 0, float.MaxValue, report);
             if (item.sellPrice < 0 || item.storageBonus < 0) report.Error("ITEM_VALUE", item, "sellPrice / storageBonus", "음수 설정입니다.", "0 이상의 값으로 설정하세요.");
             if (item.isSeed && item.GrowthType!=PlantGrowthType.Functional && item.harvestResult == null) report.Error("SEED_RESULT", item, "harvestResult", "씨앗의 수확 결과가 없습니다.", "자랄 작물을 연결하세요.");
+            if(item.useEffect!=null)Positive(item,"attackInterval",item.attackInterval,report);
             if (item.effect == GrowthEffect.Weapon) { Positive(item, "damage", item.damage, report); Positive(item, "attackRange", item.attackRange, report); Positive(item, "attackInterval", item.attackInterval, report); }
             if (item.effect == GrowthEffect.Water) Positive(item, "effectRadius", item.effectRadius, report);
             if(!System.Enum.IsDefined(typeof(PlantGrowthType),item.growthType) || !System.Enum.IsDefined(typeof(PlantFunction),item.growthFunction))
@@ -121,6 +122,9 @@ namespace EverythingGrows
         public static void CheckMonsterType(MonsterType type,SaveItemCatalog catalog,SetupValidationReport report,HashSet<PlantDefinition> visited,bool saving)
         {
             if(type==null)return;
+            if(!System.Enum.IsDefined(typeof(MonsterBehavior),type.behavior) || type.attackHalfHearts<1)report.Error("MONSTER_BEHAVIOR",type,"behavior / attackHalfHearts","몬스터 행동/피해 수치가 유효하지 않습니다.","행동과 반 하트 단위 피해를 확인하세요.");
+            foreach(var pair in new[]{("maxHealth",type.maxHealth),("moveSpeed",type.moveSpeed),("returnSpeed",type.returnSpeed),("detectionRange",type.detectionRange),("attackRange",type.attackRange),("meleeHitRange",type.meleeHitRange),("attackCooldown",type.attackCooldown),("projectileSpeed",type.projectileSpeed),("projectileLifetime",type.projectileLifetime)})Positive(type,pair.Item1,pair.Item2,report);
+            Range(type,"windupSeconds",type.windupSeconds,0,float.MaxValue,report);
             if(type.gold<0 || type.drops==null)
             { report.Error("MONSTER_REWARDS",type,"gold / drops","골드가 음수이거나 드롭 목록이 없습니다.","골드를 0 이상으로, 드롭 목록을 유효한 배열로 설정하세요. 아이템을 주지 않으려면 목록을 비우세요.");return; }
             for(int i=0;i<type.drops.Length;i++)

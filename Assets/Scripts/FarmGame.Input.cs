@@ -31,6 +31,7 @@ namespace EverythingGrows
         {
             frameMovement=Vector2.zero;
             if(player==null) return;
+            if(GameMenu.IsBlocking || GameMenu.ConsumedInputThisFrame) { suppressPrimaryUntilRelease=true;HideFarmingPreview();return; }
             if(combat.IsGameOver || GameSession.Busy || !string.IsNullOrEmpty(GameSession.LastError)) { HideFarmingPreview(); return; }
             var guiMouse=new Vector2(Input.mousePosition.x,Screen.height-Input.mousePosition.y);
             bool secondaryPressed=Input.GetMouseButtonDown(1);
@@ -58,17 +59,10 @@ namespace EverythingGrows
             if(secondaryPressed) { ProcessSecondaryPointer(MousePoint,guiMouse);return; }
             UpdatePlantingPreview();
             if(OverUI()) return;
-            var point=MousePoint; var cell=MouseCell;
-            if(Held!=null && Held.effect==GrowthEffect.Weapon && primaryAllowed)
-                if(combat.Attack(Held,PlayerPosition+AimDirection)) actionTime=.25f;
-            if(!Near(point)) { if((Input.GetMouseButtonDown(0) && (Held==null || Held.effect!=GrowthEffect.Weapon))) message="Walk closer first."; return; }
-            if(primaryAllowed && (Held==null||Held.effect!=GrowthEffect.Weapon))
-            {
-                if(Held==null){if(Input.GetMouseButtonDown(0))message="Select a hoe to till soil.";}
-                else if(Held.effect==GrowthEffect.Dig || Held.effect==GrowthEffect.Water || Held.effect==GrowthEffect.Scythe || Held.effect==GrowthEffect.Heart || Held.effect==GrowthEffect.House)
-                {if(UsePrimaryTool(cell,Input.GetMouseButtonDown(0)))actionTime=.25f;}
-                else if(Input.GetMouseButtonDown(0))message="This item has no direct use. Right click to plant it.";
-            }
+            var point=MousePoint;
+            customUseCooldown=Mathf.Max(0,customUseCooldown-Time.deltaTime);
+            if(primaryAllowed)UseSelectedItem(point,Input.GetMouseButtonDown(0));
+
         }
     }
 }

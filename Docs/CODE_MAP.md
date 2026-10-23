@@ -9,6 +9,9 @@
 | 수정할 기능 | 규칙·상태 담당 | 연결·표시 담당 |
 | --- | --- | --- |
 | 아이템/NPC/길드/맵 연결 관리 창 | `Editor/ItemManagerWindow`, `NpcManagerWindow`, `GuildQuestWindow`, `MapConnectionsWindow` | 기존 Inspector/직렬화 데이터/검사 재사용. `ManagementEditorUI`는 씬 선택·명시적 저장 UI 공유 |
+| 아이템 사용/특수 효과/성공 시 소모 | `FarmGame.ItemUse`, `ItemUseEffect` | `FarmGame.Input` 단일 호출; 기존 무기/도구 API에 위임 |
+| 시작/일시정지/설정/새 게임/이어하기 | `GameMenu`, `GameSession.Menu` | `Editor/MenuFoundationSetup`, `MainMenu.unity`; [FOUNDATION_EXPANSION.md](FOUNDATION_EXPANSION.md) |
+| 층 메타데이터/템플릿 추가 | `DungeonFloor`, `Editor/TowerFloorWindow` | 기존 `MapExit` 잠금/저장/맵 배치 도구 재사용 |
 | 시작 설정 누락·잘못된 참조·수치 | `SetupDataValidator.cs`, `FarmSetupValidator.cs` | `FarmGame.Startup.cs`, `Editor/ProjectSetupCheck.cs`; 자세한 사용법은 [SETUP_VALIDATION.md](SETUP_VALIDATION.md) |
 | 아이템 수량·고정 슬롯·이동/교환·선택·슬롯 제한 | `Assets/Scripts/InventoryState.cs` | `FarmGame.Inventory.cs`가 메시지·바닥 드롭 연결 |
 | 밭 갈기·심기·물주기·성장·수확·괭이 제거·재수확 | `Assets/Scripts/FarmingSystem.cs` | `FarmGame`의 기존 공개 함수가 위임 |

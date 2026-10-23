@@ -25,6 +25,7 @@ public static class ProjectSetupCheck
             foreach (var path in paths)
             {
                 if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) == null) { report.Error("SCENE_MISSING", null, path, "씬 파일이 없습니다.", "씬 파일을 복원하거나 빌드 목록을 수정하세요."); continue; }
+                if(path==GameMenu.TitleScene)continue; // The title is intentionally not a gameplay map.
                 var scene = SceneManager.GetSceneByPath(path);
                 if (!scene.IsValid() || !scene.isLoaded) { scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive); opened.Add(scene); }
                 var farms = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<FarmGame>()).ToArray();

@@ -26,6 +26,7 @@ namespace EverythingGrows
             public Vector2 home, aim, pathGoal;
             public string placementId;
             public MonsterType monsterType;
+            public float MaxHealth => monsterType!=null?monsterType.maxHealth:55;
             public List<Vector2> path=new();
             public float repath;
             public SpriteRenderer model, warning;
@@ -38,7 +39,10 @@ namespace EverythingGrows
         {
             if((farm.IsSafe(point) || FloorCleared) && !trainingDummy) return;
             if(!trainingDummy && !string.IsNullOrEmpty(placementId))hasPlacedHostiles=true;
-            var enemy=new Enemy { monsterType=trainingDummy?null:monsterType!=null?monsterType:MonsterType.Default(ranged), placementId=placementId, home=point,ranged=ranged,trainingDummy=trainingDummy,model=effects.Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=effects.Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
+            var type=trainingDummy?null:monsterType!=null?monsterType:MonsterType.Default(ranged);
+            if(type!=null)ranged=type.IsRanged(ranged);
+            var enemy=new Enemy { monsterType=type, placementId=placementId, home=point,ranged=ranged,trainingDummy=trainingDummy,model=effects.Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=effects.Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
+            enemy.health=enemy.MaxHealth;
             enemy.model.enabled=Active(enemy); enemy.warning.enabled=false; enemies.Add(enemy);
             enemy.tint=enemy.model.color;
         }
@@ -68,7 +72,7 @@ namespace EverythingGrows
             {
                 if(enemy.trainingDummy) continue;
                 enemy.windup=0; enemy.warning.enabled=false; enemy.path.Clear(); enemy.repath=0;
-                if(active && enemy.health>0) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.cooldown=1; enemy.respawn=0; }
+                if(active && enemy.health>0) { enemy.health=enemy.MaxHealth; enemy.model.transform.position=enemy.home; enemy.cooldown=1; enemy.respawn=0; }
                 enemy.model.enabled=active && enemy.health>0;
             }
             return true;
@@ -120,16 +124,16 @@ namespace EverythingGrows
             {
                 if(!enemy.trainingDummy)return;
                 enemy.respawn-=seconds;
-                if(enemy.respawn<=0) { enemy.health=55; enemy.model.transform.position=enemy.home; enemy.model.enabled=true; enemy.cooldown=1; }
+                if(enemy.respawn<=0) { enemy.health=enemy.MaxHealth; enemy.model.transform.position=enemy.home; enemy.model.enabled=true; enemy.cooldown=1; }
                 return;
             }
             Vector2 point=enemy.model.transform.position, offset=farm.PlayerPosition-point;
             if(enemy.trainingDummy) { enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10); return; }
             if(enemy.stagger>0) return;
-            bool active=!farm.IsSafe(farm.PlayerPosition) && offset.magnitude<7;
+            bool active=!farm.IsSafe(farm.PlayerPosition) && offset.magnitude<enemy.monsterType.detectionRange;
             enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10);
             enemy.model.flipX=offset.x<0;
-            if(!active) { enemy.windup=0; enemy.warning.enabled=false; MoveEnemy(enemy,enemy.home,seconds*1.7f,seconds,enemyCollision); enemy.cooldown=Mathf.Max(.5f,enemy.cooldown-seconds); return; }
+            if(!active) { enemy.windup=0; enemy.warning.enabled=false; MoveEnemy(enemy,enemy.home,seconds*enemy.monsterType.returnSpeed,seconds,enemyCollision); enemy.cooldown=Mathf.Max(.5f,enemy.cooldown-seconds); return; }
             if(enemy.windup>0)
             {
                 enemy.windup-=seconds; enemy.warning.enabled=true;
@@ -137,18 +141,18 @@ namespace EverythingGrows
                 if(enemy.windup<=0)
                 {
                     enemy.warning.enabled=false;
-                    if(enemy.ranged) projectiles.Spawn(point,enemy.aim*4.5f,player.HalfHeartHealth,true);
-                    else if(offset.magnitude<1.35f && collision.Trace(point,farm.PlayerPosition,0,true)>=1) player.Damage(player.HalfHeartHealth);
-                    enemy.cooldown=enemy.ranged?1.7f:1;
+                    if(enemy.ranged) projectiles.Spawn(point,enemy.aim*enemy.monsterType.projectileSpeed,player.HalfHeartHealth*enemy.monsterType.attackHalfHearts,true,enemy.monsterType.projectileLifetime);
+                    else if(offset.magnitude<enemy.monsterType.meleeHitRange && collision.Trace(point,farm.PlayerPosition,0,true)>=1) player.Damage(player.HalfHeartHealth*enemy.monsterType.attackHalfHearts);
+                    enemy.cooldown=enemy.monsterType.attackCooldown;
                 }
                 return;
             }
             enemy.cooldown-=seconds;
-            float reach=enemy.ranged?4.8f:1.05f;
-            if(offset.magnitude<=reach && enemy.cooldown<=0 && collision.Trace(point,farm.PlayerPosition,.1f,true)>=1) { enemy.windup=.5f; enemy.aim=offset.normalized; }
+            float reach=enemy.monsterType.attackRange;
+            if(offset.magnitude<=reach && enemy.cooldown<=0 && collision.Trace(point,farm.PlayerPosition,.1f,true)>=1) { enemy.windup=Mathf.Max(.001f,enemy.monsterType.windupSeconds); enemy.aim=offset.normalized; }
             else if(offset.magnitude>reach*.85f || collision.Trace(point,farm.PlayerPosition,.1f,true)<1)
             {
-                MoveEnemy(enemy,farm.PlayerPosition,seconds*(enemy.ranged?1.3f:2),seconds,enemyCollision);
+                MoveEnemy(enemy,farm.PlayerPosition,seconds*enemy.monsterType.moveSpeed,seconds,enemyCollision);
             }
         }
         private void MoveEnemy(Enemy enemy,Vector2 target,float distance,float seconds,MapCollision enemyCollision)

@@ -149,7 +149,7 @@ namespace EverythingGrows
                 var point=camera.WorldToScreenPoint(enemy.model.transform.position+Vector3.up*.7f);
                 if(point.z<0) continue;
                 var previous=GUI.color; GUI.color=new Color(.2f,.1f,.1f); GUI.DrawTexture(new Rect(point.x-22,Screen.height-point.y,44,4),Texture2D.whiteTexture);
-                GUI.color=new Color(.9f,.35f,.25f); GUI.DrawTexture(new Rect(point.x-22,Screen.height-point.y,44*enemy.health/55,4),Texture2D.whiteTexture); GUI.color=previous;
+                GUI.color=new Color(.9f,.35f,.25f); GUI.DrawTexture(new Rect(point.x-22,Screen.height-point.y,44*enemy.health/enemy.MaxHealth,4),Texture2D.whiteTexture); GUI.color=previous;
             }
         }
         private void OnDestroy() => effects?.Dispose();

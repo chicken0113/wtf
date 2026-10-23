@@ -50,7 +50,7 @@ namespace EverythingGrows
             loaded=true; catalog=Resources.Load<SaveItemCatalog>("SaveItemCatalog");
             var setup=new SetupValidationReport(); SetupDataValidator.CheckCatalog(catalog,setup);
             if(setup.HasErrors) throw new InvalidOperationException(setup.FirstError);
-            if(!File.Exists(SavePath)) { data=new GameSaveData(); return; }
+            if(!File.Exists(SavePath) && !File.Exists(SavePath+".bak")) { data=new GameSaveData(); return; }
             Exception failure=null;
             foreach(var path in new[]{SavePath,SavePath+".bak"})
             {
@@ -213,7 +213,9 @@ namespace EverythingGrows
             if(string.IsNullOrEmpty(error)) return;
             var rect=new Rect((Screen.width-500)*.5f,80,500,132); GUI.Box(rect,"Save / map travel");
             GUI.Label(new Rect(rect.x+16,rect.y+32,468,64),error,new GUIStyle(GUI.skin.label) {wordWrap=true});
-            if(GUI.Button(new Rect(rect.xMax-90,rect.yMax-32,75,24),"Close")) error=null;
+            if(!blocked && current!=null && GUI.Button(new Rect(rect.x+16,rect.yMax-32,110,24),"저장 재시도"))Save(current);
+            if(blocked && GameMenu.Instance!=null && GUI.Button(new Rect(rect.x+16,rect.yMax-32,110,24),"타이틀로"))GameMenu.Instance.ReturnToTitle(false);
+            if(!blocked && GUI.Button(new Rect(rect.xMax-90,rect.yMax-32,75,24),"닫기")) error=null;
         }
     }
 }

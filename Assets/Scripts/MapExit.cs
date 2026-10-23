@@ -40,7 +40,12 @@ namespace EverythingGrows
             return Travel(farm);
         }
         public bool Contains(Vector2 point) => new Rect(-areaSize*.5f,areaSize).Contains(transform.InverseTransformPoint(point));
-        public bool IsCombatBlocked(FarmGame farm) => requireClearFloor && farm!=null && farm.Combat!=null && farm.Combat.LivingHostileCount>0;
+        public bool IsCombatBlocked(FarmGame farm)
+        {
+            if(!requireClearFloor || farm==null || farm.Combat==null)return false;
+            var floor=farm.Layout!=null?farm.Layout.GetComponent<DungeonFloor>():null;
+            return floor!=null?floor.BlocksStairs(farm.Combat.LivingHostileCount):farm.Combat.LivingHostileCount>0;
+        }
         public string InteractionPrompt(FarmGame farm) => IsCombatBlocked(farm)?"몬스터를 모두 처치해야 합니다":"RMB: travel";
         public bool Travel(FarmGame farm)
         {
