@@ -45,6 +45,7 @@ namespace EverythingGrows
             if(Input.GetKeyDown(KeyCode.Space)||Input.GetKeyDown(KeyCode.LeftShift)) combat.RequestRoll(DodgeDirection(move));
             if(!combat.IsRolling) MovePlayer(PlayerPosition+move*MoveSpeed*Time.deltaTime);
             combat.TickCombat(Time.deltaTime);
+            if(GameSession.Busy) { HideFarmingPreview(); return; }
             UpdateAim(MousePoint,OverUI());
             for(int i=0;i<Mathf.Min(9,Capacity);i++) if(Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1+i))) selected=i;
             float wheel=Input.mouseScrollDelta.y;

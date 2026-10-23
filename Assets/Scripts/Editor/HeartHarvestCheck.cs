@@ -41,7 +41,9 @@ public static class HeartHarvestCheck
         pieces=farm.WorldPieceCount;
         Check(combat.HeartCount==1 && !combat.IsGameOver,"Premature game over");
         farm.TeleportPlayer(new Vector2(22,14)); combat.TickCombat(1); combat.DamagePlayer(200);
-        Check(combat.Health==20 && combat.MaxHealth==20,"Death restored removed heart capacity");
+        Check(combat.Health==combat.HalfHeartHealth && combat.MaxHealth==20,"Death did not retain half a heart and removed capacity");
+        // Edit-mode fixture has no asynchronous hospital travel; resume the separate farming assertions at the plot.
+        farm.TeleportPlayer(farm.SpawnPosition);
         Check(farm.Till(Vector2Int.zero) && farm.AddItem(heart) && farm.PlantSelected(Vector2Int.zero),"Heart cannot be planted");
         farm.Water(Vector2.zero,.1f); farm.Tick(heart.growthSeconds);
         Check(farm.IsMature(Vector2Int.zero) && farm.InteractPlot(Vector2Int.zero),"Heart planting and harvest failed");

@@ -26,12 +26,12 @@ public static class InteriorWorldSetup
     static Vector2 V(float x,float y)=>new Vector2(x,y);
     static void Label(Transform parent,string text,Vector2 p)=>Root("Label - "+text,parent,p).AddComponent<WorldLabel>().text=text;
     static void Save()=>EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
-    static MapArrivalPoint Arrival(Transform parent,string id,Vector2 p)
+    internal static MapArrivalPoint Arrival(Transform parent,string id,Vector2 p)
     {var a=Root("Arrival - "+id,parent,p).AddComponent<MapArrivalPoint>();a.arrivalId=id;return a;}
-    static MapExit Door(Transform parent,string name,Vector2 p,string target,string arrival)
+    internal static MapExit Door(Transform parent,string name,Vector2 p,string target,string arrival)
     {
         var go=Root(name,parent,p);var exit=go.AddComponent<MapExit>();exit.destinationScene=target;exit.arrivalId=arrival;exit.requireInteract=true;exit.areaSize=V(1.8f,1.2f);
-        Draw("Blue doormat",go.transform,p,V(1.6f,.7f),exit.ModeColor,-900);Label(go.transform,name+" [E]",p+Vector2.down*.8f);return exit;
+        Draw("Blue doormat",go.transform,p,V(1.6f,.7f),exit.ModeColor,-900);Label(go.transform,name+" [F]",p+Vector2.down*.8f);return exit;
     }
     static void MakeDoorPrefab()
     {
@@ -39,7 +39,7 @@ public static class InteriorWorldSetup
         var exit=Door(null,"House entrance",Vector2.zero,Home,"home_entry");exit.gameObject.AddComponent<HouseInteriorLink>();
         PrefabUtility.SaveAsPrefabAsset(exit.gameObject,DoorPrefab);UnityEngine.Object.DestroyImmediate(exit.gameObject);
     }
-    static FarmGame Room(string path,Vector2 size,Color floor)
+    internal static FarmGame Room(string path,Vector2 size,Color floor)
     {
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
         var f=Root(Path.GetFileNameWithoutExtension(path),null,Vector2.zero).AddComponent<FarmGame>();

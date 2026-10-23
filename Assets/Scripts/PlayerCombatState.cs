@@ -115,12 +115,11 @@ namespace EverythingGrows
             farm.ImpactFeedback(true);
             effects.Sparks(farm.PlayerPosition, new Color(1, .4f, .3f));
             if (Health > 0) return;
-            // Preserve solo recovery. Planted multiplayer resurrection is a separate milestone.
-            farm.TeleportPlayer(farm.SpawnPosition);
-            Health = MaxHealth;
+            // Solo defeat keeps possessions and returns through the normal saved map-travel path.
+            Health = HalfHeartHealth;
             invulnerability = 1.5f;
             rollTime = rollBufferTime = 0;
-            farm.Notify("You collapsed. Returned to the farm; your items are safe.");
+            GameSession.ReturnToHospital(farm);
         }
 
         public void Tick(float seconds)
@@ -144,7 +143,7 @@ namespace EverythingGrows
                 farm.MovePlayer(farm.PlayerPosition + rollDirection * active * speed);
                 rollTime = Mathf.Max(0, rollTime - seconds);
             }
-            if (farm.IsSafe(farm.PlayerPosition) && quietTime > 2)
+            if (farm.IsSafe(farm.PlayerPosition) && (farm.Layout == null || farm.Layout.passiveHealthRecovery) && quietTime > 2)
                 Health = Mathf.Min(MaxHealth, Health + seconds * 14);
         }
     }

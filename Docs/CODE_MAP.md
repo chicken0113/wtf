@@ -23,6 +23,7 @@
 | 탄환 생성·이동·벽 차단·최초 명중·수명 | `Assets/Scripts/ProjectileSystem.cs` | `Spawn`, `Tick`, `ClearHostile` |
 | 전투 궤적·발사·파편·잔상·공격 예고선 | `Assets/Scripts/CombatEffects.cs` | 캐릭터/손 동작과 카메라는 기존 `FarmGame.Feedback.cs` |
 | 전투 연결·처치 수·길드 처치 전달·체력 HUD | `Assets/Scripts/OpenFieldCombat.cs` | `Attack`, `TickCombat`, `EnemyDefeated`, `OnGUI` |
+| 피격 사망·병원 귀환 | `PlayerCombatState.Damage` → `GameSession.Recovery.ReturnToHospital` | 기존 `GameSession.Travel / Bind / LoadMap` 자동 저장, `Editor/HospitalSetup` 병원/마을 F 문; [HOSPITAL_RECOVERY.md](HOSPITAL_RECOVERY.md) |
 | 층 클리어·처치 ID 유지 | `EnemyCombatSystem.CaptureState / RestoreState / FloorCleared` | `FarmPersistence` → `MapSave.combatCleared / defeatedEnemies`; 배치 ID는 `MapSaveAuthoring` → `MapObjectId` |
 | 층 전멸 계단 잠금 | `EnemyCombatSystem.LivingHostileCount` → `OpenFieldCombat` | `MapExit.requireClearFloor / IsCombatBlocked / Travel / InteractionPrompt`; 일반 출입구 기본값 false |
 | 탑 1·2층·F 계단 배치 | `Editor/TowerDungeonSetup.cs` | 기존 `MapExit`/`MapArrivalPoint`/`GameSession.Travel`; [TOWER_DUNGEON.md](TOWER_DUNGEON.md) |
@@ -105,6 +106,7 @@
 | 시작 설정·누락 처리·대체값 | `ProjectSetupCheck.Run`(정상 프로젝트), `SetupValidationCheck.Run`(격리된 오류 주입) |
 | 인벤토리·농사·수확·집 | `FoundationRefactorCheck.Run` — 기존 슬롯/보관/성장/재수확/하트/집 검사 묶음 |
 | 농사 판정/안내·작물 상태 | `FarmingFeedbackCheck.Run` — 잘못된 심기·도구·거리·생산/재수확·가득 찬 인벤토리, `RunVisual` — 도구 우선/공통 심기/칸 중앙 고정/맨손·거리·메뉴·불가능한 칸의 동시 숨김/초록 한 칸 테두리와 실제 렌더 |
+| 병원 귀환·반 하트·사망 전 층 상태·재시작 | `HospitalRecoveryCheck.Prepare / Run / Resume` — 별도 프로젝트와 테스트 저장에서 실행 |
 | 탑 1·2층·계단·재시작 | `TowerDungeonCheck.Run` / `Resume`, `WorldRouteAudit.Validate` — 테스트 저장과 별도 프로젝트에서 실행 |
 | E/F·메뉴 차단·조준·회피 | `BasicControlsCheck.Run` |
 | 전투 분리·하트·길 찾기·탄환 차단·재등장·피격 취소 | `CombatRefactorCheck.Run` — 기존 충돌/하트 검사와 전투 생명주기 검사 |
@@ -128,3 +130,7 @@
 ### 일반 적의 영구 처치
 
 일반 적은 사망 후 자동 재등장하지 않는다. 배치 적의 ID와 층 클리어 상태는 맵별 저장에 포함되며 재입장·탑 외부 이동·재실행에도 유지한다. 복원은 보상 콜백을 호출하지 않는다. 마지막 처치의 보상/드롭 이후 `OpenFieldCombat.EnemyDefeated`가 기존 자동 저장을 호출한다. 훈련 표적의 3초 회복은 유지한다. 버전 1의 이전 저장은 새 필드가 없으면 미클리어로 읽는다.
+
+### 병원 귀환
+
+피격으로 체력이 0이 되면 `PlayerCombatState.Damage`가 반 하트 체력과 짧은 무적을 설정하고 `GameSession.ReturnToHospital`을 호출한다. 기존 맵 이동이 출발 맵/플레이어를 저장하고 도착 검증 후 병원 위치를 다시 저장한다. 병원 경로/복귀 ID는 `GameSession.Recovery.cs`에서 관리한다. 맵의 `passiveHealthRecovery`는 기존 안전 구역 자동 회복을 제어하며 병원에서만 false다. 최종 하트 슬롯을 직접 수확했을 때의 GameOver는 유지한다. 병원 문/복귀 위치는 씬에서 직접 편집한다.

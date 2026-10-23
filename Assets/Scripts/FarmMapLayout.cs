@@ -7,6 +7,8 @@ namespace EverythingGrows
         [Tooltip("Peaceful: no enemies. Always: enemies remain active regardless of time.")]
         public CombatSchedule combatSchedule=CombatSchedule.NightOnly;
         public bool dayNightLighting=true;
+        [Tooltip("Allow the existing passive health recovery in safe areas. Disabled in the hospital.")]
+        public bool passiveHealthRecovery=true;
         public MapArea worldBounds;
         public MapArea safeArea;
         public Transform playerSpawn;

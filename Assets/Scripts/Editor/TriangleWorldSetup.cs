@@ -17,7 +17,8 @@ public static class TriangleWorldSetup
     const string Marker="Triangle world 2026-10-22", Request="Library/TriangleWorld.request", Result="Library/TriangleWorld.result";
     public static string[] Paths => new[]{CombatTestMapSetup.FarmScene,WorldFrameworkSetup.Town,WorldFrameworkSetup.Store,CombatTestMapSetup.CombatScene,Passage,Field,Forest,Training}
         .Concat(InteriorWorldSetup.Installed?InteriorWorldSetup.Rooms:Array.Empty<string>())
-        .Concat(TowerDungeonSetup.Installed?new[]{TowerDungeonSetup.Lobby}:Array.Empty<string>()).ToArray();
+        .Concat(TowerDungeonSetup.Installed?new[]{TowerDungeonSetup.Lobby}:Array.Empty<string>())
+        .Concat(HospitalSetup.Installed?new[]{GameSession.HospitalScene}:Array.Empty<string>()).ToArray();
     public static bool Installed => File.Exists(Field);
     static TriangleWorldSetup(){if(!Application.isBatchMode)EditorApplication.update+=Tick;}
     static void Tick()
