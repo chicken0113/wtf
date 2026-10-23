@@ -19,6 +19,7 @@ namespace EverythingGrows
         public List<ItemStackSave> inventory=new();
         public int gold,selected,removedSlots,removedHearts,kills;
         public bool inventoryUsesSlots;
+        public int farmingExperience; // Optional version-1 total XP; missing legacy value is zero.
         public float health,cycleElapsed;
         public Vector2 position;
         public bool gameOver;

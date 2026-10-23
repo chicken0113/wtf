@@ -71,7 +71,7 @@ namespace EverythingGrows
         {
             ValidateGuildQuests(candidate);
             if(string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Save the Unity scene to disk before saving game progress.");
-            if(candidate.player.inventory==null || candidate.player.removedSlots<0 || candidate.player.removedHearts<0 || candidate.player.gold<0) throw new InvalidDataException("Invalid player save.");
+            if(candidate.player.inventory==null || candidate.player.removedSlots<0 || candidate.player.removedHearts<0 || candidate.player.gold<0 || candidate.player.farmingExperience<0) throw new InvalidDataException("Invalid player save.");
             var slots=new System.Collections.Generic.HashSet<int>();
             foreach(var stack in candidate.player.inventory)
             {

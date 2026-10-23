@@ -23,7 +23,7 @@ namespace EverythingGrows
                 float width=trading?Mathf.Min(400,Screen.width*.46f):Mathf.Min(Screen.width-24,Mathf.Max(460,farm.HotbarCapacity*58+42));
                 int columns=Columns(width);
                 float rows=Mathf.Ceil(farm.StorageCapacity/(float)columns)+Mathf.Ceil(farm.HotbarCapacity/(float)columns);
-                float height=Mathf.Min(Screen.height-100,Mathf.Max(300,150+rows*58));
+                float height=Mathf.Min(Screen.height-100,Mathf.Max(330,180+rows*58));
                 return new Rect(trading?Screen.width*.5f+8:(Screen.width-width)*.5f,Mathf.Max(40,(Screen.height-height)*.5f),width,height);
             }
         }
@@ -70,10 +70,12 @@ namespace EverythingGrows
             GUI.Label(new Rect(panel.x+16,panel.y+10,panel.width-70,28),"Inventory",titleStyle);
             if(GUI.Button(new Rect(panel.xMax-42,panel.y+8,30,26),"X")) { CancelDrag();farm.Shop?.Close();farm.SetInventoryOpen(false);return; }
             GUI.Label(new Rect(panel.x+16,panel.y+40,panel.width-32,24),"Gold: "+farm.Gold+" G");
+            GUI.Label(new Rect(panel.x+16,panel.y+64,panel.width-32,24),"Farming Lv. "+farm.FarmingLevel+"   "+
+                (farm.FarmingExperienceToNextLevel==0?"MAX":farm.FarmingExperience+" / "+farm.FarmingExperienceToNextLevel+" XP"));
             int columns=Columns(panel.width);float hotbarHeight=Mathf.Ceil(farm.HotbarCapacity/(float)columns)*58;
             float hotbarY=panel.yMax-16-hotbarHeight;
-            GUI.Label(new Rect(panel.x+16,panel.y+66,panel.width-32,22),"Backpack");
-            var viewport=new Rect(panel.x+12,panel.y+90,panel.width-24,Mathf.Max(30,hotbarY-panel.y-120));
+            GUI.Label(new Rect(panel.x+16,panel.y+90,panel.width-32,22),"Backpack");
+            var viewport=new Rect(panel.x+12,panel.y+114,panel.width-24,Mathf.Max(30,hotbarY-panel.y-144));
             var content=new Rect(0,0,viewport.width-18,Mathf.Max(30,Mathf.Ceil(farm.StorageCapacity/(float)columns)*58));
             slotClipContainsPointer=viewport.Contains(mouse);
             inventoryScroll=GUI.BeginScrollView(viewport,inventoryScroll,content);
@@ -151,7 +153,7 @@ namespace EverythingGrows
             if(Event.current.type!=EventType.Repaint || dragSource>=0 || hoveredSlot<0)return;
             var item=farm.InventoryItem(hoveredSlot);if(item==null)return;
             tooltipStyle ??= new GUIStyle(GUI.skin.box) {fontSize=14,wordWrap=true,alignment=TextAnchor.UpperLeft,padding=new RectOffset(10,10,8,8)};
-            var content=new GUIContent((string.IsNullOrWhiteSpace(item.label)?item.name:item.label)+"\nQuantity: "+farm.InventoryQuantity(hoveredSlot)+"\n\n"+item.UsageText);
+            var content=new GUIContent((string.IsNullOrWhiteSpace(item.label)?item.name:item.label)+"\nQuantity: "+farm.InventoryQuantity(hoveredSlot)+"\nPlanting level: "+item.requiredFarmingLevel+"\n\n"+item.UsageText);
             float width=Mathf.Min(300,Screen.width-16),height=tooltipStyle.CalcHeight(content,width);
             var rect=new Rect(Mathf.Clamp(mouse.x+18,8,Screen.width-width-8),Mathf.Clamp(mouse.y+18,8,Mathf.Max(8,Screen.height-height-8)),width,height);
             int depth=GUI.depth;GUI.depth=-20;

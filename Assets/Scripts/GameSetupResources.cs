@@ -8,6 +8,7 @@ namespace EverythingGrows
         public DayNightSettings Cycle;
         public PlayerControlSettings Controls;
         public StartingInventory Starting;
+        public FarmingLevelSettings FarmingLevels;
         public SaveItemCatalog Catalog;
         public Texture2D Atlas;
         public PlantDefinition Heart;
@@ -17,6 +18,7 @@ namespace EverythingGrows
             Cycle = Resources.Load<DayNightSettings>("WorldCycle"),
             Controls = Resources.Load<PlayerControlSettings>("PlayerControls"),
             Starting = Resources.Load<StartingInventory>("StartingInventory"),
+            FarmingLevels = Resources.Load<FarmingLevelSettings>("FarmingLevels"),
             Catalog = Resources.Load<SaveItemCatalog>("SaveItemCatalog"),
             Atlas = Resources.Load<Texture2D>("FarmAtlas"),
             Heart = Resources.Load<PlantDefinition>("Equipment/Heart"),

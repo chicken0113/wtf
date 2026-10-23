@@ -11,12 +11,15 @@ namespace EverythingGrows
         public PlayerSave CapturePlayer(SaveItemCatalog catalog)
         {
             var state=new PlayerSave {gold=Gold,position=PlayerPosition,health=combat.Health,removedHearts=combat.RemovedHearts,kills=combat.Kills,gameOver=combat.IsGameOver,cycleElapsed=Cycle.Elapsed};
+            state.farmingExperience=progression.TotalExperience;
             inventory.Capture(state,catalog);
             return state;
         }
         public void RestorePlayer(PlayerSave state,SaveItemCatalog catalog)
         {
+            if(state.farmingExperience<0)throw new System.InvalidOperationException("Invalid farming experience in player save.");
             inventory.Restore(state,catalog);
+            progression.Restore(state.farmingExperience);
             carriedGold=state.gold; shop?.RestoreGold(state.gold);
             combat.RestorePlayerState(state.health,state.removedHearts,state.kills,state.gameOver);
             shop?.Close(); showInventory=false;

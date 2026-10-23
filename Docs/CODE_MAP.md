@@ -10,6 +10,7 @@
 | 아이템 수량·고정 슬롯·이동/교환·선택·슬롯 제한 | `Assets/Scripts/InventoryState.cs` | `FarmGame.Inventory.cs`가 메시지·바닥 드롭 연결 |
 | 밭 갈기·심기·물주기·성장·수확·괭이 제거·재수확 | `Assets/Scripts/FarmingSystem.cs` | `FarmGame`의 기존 공개 함수가 위임 |
 | 농사 가능 판정·칸 중앙 아이콘 | `FarmingSystem.PlantHint / InteractionHint / ToolHint`, `FarmActionHint` | `FarmGame.FarmingHints.UpdateFarmingIcon`이 도구 우선·맨손/거리/UI 숨김·칸 중앙 표시, `FarmArt.PlantingIcon`은 공통 심기 그림 |
+| 농사 레벨·경험치·심기 해금 | `FarmingProgression.cs`, `FarmingLevelSettings.cs` | `FarmGame.Progression` / `FarmingSystem.PlantHint` / `FarmPersistence`; 설정·저장: [FARMING_LEVELS.md](FARMING_LEVELS.md) |
 | 밭 한 칸의 상태 | `Assets/Scripts/PlantPlot.cs` | SpriteRenderer를 보관하지 않음 |
 | 작물·흙의 그림·크기·그리는 순서 | `Assets/Scripts/FarmWorldView.cs` | 농사 규칙을 변경하지 않음 |
 | 핫바·보관 칸·드래그·골드·지도 | `Assets/Scripts/FarmHud.cs` | `DrawSlot`이 핫바/인벤토리 표시와 슬롯 클릭을 공통 처리 |

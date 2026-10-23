@@ -9,6 +9,11 @@ namespace EverythingGrows
         [TextArea(2,5)] public string description;
         public Color color = Color.white;
         public GrowthEffect effect;
+        [Header("Farming progression")]
+        [Min(1), Tooltip("Required farming level to plant this item. Does not restrict use, trade or pickup.")]
+        public int requiredFarmingLevel = 1;
+        [Min(0), Tooltip("XP per successful harvest of this planted item, including repeat harvests. Not awarded by pickup or hoe removal.")]
+        public int harvestExperience = 10;
         [Min(.1f)] public float growthSeconds = 6;
         [Min(.1f)] public float effectRadius = 2;
         [Min(.1f)] public float productionSeconds = 8;

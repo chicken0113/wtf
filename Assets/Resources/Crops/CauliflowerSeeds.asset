@@ -15,6 +15,8 @@ MonoBehaviour:
   label: Cauliflower Seeds
   color: {r: 0.5, g: 0.8, b: 0.3, a: 1}
   effect: 5
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthSeconds: 60
   effectRadius: 1
   productionSeconds: 8

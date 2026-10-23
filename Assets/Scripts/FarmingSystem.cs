@@ -41,6 +41,7 @@ namespace EverythingGrows
             if(plot.plant!=null) return new(false,"This patch is occupied.");
             var item=farm.SelectedItem;
             if(item==null) return new(false,"Select an item to plant.");
+            if(farm.FarmingLevel<item.requiredFarmingLevel) return new(false,"Requires farming level "+item.requiredFarmingLevel+".");
             if(item.transformed && item.effect!=GrowthEffect.House) return new(false,"Already transformed; use this item instead.");
             if(item.isSeed && item.harvestResult==null) return new(false,"These seeds have no crop configured.");
             if(item.effect==GrowthEffect.Crop && !item.isSeed && item.harvestResult==null) return new(false,"Plant seeds, not harvested vegetables.");
@@ -132,18 +133,20 @@ namespace EverythingGrows
                     plot.mature=false; plot.regrowing=true; plot.progress=0; plot.wet=false;
                     visuals.RefreshPlant(plot);
                     visuals.RefreshSoil(plot);
-                    farm.Notify("Harvested. Water again for the next harvest."); return true;
+                    farm.Notify("Harvested. Water again for the next harvest."); farm.RecordFarmHarvest(plot.plant); return true;
                 }
                 return Uproot(cell);
             }
             if(!plot.ready || !farm.ReceiveHarvest(plot.plant)) return false;
-            plot.ready=false; plot.production=0; farm.Notify("Collected a new "+plot.plant.label+"."); return true;
+            plot.ready=false; plot.production=0; farm.Notify("Collected a new "+plot.plant.label+"."); farm.RecordFarmHarvest(plot.plant); return true;
         }
         public bool Uproot(Vector2Int cell)
         {
             if(!plots.TryGetValue(cell,out var plot) || plot.plant==null || !plot.mature || plot.wilted) return false;
-            var item=plot.HarvestItem;
-            ClearPlant(plot);return farm.ReceiveHarvest(item);
+            var item=plot.HarvestItem;var planted=plot.plant;
+            ClearPlant(plot);
+            if(!farm.ReceiveHarvest(item))return false;
+            farm.RecordFarmHarvest(planted);return true;
         }
         public bool UseHoe(Vector2Int cell)
         {

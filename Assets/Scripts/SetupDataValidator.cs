@@ -9,6 +9,11 @@ namespace EverythingGrows
         public static void CheckResources(GameSetupResources data, SetupValidationReport report, bool startingItems, bool saving)
         {
             CheckCycle(data.Cycle, report);
+            if(data.FarmingLevels==null || data.FarmingLevels.experienceToNextLevel==null)
+                report.Error("FARMING_LEVELS_MISSING",data.FarmingLevels,"Resources/FarmingLevels.experienceToNextLevel","농사 레벨 설정이 없습니다.","FarmingLevels.asset과 필요 경험치 목록을 복원하세요.");
+            else for(int i=0;i<data.FarmingLevels.experienceToNextLevel.Length;i++)
+                if(data.FarmingLevels.experienceToNextLevel[i]<1)
+                    report.Error("FARMING_LEVEL_XP",data.FarmingLevels,"experienceToNextLevel["+i+"]","레벨 필요 경험치는 양수여야 합니다.","1 이상의 값을 입력하세요.");
             if (data.Controls == null) report.Warning("CONTROLS_DEFAULT", null, "Resources/PlayerControls", "기본 이동·회피 수치를 사용합니다.", "직접 조절하려면 PlayerControls.asset을 복원하세요.");
             else
             {
@@ -86,6 +91,8 @@ namespace EverythingGrows
             if (item == null || !visited.Add(item)) return;
             if (saving && catalog != null && catalog.entries != null && !System.Array.Exists(catalog.entries, entry => entry != null && entry.item == item && !string.IsNullOrWhiteSpace(entry.id)))
                 report.Error("ITEM_UNREGISTERED", item, "SaveItemCatalog", "이 아이템의 저장 ID가 없습니다.", "Refresh save item catalog를 실행하세요.");
+            if(item.requiredFarmingLevel<1 || item.harvestExperience<0)
+                report.Error("ITEM_FARMING_LEVEL",item,"requiredFarmingLevel / harvestExperience","농사 레벨 또는 경험치 설정이 잘못됐습니다.","필요 레벨은 1 이상, 수확 경험치는 0 이상으로 설정하세요.");
             Positive(item, "growthSeconds", item.growthSeconds, report);
             Positive(item, "plantedDisplaySize", item.plantedDisplaySize, report);
             Positive(item, "matureDisplaySize", item.matureDisplaySize, report);
