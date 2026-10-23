@@ -113,7 +113,7 @@ public static class TowerDungeonSetup
         for(int i=-3;i<=3;i+=2)Draw("Battlement",tower,V(i,12.9f),V(.8f,1),new Color(.53f,.56f,.6f),-980);
         Label(tower,"Tower",V(0,11));Root(Marker,farm.Layout.transform,Vector2.zero);Save(farm);
     }
-    [MenuItem("Tools/Everything Grows/World/Create tower first and second floors")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode || Enumerable.Range(0,SceneManager.sceneCount).Any(i=>SceneManager.GetSceneAt(i).isDirty))

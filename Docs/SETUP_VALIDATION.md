@@ -2,7 +2,7 @@
 
 ## Unity에서 실행
 
-Play를 정지하고 **Tools > Everything Grows > Validation > Check project setup**을 실행한다.
+Play를 정지하고 **Tools > Everything Grows > 검사 > 프로젝트 설정 검사**을 실행한다.
 
 - 빌드 목록의 활성 씬을 읽고 기본 아이템·시간·저장 ID·NPC·맵 설정을 검사한다.
 - 로컬 설정에 오류가 없으면 기존 `WorldConnectionValidator`로 맵 간 도착 ID·충돌·출입구 접근을 검사한다. 이 연결 검사는 현재 월드의 씬 목록을 기준으로 한다.
@@ -38,7 +38,7 @@ Play를 정지하고 **Tools > Everything Grows > Validation > Check project set
 
 기존 FarmAtlas는 가장자리 여분 픽셀이 있어도 기존 정수 나눗셈 방식으로 읽는다. 4의 배수 크기를 강제하거나 기존 그림을 교체하지 않는다. 대체 그림에서 생성한 Sprite만 해제하며 Unity의 흰색 기본 텍스처는 삭제하지 않는다.
 
-저장 목록 오류를 고칠 때는 **Tools > Everything Grows > Refresh save item catalog**를 사용한다. 기존 아이템의 GUID/ID를 임의로 바꾸지 않는다. 기존 에디터 자동 갱신 정책은 유지하며 이 검사 도구 자체는 목록을 갱신하지 않는다.
+저장 목록 오류를 고칠 때는 **Tools > Everything Grows > 고급 > 저장용 아이템 목록 갱신**를 사용한다. 기존 아이템의 GUID/ID를 임의로 바꾸지 않는다. 기존 에디터 자동 갱신 정책은 유지하며 이 검사 도구 자체는 목록을 갱신하지 않는다.
 
 ## 코드 담당
 

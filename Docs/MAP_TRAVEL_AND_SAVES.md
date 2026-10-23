@@ -12,11 +12,11 @@
 
 ## 씬에서 출입구와 도착 지점 배치
 
-1. 기존 집의 위치나 계층을 편집하기 전에 **Tools > Everything Grows > Map travel > Prepare current map IDs**를 실행하고 씬을 저장한다. 각 집에 고유 저장 ID를 부여하며 위치와 외형은 바꾸지 않는다. 씬을 복제한 뒤에도 해당 메뉴를 사용할 수 있다.
+1. 기존 집의 위치나 계층을 편집하기 전에 **Tools > Everything Grows > 고급 > 현재 맵 저장 ID 준비**를 실행하고 씬을 저장한다. 각 집에 고유 저장 ID를 부여하며 위치와 외형은 바꾸지 않는다. 씬을 복제한 뒤에도 해당 메뉴를 사용할 수 있다.
 2. **Assets/Prefabs/Map/MapArrivalPoint.prefab**을 도착할 씬에 놓는다. `Arrival Id`를 지정하고 실제 플레이어가 설 위치로 이동한다. 같은 씬 안에서는 ID를 중복시키지 않는다.
 3. **Assets/Prefabs/Map/MapExit.prefab**을 출발할 씬에 놓는다. Inspector의 `Destination Scene`에 대상 씬 파일을 지정하고, 도착 지점과 같은 `Arrival Id`를 입력한다.
 4. `Area Size`로 출입구 영역을 조절한다. 지역 간 이동에는 `Require Interact`를 꺼서 닿으면 이동하도록 한다. E가 필요한 문은 건물 실내 출입에만 사용한다. 도착 직후에는 1초간 자동 이동을 막는다.
-5. Inspector에 Build Settings 경고가 나타나면 **Enable destination in Build Settings**를 누른다. 출발 씬도 Build Settings에 등록되어 있어야 하며 Tools > Everything Grows > Map travel > Enable current scene in Build Settings로 등록할 수 있다. 대상 씬에는 기본 데이터가 설정된 FarmGame과 활성화된 도착 지점이 필요하다.
+5. Inspector에 Build Settings 경고가 나타나면 **Enable destination in Build Settings**를 누른다. 출발 씬도 Build Settings에 등록되어 있어야 하며 Tools > Everything Grows > 고급 > 현재 씬 빌드 등록로 등록할 수 있다. 대상 씬에는 기본 데이터가 설정된 FarmGame과 활성화된 도착 지점이 필요하다.
 6. 왕복 연결은 반대 방향 출입구와 도착 지점을 별도로 배치한다. GameObject > Everything Grows 메뉴에서도 두 오브젝트를 생성할 수 있다.
 
 출입구와 도착 지점은 Scene에서 초록 영역·청록 표시로 보인다. 플레이 중 실내 출입용 문에만 E 이동 안내가 표시되며 지역 이동에는 E가 필요하지 않다. 실제 문의 외형은 출입구에 SpriteRenderer나 장식 오브젝트를 붙여 구성할 수 있다.
@@ -29,7 +29,7 @@
 - 저장된 아이템 참조가 사라졌거나 복원할 수 없는 경우 기존 파일을 새 게임으로 덮어쓰지 않는다. 저장/이동 오류를 화면에 표시한다.
 - 대상 씬이 Build Settings에 없으면 이동을 시작하지 않는다. 도착 지점이 없거나 중복됐거나 대상 씬에 FarmGame이 없으면 저장한 출발 맵으로 돌아온다.
 - 씬 파일 경로는 저장 맵의 키다. 저장을 이어 쓸 때 씬 경로와 Map Object ID를 유지한다.
-- 아이템은 GUID 기반 `Assets/Resources/SaveItemCatalog.asset`으로 참조한다. 에디터가 PlantDefinition 변경 시 갱신하며 **Tools > Everything Grows > Refresh save item catalog**로 직접 갱신할 수도 있다.
+- 아이템은 GUID 기반 `Assets/Resources/SaveItemCatalog.asset`으로 참조한다. 에디터가 PlantDefinition 변경 시 갱신하며 **Tools > Everything Grows > 고급 > 저장용 아이템 목록 갱신**로 직접 갱신할 수도 있다.
 
 ## 집에서 시간 보내기 연동
 

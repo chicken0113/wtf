@@ -133,7 +133,7 @@ public static class TownSketchLayout
         Label(root.transform,target==CombatTestMapSetup.FarmScene?"Farm path":"Dungeon path",exitPoint+Vector2.up*1.5f);
         EditorSceneManager.MarkSceneDirty(farm.gameObject.scene); EditorSceneManager.SaveScene(farm.gameObject.scene);
     }
-    [MenuItem("Tools/Everything Grows/World/Apply approved town sketch")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play before applying the sketch.");

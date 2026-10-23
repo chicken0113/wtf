@@ -113,7 +113,7 @@ public static class WorldFrameworkSetup
     }
     static void EnableScene(string path)
     { var list=EditorBuildSettings.scenes.ToList(); var entry=list.Find(e=>e.path==path); if(entry!=null) entry.enabled=true; else list.Add(new EditorBuildSettingsScene(path,true)); EditorBuildSettings.scenes=list.ToArray(); }
-    [MenuItem("Tools/Everything Grows/World/Connect farm, town and dungeon")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Connect()
     {
         if(TriangleWorldSetup.Installed) { Debug.Log("Triangle world connections preserved."); return; }

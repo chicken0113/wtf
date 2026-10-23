@@ -75,17 +75,17 @@ namespace EverythingGrows
         {
             if (catalog == null)
             {
-                if (required) report.Error("CATALOG_MISSING", null, "Resources/SaveItemCatalog", "저장용 아이템 목록이 없습니다.", "Tools > Everything Grows > Refresh save item catalog를 실행하세요.");
+                if (required) report.Error("CATALOG_MISSING", null, "Resources/SaveItemCatalog", "저장용 아이템 목록이 없습니다.", "Tools > Everything Grows > 고급 > 저장용 아이템 목록 갱신를 실행하세요.");
                 return;
             }
-            if (catalog.entries == null) { report.Error("CATALOG_ENTRIES", catalog, "entries", "아이템 목록이 null입니다.", "Refresh save item catalog를 실행하세요."); return; }
+            if (catalog.entries == null) { report.Error("CATALOG_ENTRIES", catalog, "entries", "아이템 목록이 null입니다.", "고급 > 저장용 아이템 목록 갱신를 실행하세요."); return; }
             var ids = new HashSet<string>();
             var items = new HashSet<PlantDefinition>();
             for (int i = 0; i < catalog.entries.Length; i++)
             {
                 var entry = catalog.entries[i];
                 if (entry == null || string.IsNullOrWhiteSpace(entry.id) || entry.item == null)
-                    report.Error("CATALOG_ENTRY", catalog, "entries[" + i + "]", "아이템 또는 저장 ID가 비어 있습니다.", "Refresh save item catalog를 실행하세요. 기존 ID를 임의로 바꾸지 마세요.");
+                    report.Error("CATALOG_ENTRY", catalog, "entries[" + i + "]", "아이템 또는 저장 ID가 비어 있습니다.", "고급 > 저장용 아이템 목록 갱신를 실행하세요. 기존 ID를 임의로 바꾸지 마세요.");
                 else if (!ids.Add(entry.id) || !items.Add(entry.item))
                     report.Error("CATALOG_DUPLICATE", catalog, "entries[" + i + "]", "중복 저장 ID 또는 중복 아이템입니다.", "원래 ID를 보존하며 목록을 갱신하세요.");
             }
@@ -95,7 +95,7 @@ namespace EverythingGrows
         {
             if (item == null || !visited.Add(item)) return;
             if (saving && catalog != null && catalog.entries != null && !System.Array.Exists(catalog.entries, entry => entry != null && entry.item == item && !string.IsNullOrWhiteSpace(entry.id)))
-                report.Error("ITEM_UNREGISTERED", item, "SaveItemCatalog", "이 아이템의 저장 ID가 없습니다.", "Refresh save item catalog를 실행하세요.");
+                report.Error("ITEM_UNREGISTERED", item, "SaveItemCatalog", "이 아이템의 저장 ID가 없습니다.", "고급 > 저장용 아이템 목록 갱신를 실행하세요.");
             if(item.requiredFarmingLevel<1 || item.harvestExperience<0)
                 report.Error("ITEM_FARMING_LEVEL",item,"requiredFarmingLevel / harvestExperience","농사 레벨 또는 경험치 설정이 잘못됐습니다.","필요 레벨은 1 이상, 수확 경험치는 0 이상으로 설정하세요.");
             Positive(item, "growthSeconds", item.growthSeconds, report);

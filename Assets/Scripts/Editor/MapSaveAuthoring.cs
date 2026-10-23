@@ -16,7 +16,7 @@ public static class MapSaveAuthoring
         if(queued) return; queued=true;
         EditorApplication.delayCall+=()=> { queued=false; if(EditorApplication.isCompiling || EditorApplication.isUpdating) { ScheduleCatalog(); return; } RefreshCatalog(); };
     }
-    [MenuItem("Tools/Everything Grows/Refresh save item catalog")]
+    [MenuItem("Tools/Everything Grows/고급/저장용 아이템 목록 갱신")]
     public static void RefreshCatalog()
     {
         var entries=AssetDatabase.FindAssets("t:PlantDefinition").OrderBy(id=>id).Select(id=>new SaveItemCatalog.Entry {id=id,item=AssetDatabase.LoadAssetAtPath<PlantDefinition>(AssetDatabase.GUIDToAssetPath(id))}).Where(entry=>entry.item!=null).ToArray();
@@ -29,7 +29,7 @@ public static class MapSaveAuthoring
         }
         AssetDatabase.SaveAssetIfDirty(catalog);
     }
-    [MenuItem("Tools/Everything Grows/Map travel/Prepare current map IDs")]
+    [MenuItem("Tools/Everything Grows/고급/현재 맵 저장 ID 준비")]
     public static void PrepareCurrentMap()
     {
         var scene=UnityEngine.SceneManagement.SceneManager.GetActiveScene(); var used=new System.Collections.Generic.HashSet<string>();
@@ -42,7 +42,7 @@ public static class MapSaveAuthoring
         }
         EditorSceneManager.MarkSceneDirty(scene);
     }
-    [MenuItem("Tools/Everything Grows/Map travel/Enable current scene in Build Settings")]
+    [MenuItem("Tools/Everything Grows/고급/현재 씬 빌드 등록")]
     public static void EnableCurrentScene()
     {
         string path=UnityEngine.SceneManagement.SceneManager.GetActiveScene().path;
@@ -60,7 +60,7 @@ public static class MapSaveAuthoring
         if(Selection.activeTransform!=null) root.transform.SetParent(Selection.activeTransform,false);
         root.AddComponent<T>(); Selection.activeGameObject=root;
     }
-    [MenuItem("Tools/Everything Grows/Map travel/Create placement prefabs")]
+    [MenuItem("Tools/Everything Grows/고급/배치 프리팹 생성")]
     public static void CreatePrefabs()
     {
         SavePrefab<MapExit>("Assets/Prefabs/Map/MapExit.prefab","Map Exit");
@@ -104,9 +104,9 @@ public sealed class MapExitInspector : Editor
                 if(found!=null) found.enabled=true; else scenes.Add(new EditorBuildSettingsScene(path.stringValue,true)); EditorBuildSettings.scenes=scenes.ToArray();
             }
         }
-        EditorGUILayout.HelpBox("Place this area in the Scene. The target scene needs a FarmGame and an active Map Arrival Point with the same Arrival Id. Door: stand inside and press F. Boundary: touch the orange area to travel automatically.",MessageType.Info);
+        EditorGUILayout.HelpBox("Place this area in the Scene. The target scene needs a FarmGame and an active Map Arrival Point with the same Arrival Id. Door: stand inside and right click. Boundary: touch the orange area to travel automatically.",MessageType.Info);
     }
-    void OnSceneGUI() { var exit=(MapExit)target; Handles.Label(exit.transform.position+Vector3.up,(exit.requireInteract?"[F Door] ":"[Touch] ")+exit.arrivalId+" → "+System.IO.Path.GetFileNameWithoutExtension(exit.destinationScene)); }
+    void OnSceneGUI() { var exit=(MapExit)target; Handles.Label(exit.transform.position+Vector3.up,(exit.requireInteract?"[RMB Door] ":"[Touch] ")+exit.arrivalId+" → "+System.IO.Path.GetFileNameWithoutExtension(exit.destinationScene)); }
 }
 [CustomEditor(typeof(MapArrivalPoint))]
 public sealed class MapArrivalInspector : Editor

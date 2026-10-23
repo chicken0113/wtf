@@ -134,7 +134,7 @@ public static class InteriorWorldSetup
         foreach(var npc in f.GetComponentsInChildren<ShopNpc>().Where(n=>n.npcId=="town_smith").ToArray())UnityEngine.Object.DestroyImmediate(npc.gameObject);
         Root(Marker,f.Layout.transform,Vector2.zero);EditorSceneManager.MarkSceneDirty(scene);Save();
     }
-    [MenuItem("Tools/Everything Grows/World/Add house, guild and smith interiors")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode||Enumerable.Range(0,SceneManager.sceneCount).Any(i=>SceneManager.GetSceneAt(i).isDirty))throw new Exception("Stop Play and save modified scenes first.");

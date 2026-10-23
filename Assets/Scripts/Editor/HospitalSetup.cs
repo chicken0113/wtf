@@ -16,7 +16,7 @@ public static class HospitalSetup
     private static void Label(Transform parent, string text, Vector2 position)
     { Root(text, parent, position).AddComponent<WorldLabel>().text = text; }
 
-    [MenuItem("Tools/Everything Grows/World/Add hospital recovery room")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode || Enumerable.Range(0, SceneManager.sceneCount).Any(i => SceneManager.GetSceneAt(i).isDirty))

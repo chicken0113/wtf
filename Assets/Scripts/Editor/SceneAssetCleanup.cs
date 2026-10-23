@@ -20,7 +20,7 @@ public static class SceneAssetCleanup
         if(Enumerable.Range(0,SceneManager.sceneCount).Select(SceneManager.GetSceneAt).Any(s=>s.isDirty&&Retired.Contains(s.path))){File.WriteAllText(Result,"WAITING_FOR_RETIRED_SCENE_SAVE");return;}
         File.Delete(Request);try{Apply();File.WriteAllText(Result,"SUCCESS");}catch(Exception error){Debug.LogException(error);File.WriteAllText(Result,"ERROR: "+error);}
     }
-    [MenuItem("Tools/Everything Grows/World/Remove unused sample scenes")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode)throw new Exception("Stop Play before cleaning scene assets.");

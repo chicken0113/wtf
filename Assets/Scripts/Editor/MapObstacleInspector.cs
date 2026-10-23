@@ -29,7 +29,7 @@ public sealed class MapObstacleInspector : Editor
         if(Selection.activeTransform!=null) root.transform.SetParent(Selection.activeTransform,false);
         root.AddComponent<MapObstacle>(); Selection.activeGameObject=root;
     }
-    [MenuItem("Tools/Everything Grows/Map travel/Create obstacle prefab")]
+    [MenuItem("Tools/Everything Grows/고급/장애물 프리팹 생성")]
     public static void GeneratePrefab()
     {
         const string path="Assets/Prefabs/Map/MapObstacle.prefab";

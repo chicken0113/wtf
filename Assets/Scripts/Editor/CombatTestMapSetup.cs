@@ -63,7 +63,7 @@ public static class CombatTestMapSetup
         var entries=EditorBuildSettings.scenes.ToList(); var existing=entries.Find(entry=>entry.path==path);
         if(existing!=null) existing.enabled=true; else entries.Add(new EditorBuildSettingsScene(path,true)); EditorBuildSettings.scenes=entries.ToArray();
     }
-    [MenuItem("Tools/Everything Grows/Combat test/Connect current farm")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void ConnectFarm()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play before connecting the farm.");

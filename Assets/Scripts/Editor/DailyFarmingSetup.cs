@@ -7,7 +7,7 @@ using EverythingGrows;
 
 public static class DailyFarmingSetup
 {
-    [MenuItem("Tools/Everything Grows/Set up crop farming")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play first.");

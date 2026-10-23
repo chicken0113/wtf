@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -6,31 +7,85 @@ using EverythingGrows;
 
 public sealed class NpcManagerWindow : EditorWindow
 {
-    private Vector2 scroll;
-    [MenuItem("Tools/Everything Grows/NPC manager")]
-    public static void Open() => GetWindow<NpcManagerWindow>("NPC 매니저");
+    [SerializeField] private string scenePath,search="";
+    private NpcManager manager;
+    private int selected;
+    private Vector2 listScroll,detailScroll;
+    private SetupValidationReport report;
+    [MenuItem("Tools/Everything Grows/NPC 관리")]
+    public static void Open() => GetWindow<NpcManagerWindow>("NPC 관리");
+    private void OnEnable() { minSize=new Vector2(760,440);Undo.undoRedoPerformed+=OnUndo; }
+    private void OnDisable() { Undo.undoRedoPerformed-=OnUndo; }
+    private void OnUndo() { Validate();Repaint(); }
+    private void Validate()
+    {
+        report=new SetupValidationReport();if(manager==null)return;
+        var farm=manager.GetComponent<FarmGame>();
+        if(farm!=null)FarmSetupValidator.Check(farm,GameSetupResources.Load(),report,true,false);
+        if(manager.npcs==null)return;
+        foreach(var group in manager.npcs.Where(p=>p!=null).GroupBy(p=>p.id))
+            if(string.IsNullOrWhiteSpace(group.Key) || group.Count()>1)report.Error("NPC_PROFILE_ID",manager,"npcs.id","NPC ID가 비어 있거나 중복됩니다.","각 프로필에 고유한 ID를 지정하세요.");
+    }
     private void OnGUI()
     {
-        var scene=UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-        var manager=scene.GetRootGameObjects().SelectMany(root=>root.GetComponentsInChildren<NpcManager>()).FirstOrDefault();
-        if(manager==null) { EditorGUILayout.HelpBox("NPC 매니저가 있는 농장·마을·상점 씬을 열어주세요.",MessageType.Info); return; }
-        EditorGUILayout.HelpBox("NPC마다 ID와 판매 목록을 설정하세요. Shop Enabled를 끄면 Greeting을 출력하는 대화 NPC가 됩니다. NPC 오브젝트의 Npc Id를 같은 ID로 맞춥니다. Buy Price는 구매 가격, Sell Price는 이 NPC에게 판매할 가격(-1이면 아이템 기본 판매가)입니다.",MessageType.Info);
-        using(new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
+        var scene=ManagementEditorUI.ScenePicker(ref scenePath);
+        var managers=ManagementEditorUI.Components<NpcManager>(scene);
+        if(!managers.Contains(manager)) { manager=managers.FirstOrDefault();selected=0;Validate(); }
+        if(manager==null) { EditorGUILayout.HelpBox("선택한 씬에 NPC 매니저가 없습니다.",MessageType.Info);return; }
+        if(managers.Length>1)
         {
-            var data=new SerializedObject(manager); data.Update();
-            scroll=EditorGUILayout.BeginScrollView(scroll);
-            EditorGUILayout.PropertyField(data.FindProperty("startingGold"));
-            EditorGUILayout.PropertyField(data.FindProperty("npcs"),true);
-            if(data.ApplyModifiedProperties()) EditorSceneManager.MarkSceneDirty(scene);
-            EditorGUILayout.Space(); EditorGUILayout.LabelField("모든 아이템 기본 판매가",EditorStyles.boldLabel);
-            foreach(string guid in AssetDatabase.FindAssets("t:PlantDefinition"))
-            {
-                var item=AssetDatabase.LoadAssetAtPath<PlantDefinition>(AssetDatabase.GUIDToAssetPath(guid)); if(item==null) continue;
-                EditorGUI.BeginChangeCheck(); int price=EditorGUILayout.IntField(item.label,item.sellPrice);
-                if(EditorGUI.EndChangeCheck()) { Undo.RecordObject(item,"Change sale price"); item.sellPrice=Mathf.Max(0,price); EditorUtility.SetDirty(item); }
-            }
-            EditorGUILayout.EndScrollView();
-            if(GUILayout.Button("NPC 설정과 가격 저장")) { AssetDatabase.SaveAssets(); EditorSceneManager.SaveScene(scene); }
+            int index=Array.IndexOf(managers,manager),next=EditorGUILayout.Popup("관리 대상",index,managers.Select(m=>m.name).ToArray());
+            if(next!=index) { manager=managers[next];selected=0;Validate(); }
         }
+        var data=new SerializedObject(manager);data.Update();var profiles=data.FindProperty("npcs");
+        search=EditorGUILayout.TextField("NPC 검색",search);
+        using(new EditorGUI.DisabledScope(ManagementEditorUI.Playing))
+        {
+            EditorGUILayout.PropertyField(data.FindProperty("startingGold"),new GUIContent("시작 골드"));
+            if(GUILayout.Button("프로필 추가"))
+            {
+                selected=profiles.arraySize;profiles.InsertArrayElementAtIndex(selected);var row=profiles.GetArrayElementAtIndex(selected);
+                row.FindPropertyRelative("id").stringValue="npc_"+Guid.NewGuid().ToString("N");
+                row.FindPropertyRelative("displayName").stringValue="새 NPC";row.FindPropertyRelative("greeting").stringValue="안녕하세요.";
+                row.FindPropertyRelative("shopEnabled").boolValue=true;row.FindPropertyRelative("guildQuestGiver").boolValue=false;row.FindPropertyRelative("offers").ClearArray();search="";
+            }
+            using(new EditorGUILayout.HorizontalScope())
+            {
+                using(new EditorGUILayout.VerticalScope(GUILayout.Width(220)))
+                {
+                    listScroll=EditorGUILayout.BeginScrollView(listScroll);
+                    for(int i=0;i<profiles.arraySize;i++)
+                    {
+                        var row=profiles.GetArrayElementAtIndex(i);string id=row.FindPropertyRelative("id").stringValue,name=row.FindPropertyRelative("displayName").stringValue;
+                        if(!ManagementEditorUI.Matches(name+" "+id,search))continue;
+                        if(GUILayout.Toggle(selected==i,name+" / "+id,"Button",GUILayout.Height(36)) && selected!=i) { selected=i;detailScroll=Vector2.zero;GUI.FocusControl(null); }
+                    }
+                    EditorGUILayout.EndScrollView();
+                }
+                using(new EditorGUILayout.VerticalScope())
+                {
+                    detailScroll=EditorGUILayout.BeginScrollView(detailScroll);
+                    selected=Mathf.Clamp(selected,0,Mathf.Max(0,profiles.arraySize-1));
+                    if(profiles.arraySize>0)
+                    {
+                        var row=profiles.GetArrayElementAtIndex(selected);
+                        EditorGUILayout.HelpBox("씬 NPC는 이 프로필의 ID로 연결됩니다. ID 변경 시 해당 NPC의 Npc Id도 맞춰주세요. 변경 후 아래 버튼으로 씬을 저장합니다.",MessageType.Info);
+                        Field(row,"id","NPC ID");Field(row,"displayName","이름");Field(row,"greeting","대사");Field(row,"shopEnabled","상점 사용");Field(row,"guildQuestGiver","길드 의뢰 접수");
+                        if(row.FindPropertyRelative("shopEnabled").boolValue)
+                        { EditorGUILayout.HelpBox("Buy Price: 구매가 / Sell Price: 판매가 (-1은 아이템 기본 판매가)",MessageType.Info);EditorGUILayout.PropertyField(row.FindPropertyRelative("offers"),new GUIContent("판매 품목"),true); }
+                        string id=row.FindPropertyRelative("id").stringValue;
+                        var npcs=ManagementEditorUI.Components<ShopNpc>(scene).Where(n=>n.npcId==id).ToArray();
+                        EditorGUILayout.LabelField("연결된 NPC: "+npcs.Length);
+                        foreach(var npc in npcs)EditorGUILayout.ObjectField(npc,typeof(ShopNpc),true);
+                    }
+                    else EditorGUILayout.HelpBox("프로필을 추가하세요. 실제 캐릭터는 씬에서 배치합니다.",MessageType.Info);
+                    EditorGUILayout.EndScrollView();
+                }
+            }
+            if(data.ApplyModifiedProperties()) { PrefabUtility.RecordPrefabInstancePropertyModifications(manager);EditorSceneManager.MarkSceneDirty(scene);Validate(); }
+        }
+        if(GUILayout.Button("설정 검사"))Validate();
+        ManagementEditorUI.DrawIssues(report);ManagementEditorUI.SaveSceneButton(scene);
     }
+    private static void Field(SerializedProperty row,string name,string label)=>EditorGUILayout.PropertyField(row.FindPropertyRelative(name),new GUIContent(label),true);
 }

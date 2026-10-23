@@ -39,7 +39,7 @@ public static class MapExitTypesSetup
         visual.Refresh(); PrefabUtility.SaveAsPrefabAsset(root,path); UnityEngine.Object.DestroyImmediate(root);
     }
     public static void GeneratePrefabs() { MakePrefab(DoorPath,true); MakePrefab(TouchPath,false); }
-    [MenuItem("GameObject/Everything Grows/Door Exit (F)",false,23)]
+    [MenuItem("GameObject/Everything Grows/Door Exit (RMB)",false,23)]
     public static void Door() { Place(DoorPath); }
     [MenuItem("GameObject/Everything Grows/Boundary Exit (Touch)",false,24)]
     public static void Touch() { Place(TouchPath); }
@@ -61,7 +61,7 @@ public static class MapExitTypesSetup
         var arrival=new GameObject("Touch path arrival").AddComponent<MapArrivalPoint>(); arrival.transform.SetParent(group.transform,false); arrival.transform.position=farm?new Vector2(9,-2):new Vector2(-8,2.5f); arrival.arrivalId=farm?"farm_path_entry":"combat_path_entry";
         EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
     }
-    [MenuItem("Tools/Everything Grows/Map travel/Add touch connections to test maps")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play to add map connections.");

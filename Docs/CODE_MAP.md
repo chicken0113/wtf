@@ -1,11 +1,14 @@
 # 코드 수정 안내
 
+편집 도구 메뉴와 저장 방식: [EDITOR_TOOLS.md](EDITOR_TOOLS.md).
+
 ## 먼저 볼 곳
 
 요청을 받으면 동작·입력·예외·변경 범위를 사용자에게 설명하고 확인을 받은 뒤 구현한다. 아래 표에서 담당 파일과 진입 함수부터 찾는다. 기존 구현이 있으면 해당 경로를 수정하고 다른 곳에 같은 규칙을 만들지 않는다.
 
 | 수정할 기능 | 규칙·상태 담당 | 연결·표시 담당 |
 | --- | --- | --- |
+| 아이템/NPC/길드/맵 연결 관리 창 | `Editor/ItemManagerWindow`, `NpcManagerWindow`, `GuildQuestWindow`, `MapConnectionsWindow` | 기존 Inspector/직렬화 데이터/검사 재사용. `ManagementEditorUI`는 씬 선택·명시적 저장 UI 공유 |
 | 시작 설정 누락·잘못된 참조·수치 | `SetupDataValidator.cs`, `FarmSetupValidator.cs` | `FarmGame.Startup.cs`, `Editor/ProjectSetupCheck.cs`; 자세한 사용법은 [SETUP_VALIDATION.md](SETUP_VALIDATION.md) |
 | 아이템 수량·고정 슬롯·이동/교환·선택·슬롯 제한 | `Assets/Scripts/InventoryState.cs` | `FarmGame.Inventory.cs`가 메시지·바닥 드롭 연결 |
 | 밭 갈기·심기·물주기·성장·수확·괭이 제거·재수확 | `Assets/Scripts/FarmingSystem.cs` | `FarmGame`의 기존 공개 함수가 위임 |
@@ -94,7 +97,7 @@
 
 | 수치 | Unity에서 볼 데이터 |
 | --- | --- |
-| 이동·회피·탄속·반동·흔들림·농기구 연속 간격 | `Assets/Resources/PlayerControls.asset` (`Tools > Everything Grows > Player controls`) |
+| 이동·회피·탄속·반동·흔들림·농기구 연속 간격 | `Assets/Resources/PlayerControls.asset` (`Tools > Everything Grows > 플레이어 조작 설정`) |
 | 성장 시간·수확 결과·크기·무기 피해/사거리/간격 | 각 `PlantDefinition` 에셋 |
 | 시작 아이템 | `Assets/Resources/StartingInventory.asset` |
 | NPC 판매 물품·가격 | 해당 씬의 `NpcManager` 프로필 |

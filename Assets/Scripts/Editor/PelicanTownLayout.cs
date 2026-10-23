@@ -178,7 +178,7 @@ public static class PelicanTownLayout
         }
         Root(Marker,map.transform,Vector2.zero);EditorSceneManager.MarkSceneDirty(farm.gameObject.scene);EditorSceneManager.SaveScene(farm.gameObject.scene);
     }
-    [MenuItem("Tools/Everything Grows/World/Apply Pelican Town reference layout")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode)throw new Exception("Stop Play before authoring.");

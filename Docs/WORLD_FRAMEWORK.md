@@ -36,7 +36,7 @@
 
 ## NPC 설정
 
-각 씬의 Farm 루트에 있는 NpcManager 또는 `Tools > Everything Grows > NPC manager`에서 설정합니다.
+각 씬의 Farm 루트에 있는 NpcManager 또는 `Tools > Everything Grows > NPC 관리`에서 설정합니다.
 
 - `Shop Enabled`: 거래 가능한 NPC. 끄면 Greeting을 출력하는 대화 NPC입니다. 대화 NPC에게는 구매·판매가 되지 않습니다.
 - `Guild Quest Giver`: 길드 의뢰 화면을 여는 NPC/게시판입니다. 의뢰 내용과 보상은 GuildQuests 자산에서 설정합니다.
@@ -60,7 +60,7 @@
 
 현재 마을은 펠리컨 타운의 광장 분위기를 유지하면서 주요 시설 위치를 사용자 스케치에 맞췄습니다. 길은 주요 건물 위치를 유지한 채 구간마다 완만하게 꺾었고, 긴 수직·수평 도로의 반복을 줄였습니다. 세부 배치는 Scene에서 계속 수정할 수 있습니다. 농장·던전 내부의 상세 배치는 아직 보류 상태입니다. 데모 전체 목록은 [DEMO_ROADMAP.md](DEMO_ROADMAP.md)를 기준으로 합니다.
 
-`Tools > Everything Grows > World > Validate world connections`를 실행하면 네 씬의 Build Settings 등록, 출입구 목적지와 도착 ID, 중복 ID, 막힌 도착·스폰 위치, NPC 프로필 누락을 검사합니다. 오류는 Console에서 확인합니다. 도구는 배치를 수정하거나 씬을 저장하지 않습니다. 이 검사는 전체 지형에서 목적지까지 걸어갈 수 있는지를 보장하는 경로 탐색 검사는 아닙니다.
+`Tools > Everything Grows > 검사 > 맵 연결 검사`를 실행하면 네 씬의 Build Settings 등록, 출입구 목적지와 도착 ID, 중복 ID, 막힌 도착·스폰 위치, NPC 프로필 누락을 검사합니다. 오류는 Console에서 확인합니다. 도구는 배치를 수정하거나 씬을 저장하지 않습니다. 이 검사는 전체 지형에서 목적지까지 걸어갈 수 있는지를 보장하는 경로 탐색 검사는 아닙니다.
 
 기본 조작은 [FOUNDATION_CONTROLS.md](FOUNDATION_CONTROLS.md)에 정리했습니다. 싱글플레이에서 인벤토리·대화·상점·지도는 게임 시간을 멈추며, 닫는 키로 심기·수확·이동이 동시에 실행되지 않습니다.
 

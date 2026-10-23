@@ -131,7 +131,7 @@ public static class TownRoofIdentitySetup
         }
         prefab=PrefabUtility.SaveAsPrefabAsset(root,path);UnityEngine.Object.DestroyImmediate(root);return prefab;
     }
-    [MenuItem("Tools/Everything Grows/World/Add town roof identity signs")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode)throw new Exception("Stop Play before authoring.");

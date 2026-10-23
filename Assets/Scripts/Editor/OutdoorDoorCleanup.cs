@@ -23,7 +23,7 @@ public static class OutdoorDoorCleanup
         if(Dirty()){File.WriteAllText(Result,"WAITING_FOR_SCENE_SAVE");return;}
         File.Delete(Request);try{Apply();File.WriteAllText(Result,"SUCCESS");}catch(Exception error){Debug.LogException(error);File.WriteAllText(Result,"ERROR: "+error);}
     }
-    [MenuItem("Tools/Everything Grows/World/Remove outdoor E doors")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode||Dirty())throw new Exception("Stop Play and save modified outdoor scenes before removing doors.");

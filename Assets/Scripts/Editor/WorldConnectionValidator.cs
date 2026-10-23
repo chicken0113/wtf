@@ -14,7 +14,7 @@ public static class WorldConnectionValidator
         if(!Application.isBatchMode) throw new Exception("Use isolated validation.");
         WorldFrameworkSetup.Connect(); Validate(); WorldFrameworkCheck.Run();
     }
-    [MenuItem("Tools/Everything Grows/World/Validate world connections")]
+    [MenuItem("Tools/Everything Grows/검사/맵 연결 검사")]
     public static void Validate()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play before validating scene assets.");

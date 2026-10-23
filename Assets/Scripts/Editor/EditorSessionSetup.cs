@@ -31,7 +31,7 @@ public static class EditorSessionSetup
         File.WriteAllText(Result,JsonUtility.ToJson(new Status { state=state,project=Application.dataPath,scene=scene.path,playing=EditorApplication.isPlayingOrWillChangePlaymode,
             hasFarm=FindInScene<FarmGame>(scene)!=null,hasCamera=camera!=null,orthographic=camera!=null && camera.orthographic,error=error },true));
     }
-    [MenuItem("Tools/Everything Grows/Set up current scene")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void SetupCurrent()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play before setting up the scene.");

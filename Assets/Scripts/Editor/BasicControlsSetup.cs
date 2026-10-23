@@ -10,6 +10,6 @@ public static class BasicControlsSetup
             AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<PlayerControlSettings>(),Path);
         AssetDatabase.SaveAssets();
     }
-    [MenuItem("Tools/Everything Grows/Player controls")]
+    [MenuItem("Tools/Everything Grows/플레이어 조작 설정")]
     public static void Edit(){Prepare();Selection.activeObject=AssetDatabase.LoadAssetAtPath<PlayerControlSettings>(Path);EditorGUIUtility.PingObject(Selection.activeObject);}
 }

@@ -9,7 +9,7 @@ using EverythingGrows;
 
 public static class ProjectSetupCheck
 {
-    [MenuItem("Tools/Everything Grows/Validation/Check project setup")]
+    [MenuItem("Tools/Everything Grows/검사/프로젝트 설정 검사")]
     public static void Run()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode) { Debug.LogWarning("Play를 정지한 뒤 설정 검사를 실행하세요."); return; }

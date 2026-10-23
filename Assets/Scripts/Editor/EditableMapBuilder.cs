@@ -42,7 +42,7 @@ public static class EditableMapBuilder
     {
         var root=(GameObject)PrefabUtility.InstantiatePrefab(prefab,parent); root.transform.position=point; root.transform.localScale=new Vector3(size.x,size.y,1); return root;
     }
-    [MenuItem("Tools/Everything Grows/Make current map editable")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Setup()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) throw new Exception("Stop Play before editing the map.");

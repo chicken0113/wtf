@@ -17,7 +17,7 @@ public sealed class FarmMapWindow : EditorWindow
     private readonly HashSet<Vector2> visited=new();
     private Vector2 scroll;
     private GameObject[] palette;
-    [MenuItem("Tools/Everything Grows/Map placement")]
+    [MenuItem("Tools/Everything Grows/맵 배치")]
     public static void Open() => GetWindow<FarmMapWindow>("맵 배치");
     private void OnEnable() { SceneView.duringSceneGui+=SceneGUI; Refresh(); }
     private void OnDisable() { SceneView.duringSceneGui-=SceneGUI; SetPainting(false); EndStroke(); }

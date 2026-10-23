@@ -63,7 +63,7 @@ public static class VillageRoadRefinement
             if(!moved)throw new Exception("No clear roadside position for tree at "+original);
         }
     }
-    [MenuItem("Tools/Everything Grows/World/Apply village road bends")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode)throw new Exception("Stop Play before authoring.");

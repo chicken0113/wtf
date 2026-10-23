@@ -194,7 +194,7 @@ public static class TriangleWorldSetup
         }
         Root(Marker,map.transform,Vector2.zero);Save(f);
     }
-    [MenuItem("Tools/Everything Grows/World/Apply triangle world layout")]
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode||Enumerable.Range(0,SceneManager.sceneCount).Any(i=>SceneManager.GetSceneAt(i).isDirty))throw new Exception("Stop Play and save modified scenes first.");

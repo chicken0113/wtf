@@ -19,9 +19,9 @@ public static class GuildQuestSetup
         if(Enumerable.Range(0,SceneManager.sceneCount).Any(i=>SceneManager.GetSceneAt(i).isDirty)){File.WriteAllText(Result,"WAITING_FOR_SCENE_SAVE");return;}
         File.Delete(Request);try{Apply();File.WriteAllText(Result,"SUCCESS");}catch(Exception e){Debug.LogException(e);File.WriteAllText(Result,e.ToString());}
     }
-    [MenuItem("Tools/Everything Grows/Guild quests")]
-    public static void Edit(){Selection.activeObject=AssetDatabase.LoadAssetAtPath<GuildQuestCatalog>(Catalog);EditorGUIUtility.PingObject(Selection.activeObject);}
-    [MenuItem("Tools/Everything Grows/World/Add guild requests")]
+    [MenuItem("Tools/Everything Grows/길드 의뢰")]
+    public static void Edit() => GuildQuestWindow.Open();
+    // One-time authoring entry retained for fixtures; no production menu.
     public static void Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode||Enumerable.Range(0,SceneManager.sceneCount).Any(i=>SceneManager.GetSceneAt(i).isDirty))throw new Exception("Stop Play and save scenes first.");
