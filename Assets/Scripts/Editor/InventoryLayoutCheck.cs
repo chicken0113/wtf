@@ -61,7 +61,19 @@ public static class InventoryLayoutCheck
         InventoryCheckAccess.Clear(f);f.AddItem(hoe);f.AddItem(water);f.AddItem(seed);f.MoveInventoryItem(2,7);
         Check(f.DetachSlot() && f.Capacity==7 && f.InventoryItem(7)==null && Enumerable.Range(0,7).Any(i=>f.InventoryItem(i)==seed),"Slot detachment lost last-slot item");
         Check(f.RestoreSlot() && f.Capacity==8,"Slot restore failed after fixed-slot detachment");
-        Debug.Log("INVENTORY_LAYOUT_RULES_SUCCESS: independent capacity, stable holes/move/swap/remove, indexed reload, legacy migration, duplicate rejection, overflow drops and detachable slot safety.");
+        InventoryCheckAccess.Clear(f);for(int i=0;i<7;i++)Check(f.AddItem(seed),"Stack fixture failed");
+        Check(f.MoveInventoryItem(0,4,4) && f.InventoryQuantity(0)==3 && f.InventoryQuantity(4)==4,"Partial move did not conserve quantities");
+        Check(f.MoveInventoryItem(4,0) && f.InventoryQuantity(0)==7 && f.InventoryItem(4)==null,"Matching stack did not merge");
+        f.AddItem(water);Check(!f.MoveInventoryItem(0,1,3) && f.InventoryQuantity(0)==7 && f.InventoryItem(1)==water,"Partial bundle swapped different items");
+        Check(f.MoveInventoryItem(0,1) && f.InventoryQuantity(1)==7 && f.InventoryItem(0)==water,"Full bundle swap regressed");
+        int stackDrops=f.WorldPieceCount;
+        Check(f.DropInventoryItems(1,4) && f.InventoryQuantity(1)==3 && f.WorldPieceCount==stackDrops+4,"Drop did not conserve selected quantity");
+        Check(!f.DropInventoryItems(1,4) && !f.DropInventoryItems(1,0) && f.InventoryQuantity(1)==3 && f.WorldPieceCount==stackDrops+4,"Invalid drop changed inventory");
+        Check(GameSession.Save(f),"Split/drop save failed");f=Reload();
+        Check(f.InventoryQuantity(1)==3 && f.WorldPieceCount==stackDrops+4,"Split/drop quantities lost on restore");
+        var described=UnityEngine.Object.Instantiate(seed);described.description="Custom item purpose";
+        Check(described.UsageText==described.description && !string.IsNullOrWhiteSpace(seed.UsageText),"Tooltip description/fallback missing");UnityEngine.Object.DestroyImmediate(described);
+        Debug.Log("INVENTORY_LAYOUT_RULES_SUCCESS: independent capacity, stable holes/move/swap/remove, indexed reload, legacy migration, duplicate rejection, overflow drops, detachable slot safety, merge/split/drop quantities, reload and descriptions.");
     }
     public static void RunVisual()
     {
@@ -72,9 +84,9 @@ public static class InventoryLayoutCheck
     }
     private static object Hud=>typeof(FarmGame).GetField("hud",Members).GetValue(farm);
     private static object Call(object hud,string name,params object[] args)=>hud.GetType().GetMethod(name,Members).Invoke(hud,args);
-    private static void Slot(object hud,int index,Vector2 point,EventType type)
+    private static void Slot(object hud,int index,Vector2 point,EventType type,bool split=false)
     {
-        Event.current=new Event {type=type,button=0,mousePosition=point};
+        Event.current=new Event {type=type,button=0,mousePosition=point,modifiers=split?EventModifiers.Shift:EventModifiers.None};
         Call(hud,"DrawSlot",new Rect(point-Vector2.one*26,Vector2.one*52),index,index<farm.HotbarCapacity);
     }
     public static void Probe()
@@ -93,17 +105,38 @@ public static class InventoryLayoutCheck
                 Slot(hud,4,new Vector2(26,26),EventType.MouseDown);
                 hud.GetType().GetField("hoveredSlot",Members).SetValue(hud,-1);
                 Event.current=new Event {type=EventType.MouseUp,button=0,mousePosition=new Vector2(226,26)};Call(hud,"UpdateDrag",new Vector2(226,26));
-                Check(farm.InventoryItem(4)==hoe && farm.WorldPieceCount==drops,"Outside drop lost item");
+                Check(farm.InventoryItem(4)==null && farm.WorldPieceCount==drops+1,"Outside release did not drop held item");
+                Check(farm.DetachAt(farm.PlayerPosition+Vector2.down*.65f),"Dropped item could not be picked up");
+                Check(farm.MoveInventoryItem(0,4),"Could not restore hoe fixture");
+                Slot(hud,2,new Vector2(26,26),EventType.MouseDown,true);
+                Event.current=new Event {type=EventType.MouseDrag,button=0,mousePosition=new Vector2(126,26)};Call(hud,"UpdateDrag",new Vector2(126,26));
+                Slot(hud,5,new Vector2(126,26),EventType.MouseUp);Call(hud,"UpdateDrag",new Vector2(126,26));
+                Check(farm.InventoryQuantity(2)==2 && farm.InventoryQuantity(5)==3,"Shift drag did not take larger half of odd bundle");
+                Slot(hud,5,new Vector2(26,26),EventType.MouseDown);
+                Slot(hud,2,new Vector2(126,26),EventType.MouseUp);Call(hud,"UpdateDrag",new Vector2(126,26));
+                Check(farm.InventoryQuantity(2)==5 && farm.InventoryItem(5)==null,"GUI merge duplicated or lost items");
+                Slot(hud,2,new Vector2(26,26),EventType.MouseDown,true);
+                Slot(hud,1,new Vector2(126,26),EventType.MouseUp);Call(hud,"UpdateDrag",new Vector2(126,26));
+                Check(farm.InventoryQuantity(2)==5 && farm.InventoryQuantity(1)==1,"Partial GUI swap changed quantities");
+                Slot(hud,2,new Vector2(26,26),EventType.MouseDown,true);
+                hud.GetType().GetField("hoveredSlot",Members).SetValue(hud,-1);
+                var outside=new Vector2(2,Screen.height-2);Event.current=new Event {type=EventType.MouseUp,button=0,mousePosition=outside};Call(hud,"UpdateDrag",outside);
+                Check(farm.InventoryQuantity(2)==2 && farm.WorldPieceCount==drops+3,"Outside split drop did not drop exactly the selected half");
                 Slot(hud,4,new Vector2(26,26),EventType.MouseDown);farm.ProcessMenuInput(false,true,false);
                 Event.current=new Event {type=EventType.Repaint};Call(hud,"Draw");
                 Check((int)hud.GetType().GetField("dragSource",Members).GetValue(hud)==-1 && farm.InventoryItem(4)==hoe,"Esc did not cancel drag safely");
                 farm.ProcessMenuInput(true,false,false);guiDone=true;
-                Debug.Log("INVENTORY_LAYOUT_UI_SUCCESS: production slot drag handlers, hotbar/backpack transfer, outside cancel and Esc retain items.");
+                Debug.Log("INVENTORY_LAYOUT_UI_SUCCESS: production slot drag handlers, hotbar/backpack transfer, odd half split, matching merge, invalid partial swap, outside whole/partial drop and Esc retain items.");
             }
             catch(Exception error) { Fail(error); }
             finally { Event.current=previous; }
         }
         Call(hud,"Draw");
+        if(guiDone && Event.current.type==EventType.Repaint)
+        {
+            hud.GetType().GetField("hoveredSlot",Members).SetValue(hud,2);
+            Call(hud,"DrawTooltip",new Vector2(farm.InventoryPanelRect.xMax+8,farm.InventoryPanelRect.y+70));
+        }
     }
     private static void Tick()
     {
@@ -116,10 +149,10 @@ public static class InventoryLayoutCheck
             if(step==0)
             {
                 InventoryCheckAccess.Clear(farm);farm.AddItem(AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset"));
-                farm.AddItem(AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/WateringCan.asset"));farm.AddItem(Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"));
+                farm.AddItem(AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/WateringCan.asset"));for(int i=0;i<5;i++)farm.AddItem(Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"));
                 farm.ProcessMenuInput(true,false,false);farm.gameObject.AddComponent<InventoryLayoutGuiProbe>();step=1;return;
             }
-            if(step==1 && guiDone) { imagePath=Path.Combine(Path.GetDirectoryName(Application.dataPath),"InventoryLayout.png");ScreenCapture.CaptureScreenshot(imagePath);step=2;return; }
+            if(step==1 && guiDone) { imagePath=Path.Combine(Path.GetDirectoryName(Application.dataPath),"InventoryStacks-"+Guid.NewGuid().ToString("N")+".png");ScreenCapture.CaptureScreenshot(imagePath);step=2;return; }
             if(step==2 && File.Exists(imagePath))
             { SessionState.SetBool(Key,false);EditorApplication.update-=Tick;Debug.Log("INVENTORY_LAYOUT_VISUAL_SUCCESS: "+imagePath);EditorApplication.Exit(0); }
         }

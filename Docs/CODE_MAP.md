@@ -143,6 +143,8 @@
 
 - `InventoryState`는 슬롯 번호 → 스택을 보관한다. `Count`/`InventoryCount`는 점유된 칸 수이므로 마지막 슬롯 인덱스나 순회 상한으로 쓰면 안 된다. UI/입력은 `HotbarCapacity`와 `Capacity`로 범위를 정하고, 테스트의 정리/마지막 아이템 조회는 `Editor/InventoryCheckAccess`를 사용한다.
 - `StartingInventory.hotbarSlots / storageSlots`는 시작할 때 읽는다. 기본 4+1=5칸이며, 성장한 보관 아이템의 기존 보너스는 추가 보관 칸이 된다. 숫자/휠/선택은 핫바만 대상으로 한다. 보관 칸 아이템은 핫바로 옮겨서 사용한다.
-- `FarmHud.DrawInventoryWindow`는 보관 칸(스크롤)과 핫바(고정)를 함께 그린다. `DrawSlot`이 누른 원본을 기억하고 `UpdateDrag`가 놓은 칸을 확인해 `FarmGame.MoveInventoryItem → InventoryState.MoveOrSwap`으로 위임한다. 드래그하는 동안 아이템을 미리 제거하지 않으므로 바깥에 놓거나 Esc/창 닫기/맵 이동 시에도 사라지지 않는다. 같은 아이템 합치기와 수량 나누기는 이번 범위가 아니다.
+- `FarmHud.DrawInventoryWindow`는 보관 칸(스크롤)과 핫바(고정)를 함께 그린다. `DrawSlot`이 누른 원본을 기억하고 `UpdateDrag`가 놓은 칸을 확인해 `FarmGame.MoveInventoryItem → InventoryState.MoveOrSwap`으로 위임한다. 드래그하는 동안 아이템을 미리 제거하지 않는다. 같은 묶음은 합치고 Shift 드래그는 홀수의 큰 절반을 옮긴다. `MoveInventoryItem`의 수량을 `InventoryState.MoveOrSwap`이 검증하며 부분 묶음은 다른 물건과 교환하지 않는다. 창 밖 놓기는 `DropInventoryItems → RemoveAmount + 기존 Spawn`으로 선택한 수량만 발밑에 떨어뜨리고, 창 안 빈 공간/Esc/창 닫기/맵 이동은 취소한다. 거래 중 상점 패널 위도 취소 영역이다.
 - 저장 버전은 1이다. 새 `PlayerSave.inventoryUsesSlots=true`일 때 각 `ItemStackSave.slot`을 사용하며 빈칸은 저장 목록에 넣지 않는다. 이전 형식은 목록 순서를 슬롯 번호로 읽는다. 중복/음수 슬롯은 거부하고 기존 인벤토리 교체 전에 참조/번호를 확인한다. 칸 수 감소로 범위 밖인 아이템은 `DropOverflow`가 모두 바닥에 보존한다.
 - `InventoryLayoutCheck.Run`은 이동/교환/빈칸·새/구 저장·중복 거부·초과분 드롭·슬롯 떼기/복원을, `RunVisual`은 GUI 슬롯 드래그/취소와 두 영역 화면을 격리 프로젝트에서 검사한다.
+
+- 아이템 툴팁은 `FarmHud.DrawTooltip`이 이름/수량/`PlantDefinition.UsageText`를 표시한다. Unity의 `description`이 있으면 그대로 쓰고 없으면 기존 용도에 맞는 기본 설명을 사용한다. 드래그 중에는 숨기며 Repaint에서만 그려 입력을 소비하지 않는다. `dragSourceQuantity`는 원본 검증, `dragQuantity`는 실제 이동/버리기 수량이다. 바닥 아이템은 기존대로 개별 단위이며 저장 형식은 추가 변경하지 않았다.

@@ -27,7 +27,7 @@ namespace EverythingGrows
         public int QuantityAt(int index) => stacks.TryGetValue(index,out var stack)?stack.Count:0;
         private int EmptySlot(int capacity) { for(int i=0;i<capacity;i++)if(!stacks.ContainsKey(i))return i;return -1; }
         private int MatchingSlot(PlantDefinition item,int capacity)
-        { if(item.stackable)foreach(var pair in stacks)if(pair.Key<capacity && pair.Value.Item==item)return pair.Key;return -1; }
+        { if(item.stackable)foreach(var pair in stacks)if(pair.Key<capacity && pair.Value.Item==item && pair.Value.Count<int.MaxValue)return pair.Key;return -1; }
         public bool CanAdd(PlantDefinition item,int capacity) => item!=null && (MatchingSlot(item,capacity)>=0 || EmptySlot(capacity)>=0);
         public bool TryAdd(PlantDefinition item,int capacity)
         {
@@ -38,17 +38,30 @@ namespace EverythingGrows
             if(index<HotbarCapacity(capacity))Selected=index;
             return true;
         }
-        public bool RemoveOne(int index,int capacity)
+        public bool RemoveOne(int index,int capacity) => RemoveAmount(index,1,capacity);
+        public bool RemoveAmount(int index,int amount,int capacity)
         {
-            if(!stacks.TryGetValue(index,out var stack))return false;
-            if(--stack.Count<=0)stacks.Remove(index);
+            if(amount<=0 || !stacks.TryGetValue(index,out var stack) || amount>stack.Count)return false;
+            stack.Count-=amount;if(stack.Count==0)stacks.Remove(index);
             ClampSelection(capacity);return true;
         }
-        public bool MoveOrSwap(int from,int to,int capacity)
+        // Full bundles swap; partial bundles only enter an empty or matching stackable slot.
+        public bool MoveOrSwap(int from,int to,int capacity,int amount=0)
         {
             if(from==to || from<0 || to<0 || from>=capacity || to>=capacity || !stacks.TryGetValue(from,out var source))return false;
-            if(stacks.TryGetValue(to,out var target))stacks[from]=target;else stacks.Remove(from);
-            stacks[to]=source;return true;
+            if(amount==0)amount=source.Count;
+            if(amount<1 || amount>source.Count)return false;
+            if(stacks.TryGetValue(to,out var target))
+            {
+                if(source.Item==target.Item && source.Item.stackable)
+                {
+                    if(target.Count>int.MaxValue-amount)return false;
+                    target.Count+=amount;RemoveAmount(from,amount,capacity);return true;
+                }
+                if(amount!=source.Count)return false;
+                stacks[from]=target;stacks[to]=source;return true;
+            }
+            stacks[to]=new Stack(source.Item,amount);RemoveAmount(from,amount,capacity);return true;
         }
         public bool TryDetachSlot(PlantDefinition slotItem,int capacity)
         {

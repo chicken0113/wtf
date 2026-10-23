@@ -8,9 +8,9 @@ namespace EverythingGrows
         private readonly FarmGame farm;
         private readonly FarmArt art;
         private readonly Camera view;
-        private GUIStyle titleStyle,smallStyle;
+        private GUIStyle titleStyle,smallStyle,tooltipStyle;
         private Vector2 inventoryScroll,dragOrigin;
-        private int dragSource=-1,hoveredSlot=-1,dragQuantity;
+        private int dragSource=-1,hoveredSlot=-1,dragQuantity,dragSourceQuantity;
         private PlantDefinition dragItem;
         private bool dragging,slotClipContainsPointer=true;
         public FarmHud(FarmGame farm,FarmArt art,Camera view) { this.farm=farm;this.art=art;this.view=view; }
@@ -44,9 +44,10 @@ namespace EverythingGrows
             var previous=GUI.color;GUI.color=new Color(.24f,.13f,.08f);GUI.DrawTexture(rect,Texture2D.whiteTexture);
             GUI.color=color;GUI.DrawTexture(new Rect(rect.x+3,rect.y+3,rect.width-6,rect.height-6),Texture2D.whiteTexture);GUI.color=previous;
         }
-        private void CancelDrag() { dragSource=-1;dragItem=null;dragQuantity=0;dragging=false; }
+        private void CancelDrag() { dragSource=-1;dragItem=null;dragQuantity=dragSourceQuantity=0;dragging=false; }
         public void Draw()
         {
+            hoveredSlot=-1;
             if(farm.Combat==null || farm.Combat.IsGameOver) { CancelDrag();return; }
             titleStyle ??= new GUIStyle(GUI.skin.label) {fontSize=16,fontStyle=FontStyle.Bold};
             smallStyle ??= new GUIStyle(GUI.skin.label) {fontSize=12,alignment=TextAnchor.MiddleCenter};
@@ -58,12 +59,13 @@ namespace EverythingGrows
             CancelDrag();
             if(farm.MapOpen) { DrawMap();return; }
             for(int i=0;i<farm.HotbarCapacity;i++)if(DrawSlot(SlotRect(i),i,true))break;
+            DrawTooltip(Event.current.mousePosition);
             foreach(var piece in farm.WorldPieces)if(piece.model!=null)
             { var position=view.WorldToScreenPoint(piece.model.transform.position);GUI.Label(new Rect(position.x-60,Screen.height-position.y+12,120,22),"RMB: "+piece.definition.label); }
         }
         private void DrawInventoryWindow()
         {
-            if(dragSource>=0 && (dragSource>=farm.Capacity || farm.InventoryItem(dragSource)!=dragItem || farm.InventoryQuantity(dragSource)!=dragQuantity))CancelDrag();
+            if(dragSource>=0 && (dragSource>=farm.Capacity || farm.InventoryItem(dragSource)!=dragItem || farm.InventoryQuantity(dragSource)!=dragSourceQuantity))CancelDrag();
             hoveredSlot=-1;var mouse=Event.current.mousePosition;var panel=InventoryPanelRect;Panel(panel,new Color(.48f,.3f,.17f,.98f));
             GUI.Label(new Rect(panel.x+16,panel.y+10,panel.width-70,28),"Inventory",titleStyle);
             if(GUI.Button(new Rect(panel.xMax-42,panel.y+8,30,26),"X")) { CancelDrag();farm.Shop?.Close();farm.SetInventoryOpen(false);return; }
@@ -83,20 +85,32 @@ namespace EverythingGrows
             for(int i=0;i<farm.HotbarCapacity;i++)
                 DrawSlot(new Rect(panel.x+12+i%columns*58,hotbarY+i/columns*58,52,52),i,true);
             UpdateDrag(mouse);
+            DrawTooltip(mouse);
         }
         private void UpdateDrag(Vector2 mouse)
         {
             if(dragSource<0)return;
+            if(dragSource>=farm.Capacity || farm.InventoryItem(dragSource)!=dragItem || farm.InventoryQuantity(dragSource)!=dragSourceQuantity)
+            { CancelDrag();return; }
             if(Event.current.type==EventType.MouseDrag && Event.current.button==0)
             { dragging|=Vector2.Distance(GUIUtility.GUIToScreenPoint(mouse),dragOrigin)>5;Event.current.Use(); }
             if(Event.current.rawType==EventType.MouseUp && Event.current.button==0)
             {
                 bool moved=dragging || Vector2.Distance(GUIUtility.GUIToScreenPoint(mouse),dragOrigin)>5;
-                if(moved && hoveredSlot>=0)farm.MoveInventoryItem(dragSource,hoveredSlot);
+                if(moved)
+                {
+                    if(hoveredSlot>=0)farm.MoveInventoryItem(dragSource,hoveredSlot,dragQuantity);
+                    else if(!InventoryPanelRect.Contains(mouse) && !(farm.Shop!=null && farm.Shop.ContainsUI(mouse)))
+                        farm.DropInventoryItems(dragSource,dragQuantity);
+                }
                 CancelDrag();Event.current.Use();return;
             }
             if(dragging && Event.current.type==EventType.Repaint)
-            { var previous=GUI.color;GUI.color=new Color(1,1,1,.85f);art.ItemIcon(new Rect(mouse-Vector2.one*22,Vector2.one*44),dragItem);GUI.color=previous; }
+            {
+                var previous=GUI.color;GUI.color=new Color(1,1,1,.85f);
+                art.ItemIcon(new Rect(mouse-Vector2.one*22,Vector2.one*44),dragItem);GUI.color=previous;
+                if(dragQuantity>1)GUI.Label(new Rect(mouse.x+6,mouse.y+8,42,20),dragQuantity.ToString(),smallStyle);
+            }
         }
         // Both inventory regions and the closed hotbar share the same UI actions.
         private bool DrawSlot(Rect rect,int index,bool hotbar)
@@ -112,6 +126,7 @@ namespace EverythingGrows
             }
             if(hotbar)GUI.Label(new Rect(rect.x+4,rect.y+1,16,16),(index+1).ToString());
             int quantity=farm.InventoryQuantity(index);
+            if(dragging && index==dragSource)quantity-=dragQuantity;
             if(quantity>1)GUI.Label(new Rect(rect.x+26,rect.y+1,24,18),quantity.ToString(),smallStyle);
             if(farm.Shop!=null && farm.Shop.IsTrading && item!=null)GUI.Label(new Rect(rect.x,rect.y+34,52,18),farm.Shop.SalePrice(item)+" G",smallStyle);
             if(Event.current.type!=EventType.MouseDown || !inside)return false;
@@ -120,12 +135,28 @@ namespace EverythingGrows
             {
                 farm.SelectSlot(index);
                 if(farm.InventoryOpen && item!=null)
-                { dragSource=index;dragItem=item;dragQuantity=quantity;dragOrigin=GUIUtility.GUIToScreenPoint(Event.current.mousePosition);dragging=false; }
+                {
+                    dragSource=index;dragItem=item;dragSourceQuantity=farm.InventoryQuantity(index);
+                    dragQuantity=Event.current.shift && item.stackable?1+(dragSourceQuantity-1)/2:dragSourceQuantity;
+                    dragOrigin=GUIUtility.GUIToScreenPoint(Event.current.mousePosition);dragging=false;
+                }
             }
             else if(Event.current.button==1)
             { CancelDrag();if(farm.Shop!=null && farm.Shop.IsTrading)farm.Shop.Sell(index);else farm.DetachSlot(); }
             else return false;
             Event.current.Use();return true;
+        }
+        private void DrawTooltip(Vector2 mouse)
+        {
+            if(Event.current.type!=EventType.Repaint || dragSource>=0 || hoveredSlot<0)return;
+            var item=farm.InventoryItem(hoveredSlot);if(item==null)return;
+            tooltipStyle ??= new GUIStyle(GUI.skin.box) {fontSize=14,wordWrap=true,alignment=TextAnchor.UpperLeft,padding=new RectOffset(10,10,8,8)};
+            var content=new GUIContent((string.IsNullOrWhiteSpace(item.label)?item.name:item.label)+"\nQuantity: "+farm.InventoryQuantity(hoveredSlot)+"\n\n"+item.UsageText);
+            float width=Mathf.Min(300,Screen.width-16),height=tooltipStyle.CalcHeight(content,width);
+            var rect=new Rect(Mathf.Clamp(mouse.x+18,8,Screen.width-width-8),Mathf.Clamp(mouse.y+18,8,Mathf.Max(8,Screen.height-height-8)),width,height);
+            int depth=GUI.depth;GUI.depth=-20;
+            var color=GUI.color;GUI.color=new Color(.08f,.07f,.05f,.98f);GUI.DrawTexture(rect,Texture2D.whiteTexture);GUI.color=color;
+            tooltipStyle.normal.textColor=Color.white;GUI.Box(rect,content,tooltipStyle);GUI.depth=depth;
         }
         private Rect MapRect=>new Rect(Screen.width/2-170,Screen.height/2-120,340,240);
         private void DrawMap()

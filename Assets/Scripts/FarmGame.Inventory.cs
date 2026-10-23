@@ -10,7 +10,14 @@ namespace EverythingGrows
         internal void SelectSlot(int index) { if(index>=0 && index<HotbarCapacity)selected=index; }
         public int HotbarCapacity => inventory.HotbarCapacity(Capacity);
         public int StorageCapacity => Capacity-HotbarCapacity;
-        public bool MoveInventoryItem(int from,int to) => inventory.MoveOrSwap(from,to,Capacity);
+        public bool MoveInventoryItem(int from,int to,int amount=0) => inventory.MoveOrSwap(from,to,Capacity,amount);
+        public bool DropInventoryItems(int index,int amount)
+        {
+            var item=inventory.ItemAt(index);
+            if(item==null || combat==null || combat.IsGameOver || !inventory.RemoveAmount(index,amount,Capacity))return false;
+            for(int i=0;i<amount;i++)Spawn(item,PlayerPosition+Vector2.down*.65f+Vector2.right*((i%3)-1)*.12f);
+            return true;
+        }
         public int Capacity => inventory.Capacity(StorageBonus);
         public int InventoryCount => inventory.Count;
         public int RemovedSlots => inventory.RemovedSlots;
