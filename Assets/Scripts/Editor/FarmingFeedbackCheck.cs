@@ -112,7 +112,8 @@ public static class FarmingFeedbackCheck
                     if((Vector2Int)plot.GetType().GetField("cell").GetValue(plot)==empty) plot.GetType().GetField("wilted").SetValue(plot,true);
             }
             Query(farm,"UpdateFarmingIcon",(Vector2)target,false);
-            Check(icon.enabled && Border(farm).enabled && icon.sprite==art.ItemSprite(item) && icon.sprite!=plantingSprite,"Tool did not replace planting icon: "+name);
+            if(name=="Scythe")Check(!icon.enabled && !Border(farm).enabled,"Scythe still removed planted crops");
+            else Check(icon.enabled && Border(farm).enabled && icon.sprite==art.ItemSprite(item) && icon.sprite!=plantingSprite,"Tool did not replace planting icon: "+name);
             if(name=="Hoe")
             {
                 Check(farm.UseTool(target),"Hoe fixture failed");
@@ -121,7 +122,7 @@ public static class FarmingFeedbackCheck
                 Check(farm.FarmAction(target) && farm.InventoryItem(farm.InventoryCount-1)!=item,"E could not plant the indicated hoe");
                 Query(farm,"UpdateFarmingIcon",(Vector2)target,false);
                 Check(!icon.enabled && !Border(farm).enabled,"Occupied cell retained invalid preview");
-                Check(farm.Uproot(target),"Could not recover planted tool fixture");
+                farm.AddItem(item);Check(farm.UseTool(target),"Could not remove planted tool with hoe");
             }
             farm.RemoveInventoryItem(farm.InventoryCount-1);
         }
@@ -212,8 +213,34 @@ public static class FarmingFeedbackCheck
             Check(Allowed(Query(rules,"InteractionHint",cell)) && farm.InteractPlot(cell),"Mature utility plant cannot be harvested");
         }
         finally { UnityEngine.Object.DestroyImmediate(transformed); UnityEngine.Object.DestroyImmediate(broken); }
+        CheckPlantedRemoval(farm,cell+Vector2Int.right,hoe,seed);
         Debug.Log("FARMING_FEEDBACK_SUCCESS: shared planting/tool/harvest decisions, invalid items, dry/growing/ready/regrowth/producer states, distance and full-inventory harvest.");
     }
+    private static void CheckPlantedRemoval(FarmGame farm,Vector2Int cell,PlantDefinition hoe,PlantDefinition seed)
+    {
+        farm.TeleportPlayer(cell);farm.Till(cell);
+        foreach(var item in new[]{hoe,seed}) foreach(bool mature in new[]{false,true})
+        {
+            while(farm.InventoryCount>0)farm.RemoveInventoryItem(0);
+            Check(farm.AddItem(item) && farm.PlantSelected(cell),"Removal fixture planting failed");
+            if(mature) { farm.Water(cell,.1f);farm.Tick(item.growthSeconds);Check(farm.IsMature(cell),"Removal fixture did not mature"); }
+            else Check(!farm.FarmAction(cell) && !farm.Uproot(cell) && farm.InventoryCount==0,"Immature planted object was recovered");
+            farm.AddItem(hoe);int count=farm.InventoryCount,pieces=farm.WorldPieceCount;
+            Check(farm.UsePrimaryTool(cell,true),"Hoe could not remove planted item/crop");
+            Check(farm.InventoryCount==count && farm.WorldPieceCount==pieces && !farm.IsMature(cell) && farm.CropProgress(cell)==0,"Hoe refunded or failed to reset plant");
+            Check(!farm.Till(cell) && farm.PlantSelected(cell),"Removal lost tilled soil or prevented replanting");
+            farm.AddItem(hoe);Check(farm.UsePrimaryTool(cell,true),"Cleanup hoe failed");
+        }
+        while(farm.InventoryCount>0)farm.RemoveInventoryItem(0);
+        var storage=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/InventorySlot.asset");
+        farm.AddItem(storage);farm.PlantSelected(cell);farm.Water(cell,.1f);farm.Tick(storage.growthSeconds);
+        while(farm.AddItem(hoe)) {}
+        int before=farm.WorldPieceCount,excess=farm.InventoryCount-5;
+        Check(excess>0 && farm.UsePrimaryTool(cell,true),"Storage plant removal failed");
+        Check(farm.Capacity==5 && farm.InventoryCount==5 && farm.WorldPieceCount==before+excess,"Storage removal lost carried items or refunded planted slot");
+        Debug.Log("PLANTED_REMOVAL_SUCCESS: E cannot recover immature items/seeds; hoe removes immature/mature items/crops without refunds, preserves soil/replanting and safely drops storage overflow.");
+    }
+
 }
 
 // Uses the production HUD unchanged while the test freezes input/growth.

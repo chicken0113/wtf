@@ -27,7 +27,7 @@ namespace EverythingGrows
         private bool showMap, showInventory;
         private OpenFieldCombat combat;
         private NpcManager shop;
-        private string message = "Try taking a tool and planting it. Right click to detach.";
+        private string message = "E: pick up, plant or harvest. Left click: use tools.";
         public bool MapOpen => showMap;
         public void SetMapOpen(bool open) => showMap = open;
         public bool WorldInputBlocked => InventoryOpen || showMap;
@@ -153,11 +153,10 @@ namespace EverythingGrows
                 if(!combat.RestoreHeart()) return false;
                 RemoveInventoryItem(selected); message="Heart reattached. Maximum HP restored."; return true;
             }
-            if(Held.effect!=GrowthEffect.Scythe && Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water) return false;
+            if(Held.effect!=GrowthEffect.Dig && Held.effect!=GrowthEffect.Water) return false;
             var hint=farming.ToolHint(cell,Held.effect);
             if(!hint.Allowed) { Notify(hint.Text); return false; }
-            if(Held.effect==GrowthEffect.Scythe) return ClearDeadCrop(cell);
-            bool used=Held.effect==GrowthEffect.Dig?Till(cell):Water(cell,.1f)>0;
+            bool used=Held.effect==GrowthEffect.Dig?farming.UseHoe(cell):Water(cell,.1f)>0;
             if(used) actionTime=.25f; return used;
         }
         private void Remove(GameObject root) => FarmWorldView.Remove(root);

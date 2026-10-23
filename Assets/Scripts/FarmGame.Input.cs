@@ -61,13 +61,7 @@ namespace EverythingGrows
             var point=MousePoint; var cell=MouseCell;
             if(Held!=null && Held.effect==GrowthEffect.Weapon && primaryAllowed)
                 if(combat.Attack(Held,PlayerPosition+AimDirection)) actionTime=.25f;
-            if(!Near(point)) { if(Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(1) || (Input.GetMouseButtonDown(0) && (Held==null || Held.effect!=GrowthEffect.Weapon))) message="Walk closer first."; return; }
-            if(Input.GetMouseButtonDown(1))
-            {
-                if(PieceAt(point)!=null) DetachAt(point);
-                else if(farming.TryGetPlot(cell,out var planted) && planted.plant!=null)
-                { if(planted.plant.isSeed) message="E: harvest ripe crops. Scythe: clear dead crops."; else if(!planted.mature) Uproot(cell); else message="Press E to harvest."; }
-            }
+            if(!Near(point)) { if(Input.GetKeyDown(KeyCode.E) || (Input.GetMouseButtonDown(0) && (Held==null || Held.effect!=GrowthEffect.Weapon))) message="Walk closer first."; return; }
             if(primaryAllowed && (Held==null||Held.effect!=GrowthEffect.Weapon))
             {
                 if(Held==null){if(Input.GetMouseButtonDown(0))message="Select a hoe to till soil.";}

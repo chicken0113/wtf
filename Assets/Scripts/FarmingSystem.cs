@@ -52,18 +52,19 @@ namespace EverythingGrows
             if(!plots.TryGetValue(cell,out var plot))
                 return farm.CanFarmAt(cell)?PlantHint(cell):new(false,"This ground cannot be planted.");
             if(plot.plant==null) return PlantHint(cell);
-            if(plot.wilted) return new(false,"Use a scythe to clear the dead crop.");
+            if(plot.wilted) return new(false,"Use a hoe to remove this plant.");
             if(!plot.mature) return new(false,plot.wet?"Still growing.":"Water this plant first.");
             if(!plot.CanHarvest) return new(false,"Producing; wait for the next harvest.");
             return new(true,"Harvest "+plot.HarvestItem.label);
         }
         public FarmActionHint ToolHint(Vector2Int cell, GrowthEffect tool)
         {
-            if(tool==GrowthEffect.Dig) return TillHint(cell);
+            if(tool==GrowthEffect.Dig)
+                return plots.TryGetValue(cell,out var occupied) && occupied.plant!=null?new(true,"Remove planted object (no refund)"):TillHint(cell);
             if(tool==GrowthEffect.Water)
                 return plots.ContainsKey(cell)?new(true,"Water soil"):new(false,"Till the soil before watering.");
             if(tool==GrowthEffect.Scythe)
-                return plots.TryGetValue(cell,out var plot) && plot.wilted?new(true,"Clear dead crop"):new(false,"No dead crop to clear.");
+                return new(false,"Use a hoe to remove planted objects.");
             return new(false,"");
         }
         public bool PlantSelected(Vector2Int cell)
@@ -140,15 +141,28 @@ namespace EverythingGrows
         }
         public bool Uproot(Vector2Int cell)
         {
-            if(!plots.TryGetValue(cell,out var plot) || plot.plant==null) return false;
-            var item=plot.mature?plot.HarvestItem:plot.plant;
-            plot.plant=null; plot.mature=false; plot.ready=false; plot.progress=plot.production=0; plot.regrowing=plot.wilted=false;
-            visuals.RemovePlant(cell); farm.ReconcileInventoryCapacity(); return farm.ReceiveHarvest(item);
+            if(!plots.TryGetValue(cell,out var plot) || plot.plant==null || !plot.mature || plot.wilted) return false;
+            var item=plot.HarvestItem;
+            ClearPlant(plot);return farm.ReceiveHarvest(item);
+        }
+        public bool UseHoe(Vector2Int cell)
+        {
+            if(plots.TryGetValue(cell,out var plot) && plot.plant!=null)
+            {
+                ClearPlant(plot);farm.Notify("Removed planted object. No item returned.");return true;
+            }
+            return Till(cell);
+        }
+        private void ClearPlant(PlantPlot plot)
+        {
+            plot.plant=null;plot.mature=plot.ready=plot.regrowing=plot.wilted=false;
+            plot.progress=plot.production=0;
+            visuals.RemovePlant(plot.cell);farm.ReconcileInventoryCapacity();
         }
         public bool ClearDeadCrop(Vector2Int cell)
         {
             if(!plots.TryGetValue(cell,out var plot) || !plot.wilted) return false;
-            visuals.RemovePlant(cell); plot.plant=null; plot.wilted=plot.regrowing=plot.mature=false; plot.progress=0; return true;
+            ClearPlant(plot);return true;
         }
         public List<PlotSave> CapturePlots(SaveItemCatalog catalog)
         {

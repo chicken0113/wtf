@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 시작 설정 누락·잘못된 참조·수치 | `SetupDataValidator.cs`, `FarmSetupValidator.cs` | `FarmGame.Startup.cs`, `Editor/ProjectSetupCheck.cs`; 자세한 사용법은 [SETUP_VALIDATION.md](SETUP_VALIDATION.md) |
 | 아이템 수량·겹치기·선택·슬롯 제한 | `Assets/Scripts/InventoryState.cs` | `FarmGame.Inventory.cs`가 메시지·바닥 드롭 연결 |
-| 밭 갈기·심기·물주기·성장·수확·재수확 | `Assets/Scripts/FarmingSystem.cs` | `FarmGame`의 기존 공개 함수가 위임 |
+| 밭 갈기·심기·물주기·성장·수확·괭이 제거·재수확 | `Assets/Scripts/FarmingSystem.cs` | `FarmGame`의 기존 공개 함수가 위임 |
 | 농사 가능 판정·칸 중앙 아이콘 | `FarmingSystem.PlantHint / InteractionHint / ToolHint`, `FarmActionHint` | `FarmGame.FarmingHints.UpdateFarmingIcon`이 도구 우선·맨손/거리/UI 숨김·칸 중앙 표시, `FarmArt.PlantingIcon`은 공통 심기 그림 |
 | 밭 한 칸의 상태 | `Assets/Scripts/PlantPlot.cs` | SpriteRenderer를 보관하지 않음 |
 | 작물·흙의 그림·크기·그리는 순서 | `Assets/Scripts/FarmWorldView.cs` | 농사 규칙을 변경하지 않음 |
@@ -42,6 +42,8 @@
 
 `FarmGame.Input.Update → FarmAction(E) → FarmingSystem.InteractPlot → PlantSelected / Collect / Uproot`
 
+- 좌클릭 괭이는 `ToolHint(Dig) → UseHoe`로 심어진 대상 제거를 우선한다. 자동 주변 경작은 기존 `Till`만 호출하여 주변 작물을 제거하지 않는다. 제거와 수확은 `ClearPlant`로 상태/그림/용량을 정리하되 제거에는 아이템 반환이 없다. `Uproot`는 성장 전/시든 대상 회수를 거부한다.
+- E의 성장 전 회수와 월드 우클릭 줍기/회수는 없다. 인벤토리/상점 우클릭과 Space/Shift는 기존대로다.
 - 심기 가능 여부는 `FarmingSystem.PlantHint`가 판단하며 `PlantSelected`도 같은 결과를 사용한다. 도구는 `ToolHint`, E 작물 행동은 `InteractionHint`를 실행과 안내가 공유한다. 이 쿼리는 아이템이나 밭 상태를 바꾸지 않는다.
 - `FarmGame.FarmingHints.FarmHint`는 실제 E의 바닥 아이템 → 건물 → 밭 우선순위를 따른다. `PrimaryFarmHint`는 좌클릭 도구/집 설치 판정이다.
 - 화면에서는 `UpdatePlantingPreview → UpdateFarmingIcon`이 한 개의 SpriteRenderer를 재사용한다. 먼저 괭이/물뿌리개/낫의 `ToolHint`가 가능하면 도구 그림을 사용한다. 도구 작업이 불가능하면 도구를 포함한 현재 아이템의 `PlantHint`를 확인하고, 심을 수 있을 때 공통 새싹 그림을 사용한다. 둘 다 불가능하면 숨긴다. 가능한 칸에서만 원래 색(심기는 초록) 아이콘과 초록색 한 칸 테두리를 함께 표시한다. 불가능하면 둘 다 숨긴다. 줍기·수확 가능 여부가 심기 아이콘의 색을 덮어쓰지 않는다.
