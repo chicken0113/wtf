@@ -56,9 +56,9 @@ public static class TowerDungeonCheck
         farm.TeleportPlayer(exit.transform.position);
         if(stairs)
         {
-            Check(!MapExit.TryAutomatic(farm) && !exit.TryActivate(farm,false) && !GameSession.Busy,"Stairs moved without F");
+            Check(!MapExit.TryAutomatic(farm) && !exit.TryActivate(farm,false) && !GameSession.Busy,"Stairs moved without right click");
             Check(!farm.FarmAction(exit.transform.position) && !GameSession.Busy,"E used stairs");
-            Check(farm.InteractWorld(exit.transform.position),"F failed to use stairs: "+GameSession.LastError);
+            Check(farm.ProcessSecondaryPointer(exit.transform.position,new Vector2(Screen.width-4,Screen.height*.5f)),"Right click failed to use stairs: "+GameSession.LastError);
         }
         else Check(MapExit.TryAutomatic(farm),"Automatic exterior travel failed: "+GameSession.LastError);
         Check(GameSession.Busy,"Travel did not start");
@@ -68,7 +68,8 @@ public static class TowerDungeonCheck
         var exit=Exit(farm,TowerDungeonSetup.Lobby);Check(exit.requireClearFloor,"Stair clear-floor setting missing");
         farm.TeleportPlayer(exit.transform.position);var before=File.ReadAllBytes(GameSession.SavePath);
         Check(exit.IsCombatBlocked(farm) && exit.InteractionPrompt(farm)=="몬스터를 모두 처치해야 합니다","Locked stair message missing");
-        Check(!farm.InteractWorld(exit.transform.position) && !exit.Travel(farm) && !GameSession.Busy,"Living monster did not block F or direct stair travel");
+        farm.ProcessSecondaryPointer(exit.transform.position,new Vector2(Screen.width-4,Screen.height*.5f));
+        Check(!exit.Travel(farm) && !GameSession.Busy,"Living monster did not block right click or direct stair travel");
         Check(File.ReadAllBytes(GameSession.SavePath).SequenceEqual(before),"Blocked staircase changed the saved game");
         bool previous=exit.requireClearFloor;exit.requireClearFloor=false;
         Check(!exit.IsCombatBlocked(farm),"Unrestricted doors were locked by monsters");exit.requireClearFloor=previous;
@@ -159,7 +160,7 @@ public static class TowerDungeonCheck
             var saved=JsonUtility.FromJson<GameSaveData>(File.ReadAllText(GameSession.SavePath));
             Check(saved.version==1 && saved.currentScene==TowerDungeonSetup.Lobby && saved.maps.Any(m=>m.scene==TowerDungeonSetup.Battle && m.pieces.Count==expectedBattleDrops),"Tower map save incomplete");
             SessionState.SetBool(Key,false);EditorApplication.update-=Tick;
-            Debug.Log(SessionState.GetBool(Key+"ResumeFinish",false)?"TOWER_RESTART_SUCCESS: 1F continue, F upstairs/downstairs, persistent combat loot, gold/items/HP.":"TOWER_PLAY_SUCCESS: safe 1F day/night, 2F existing combat, F-only stairs both ways, locked with living enemies, unlocked only after clearing, automatic exterior, autosaves and per-floor drops.");
+            Debug.Log(SessionState.GetBool(Key+"ResumeFinish",false)?"TOWER_RESTART_SUCCESS: 1F continue, right-click upstairs/downstairs, persistent combat loot, gold/items/HP.":"TOWER_PLAY_SUCCESS: safe 1F day/night, 2F existing combat, right-click stairs both ways, locked with living enemies, unlocked only after clearing, automatic exterior, autosaves and per-floor drops.");
             EditorApplication.Exit(0);
         }
         catch(Exception problem) { SessionState.SetBool(Key,false);Debug.LogException(problem);EditorApplication.Exit(1); }

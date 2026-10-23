@@ -27,7 +27,7 @@ namespace EverythingGrows
         private bool showMap, showInventory;
         private OpenFieldCombat combat;
         private NpcManager shop;
-        private string message = "E: pick up, plant or harvest. Left click: use tools.";
+        private string message = "RMB: pick up, plant or harvest. Left click: use tools.";
         public bool MapOpen => showMap;
         public void SetMapOpen(bool open) => showMap = open;
         public bool WorldInputBlocked => InventoryOpen || showMap;
@@ -137,7 +137,7 @@ namespace EverythingGrows
                         if(!AddItem(entry.item)) Spawn(entry.item,SpawnPosition+Vector2.down*.6f);
                 selected=0;
             }
-            message="E: pickup / plant / harvest. F: talk / enter. Click: use / attack. Space or Shift: dodge.";
+            message="RMB: pick up / plant / harvest / talk / enter. LMB: use / attack. Space or Shift: dodge.";
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(!building.runtimePlaced) authoredBuildingKeys[building]=MapObjectId.Key(building);
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) HouseInteriorLink.EnsureDoor(building);
         }

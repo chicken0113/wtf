@@ -25,16 +25,47 @@ namespace EverythingGrows
             return held&&!pointerOverUI&&!suppressPrimaryUntilRelease;
         }
 
-        // F handles people and doors only; farming never falls through to this action.
+        private int secondaryConsumedFrame=-1;
+        internal bool SecondaryPointerConsumed => secondaryConsumedFrame==Time.frameCount;
+
+        // One press routes to UI first, then pointed NPC/door, then existing farming rules.
+        public bool ProcessSecondaryPointer(Vector2 point,Vector2 guiPoint)
+        {
+            if(player==null || combat==null || combat.IsGameOver || GameSession.Busy)return false;
+            if(shop!=null && shop.IsOpen)
+            {
+                if(shop.ContainsUI(guiPoint))return false; // IMGUI owns selling and buttons inside the panels.
+                shop.Close();SetInventoryOpen(false);suppressPrimaryUntilRelease=true;
+                secondaryConsumedFrame=Time.frameCount;HideFarmingPreview();return true;
+            }
+            if(WorldInputBlocked)return false;
+            int heart=combat.HeartAt(guiPoint);
+            if(heart>=0)
+            {
+                secondaryConsumedFrame=Time.frameCount;
+                return combat.HarvestHeart(heart);
+            }
+            if(hud.OverUI(guiPoint))return false;
+            secondaryConsumedFrame=Time.frameCount;
+            return InteractWorld(point) || FarmAction(point);
+        }
+        // Pointed people and doors have priority; a blocked target never falls through to planting.
         public bool InteractWorld(Vector2 point,bool pointerOverUI=false)
         {
             if(player==null||combat==null||combat.IsGameOver||combat.IsRolling||WorldInputBlocked||GameSession.Busy||pointerOverUI)return false;
-            if(shop!=null&&shop.OpenPointed(point)){HideFarmingPreview();return true;}
-            if(MapExit.TryDoor(this)){HideFarmingPreview();return true;}
-            if(shop!=null&&shop.OpenNearby()){HideFarmingPreview();return true;}
-            Notify("Walk closer to a person or stand on a blue doormat, then press F.");return false;
+            var npc=shop!=null?shop.PointedNpc(point):null;
+            if(npc!=null)
+            {
+                if(!shop.Open(npc))Notify("대상에게 가까이 다가가세요.");
+                HideFarmingPreview();return true;
+            }
+            var door=MapExit.PointedDoor(this,point);
+            if(door==null)return false;
+            if(!door.Contains(PlayerPosition))Notify("문이나 계단 앞에 서서 우클릭하세요.");
+            else door.TryActivate(this,true);
+            HideFarmingPreview();return true;
         }
-        // E unifies pickup, planting and harvest, without opening NPCs or doors.
+        // Shared farming operation, also used after pointed NPC/door routing.
         public bool FarmAction(Vector2 point,bool pointerOverUI=false)
         {
             if(player==null||combat==null||combat.IsGameOver||combat.IsRolling||WorldInputBlocked||GameSession.Busy||pointerOverUI)return false;
@@ -45,7 +76,7 @@ namespace EverythingGrows
                 if(building.Contains(point)){HarvestBuildingAt(point);return true;}
             var cell=Vector2Int.RoundToInt(point);
             if(farming.HasPlot(cell)){InteractPlot(cell);return true;}
-            Notify("E: pick up, plant or harvest. Till empty soil with a hoe first.");return false;
+            Notify("RMB: pick up, plant or harvest. Till empty soil with a hoe first.");return false;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace EverythingGrows
             {
                 var exit=GetComponentInParent<MapExit>();
                 return (exit!=null&&exit.requireInteract)||GetComponentInParent<ShopNpc>()!=null
-                    ? (text??"").Replace("[E]","[F]").Replace("E:","F:") : text;
+                    ? (text??"").Replace("[E]","[RMB]").Replace("[F]","[RMB]").Replace("E:","RMB:").Replace("F:","RMB:") : text;
             }
         }
         void OnGUI()

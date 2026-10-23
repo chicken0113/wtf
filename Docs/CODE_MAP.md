@@ -14,7 +14,7 @@
 | 작물·흙의 그림·크기·그리는 순서 | `Assets/Scripts/FarmWorldView.cs` | 농사 규칙을 변경하지 않음 |
 | 핫바·인벤토리·골드·지도 | `Assets/Scripts/FarmHud.cs` | `DrawSlot`이 핫바/인벤토리 표시와 슬롯 클릭을 공통 처리 |
 | 키 읽기·프레임 처리 순서·메뉴 열기 | `Assets/Scripts/FarmGame.Input.cs` | `Update`, `ProcessMenuInput` |
-| E/F 대상 선택·조준·UI 클릭 차단 | `Assets/Scripts/FarmGame.Controls.cs` | `FarmAction`, `InteractWorld`, `UpdateAim` |
+| 우클릭 대상 선택·조준·UI 클릭 차단 | `Assets/Scripts/FarmGame.Controls.cs` | `ProcessSecondaryPointer` → `InteractWorld / FarmAction`, `UpdateAim` |
 | 무기 반동·캐릭터 동작·카메라 흔들림 | `Assets/Scripts/FarmGame.Feedback.cs` | `AnimateFarmer`, `LateUpdate`, `WeaponFeedback` |
 | 월드 아이템 줍기·드롭·집 배치 | `Assets/Scripts/FarmGame.World.cs` | `DetachAt`, `Spawn`, `CanPlaceHouse`, `PlaceHouse` |
 | NPC 대화·구매·판매 | `Assets/Scripts/NpcManager.cs` | `ShopNpc`, `NpcProfile` 데이터 |
@@ -23,10 +23,10 @@
 | 탄환 생성·이동·벽 차단·최초 명중·수명 | `Assets/Scripts/ProjectileSystem.cs` | `Spawn`, `Tick`, `ClearHostile` |
 | 전투 궤적·발사·파편·잔상·공격 예고선 | `Assets/Scripts/CombatEffects.cs` | 캐릭터/손 동작과 카메라는 기존 `FarmGame.Feedback.cs` |
 | 전투 연결·처치 수·길드 처치 전달·체력 HUD | `Assets/Scripts/OpenFieldCombat.cs` | `Attack`, `TickCombat`, `EnemyDefeated`, `OnGUI` |
-| 피격 사망·병원 귀환 | `PlayerCombatState.Damage` → `GameSession.Recovery.ReturnToHospital` | 기존 `GameSession.Travel / Bind / LoadMap` 자동 저장, `Editor/HospitalSetup` 병원/마을 F 문; [HOSPITAL_RECOVERY.md](HOSPITAL_RECOVERY.md) |
+| 피격 사망·병원 귀환 | `PlayerCombatState.Damage` → `GameSession.Recovery.ReturnToHospital` | 기존 `GameSession.Travel / Bind / LoadMap` 자동 저장, `Editor/HospitalSetup` 병원/마을 우클릭 문; [HOSPITAL_RECOVERY.md](HOSPITAL_RECOVERY.md) |
 | 층 클리어·처치 ID 유지 | `EnemyCombatSystem.CaptureState / RestoreState / FloorCleared` | `FarmPersistence` → `MapSave.combatCleared / defeatedEnemies`; 배치 ID는 `MapSaveAuthoring` → `MapObjectId` |
 | 층 전멸 계단 잠금 | `EnemyCombatSystem.LivingHostileCount` → `OpenFieldCombat` | `MapExit.requireClearFloor / IsCombatBlocked / Travel / InteractionPrompt`; 일반 출입구 기본값 false |
-| 탑 1·2층·F 계단 배치 | `Editor/TowerDungeonSetup.cs` | 기존 `MapExit`/`MapArrivalPoint`/`GameSession.Travel`; [TOWER_DUNGEON.md](TOWER_DUNGEON.md) |
+| 탑 1·2층·계단 배치 | `Editor/TowerDungeonSetup.cs` | 기존 `MapExit`/`MapArrivalPoint`/`GameSession.Travel`; [TOWER_DUNGEON.md](TOWER_DUNGEON.md) |
 | 맵/플레이어 저장 연결 | `Assets/Scripts/FarmPersistence.cs` | 각 상태 소유자에게 Capture/Restore 위임 |
 | 파일 저장·백업·맵 이동·저장 오류 | `Assets/Scripts/GameSession.cs` | 의뢰는 `GameSession.Guild.cs` |
 | 저장 파일 필드 | `Assets/Scripts/GameSaveData.cs` | 버전 1 유지 |
@@ -42,12 +42,12 @@
 
 ### 심기·수확
 
-`FarmGame.Input.Update → FarmAction(E) → FarmingSystem.InteractPlot → PlantSelected / Collect / Uproot`
+`FarmGame.Input.Update → ProcessSecondaryPointer(우클릭) → FarmAction → FarmingSystem.InteractPlot → PlantSelected / Collect / Uproot`
 
 - 좌클릭 괭이는 `ToolHint(Dig) → UseHoe`로 심어진 대상 제거를 우선한다. 자동 주변 경작은 기존 `Till`만 호출하여 주변 작물을 제거하지 않는다. 제거와 수확은 `ClearPlant`로 상태/그림/용량을 정리하되 제거에는 아이템 반환이 없다. `Uproot`는 성장 전/시든 대상 회수를 거부한다.
-- E의 성장 전 회수와 월드 우클릭 줍기/회수는 없다. 인벤토리/상점 우클릭과 Space/Shift는 기존대로다.
-- 심기 가능 여부는 `FarmingSystem.PlantHint`가 판단하며 `PlantSelected`도 같은 결과를 사용한다. 도구는 `ToolHint`, E 작물 행동은 `InteractionHint`를 실행과 안내가 공유한다. 이 쿼리는 아이템이나 밭 상태를 바꾸지 않는다.
-- `FarmGame.FarmingHints.FarmHint`는 실제 E의 바닥 아이템 → 건물 → 밭 우선순위를 따른다. `PrimaryFarmHint`는 좌클릭 도구/집 설치 판정이다.
+- 성장 전 회수는 없다. 우클릭은 UI → 가리킨 NPC/문 → 바닥 아이템 → 수확 → 심기 순서다. E/F 바인딩은 제거했고 인벤토리/상점 우클릭과 Space/Shift는 유지한다.
+- 심기 가능 여부는 `FarmingSystem.PlantHint`가 판단하며 `PlantSelected`도 같은 결과를 사용한다. 도구는 `ToolHint`, 우클릭 작물 행동은 `InteractionHint`를 실행과 안내가 공유한다. 이 쿼리는 아이템이나 밭 상태를 바꾸지 않는다.
+- `FarmGame.FarmingHints.FarmHint`는 농사 행동의 바닥 아이템 → 건물 → 밭 우선순위를 따른다. `PrimaryFarmHint`는 좌클릭 도구/집 설치 판정이다.
 - 화면에서는 `UpdatePlantingPreview → UpdateFarmingIcon`이 한 개의 SpriteRenderer를 재사용한다. 먼저 괭이/물뿌리개/낫의 `ToolHint`가 가능하면 도구 그림을 사용한다. 도구 작업이 불가능하면 도구를 포함한 현재 아이템의 `PlantHint`를 확인하고, 심을 수 있을 때 공통 새싹 그림을 사용한다. 둘 다 불가능하면 숨긴다. 가능한 칸에서만 원래 색(심기는 초록) 아이콘과 초록색 한 칸 테두리를 함께 표시한다. 불가능하면 둘 다 숨긴다. 줍기·수확 가능 여부가 심기 아이콘의 색을 덮어쓰지 않는다.
 - 아이콘은 마우스가 가리키는 정수 칸 중앙에 고정한다. 맨손·거리 밖·월드 밖·메뉴/UI·이동/오류·게임오버에서는 숨긴다. 모든 숨김 경로는 `HideFarmingPreview`로 아이콘과 테두리를 함께 끈다. 테두리 그림은 `FarmArt.FarmingBorderIcon`의 속이 빈 사각형을 재사용한다. 집 전체 설치 미리보기, 커서 안내 텍스트, 작물 위 이름/상태표/진행 막대는 제거했다. 실제 집 설치/심기와 농사 규칙은 유지한다.
 - 밭으로 쓸 수 있는 위치와 건물 충돌은 `FarmGame.World.CanFarmAt`에서 연결한다.
@@ -134,3 +134,7 @@
 ### 병원 귀환
 
 피격으로 체력이 0이 되면 `PlayerCombatState.Damage`가 반 하트 체력과 짧은 무적을 설정하고 `GameSession.ReturnToHospital`을 호출한다. 기존 맵 이동이 출발 맵/플레이어를 저장하고 도착 검증 후 병원 위치를 다시 저장한다. 병원 경로/복귀 ID는 `GameSession.Recovery.cs`에서 관리한다. 맵의 `passiveHealthRecovery`는 기존 안전 구역 자동 회복을 제어하며 병원에서만 false다. 최종 하트 슬롯을 직접 수확했을 때의 GameOver는 유지한다. 병원 문/복귀 위치는 씬에서 직접 편집한다.
+
+### 우클릭 입력과 메뉴
+
+`FarmGame.Input.Update`는 우클릭을 `ProcessSecondaryPointer`에 한 번 전달한다. 메뉴 상태에서는 닫기/안쪽 UI에 먼저 전달하고, 월드에서는 하트/UI 차단 후 `InteractWorld → FarmAction`을 사용한다. 가리킨 NPC는 `NpcManager.PointedNpc`, 문은 `MapExit.PointedDoor`가 고른다. 닿거나 공격/수확할 수 있는지만 보고 근처 NPC를 자동 선택하지 않는다. 창의 그림과 바깥 클릭 판정은 `NpcManager.PanelRect / ContainsUI`를 공유한다. `SecondaryPointerConsumed`로 메뉴를 여닫는 클릭이 같은 프레임에 판매/슬롯 떼기로 재사용되는 것을 막는다. Esc 닫기는 기존 `ProcessMenuInput`을 재사용한다. 저장/씬 재작성은 없다. 검사는 `SecondaryControlsCheck.Run`과 기존 `BasicControlsCheck.Run`, `TowerDungeonCheck.Run`을 사용한다.

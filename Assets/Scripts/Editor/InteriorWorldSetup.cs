@@ -31,7 +31,7 @@ public static class InteriorWorldSetup
     internal static MapExit Door(Transform parent,string name,Vector2 p,string target,string arrival)
     {
         var go=Root(name,parent,p);var exit=go.AddComponent<MapExit>();exit.destinationScene=target;exit.arrivalId=arrival;exit.requireInteract=true;exit.areaSize=V(1.8f,1.2f);
-        Draw("Blue doormat",go.transform,p,V(1.6f,.7f),exit.ModeColor,-900);Label(go.transform,name+" [F]",p+Vector2.down*.8f);return exit;
+        Draw("Blue doormat",go.transform,p,V(1.6f,.7f),exit.ModeColor,-900);Label(go.transform,name+" [RMB]",p+Vector2.down*.8f);return exit;
     }
     static void MakeDoorPrefab()
     {

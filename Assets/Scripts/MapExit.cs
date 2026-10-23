@@ -41,7 +41,7 @@ namespace EverythingGrows
         }
         public bool Contains(Vector2 point) => new Rect(-areaSize*.5f,areaSize).Contains(transform.InverseTransformPoint(point));
         public bool IsCombatBlocked(FarmGame farm) => requireClearFloor && farm!=null && farm.Combat!=null && farm.Combat.LivingHostileCount>0;
-        public string InteractionPrompt(FarmGame farm) => IsCombatBlocked(farm)?"몬스터를 모두 처치해야 합니다":"F: travel";
+        public string InteractionPrompt(FarmGame farm) => IsCombatBlocked(farm)?"몬스터를 모두 처치해야 합니다":"RMB: travel";
         public bool Travel(FarmGame farm)
         {
             if(IsCombatBlocked(farm)) { farm.Notify(InteractionPrompt(farm)); return false; }
@@ -49,16 +49,26 @@ namespace EverythingGrows
         }
         public static bool TryInteract(FarmGame farm)
         {
-            bool pressed=Input.GetKeyDown(KeyCode.F);
-            foreach(var exit in Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None))
-                if(exit.TryActivate(farm,pressed)) return true;
-            return false;
+            if(farm==null || Camera.main==null || !Input.GetMouseButtonDown(1))return false;
+            var exit=PointedDoor(farm,Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            return exit!=null && exit.TryActivate(farm,true);
         }
         public static bool TryAutomatic(FarmGame farm)
         {
             foreach(var exit in Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None))
                 if(!exit.requireInteract&&exit.TryActivate(farm,false))return true;
             return false;
+        }
+        public static MapExit PointedDoor(FarmGame farm,Vector2 point)
+        {
+            MapExit nearest=null;float distance=float.PositiveInfinity;
+            foreach(var exit in Object.FindObjectsByType<MapExit>(FindObjectsSortMode.None))
+            {
+                if(!exit.isActiveAndEnabled || !exit.requireInteract || exit.gameObject.scene!=farm.gameObject.scene || !exit.Contains(point))continue;
+                float candidate=Vector2.Distance(point,exit.transform.position);
+                if(candidate<distance) { nearest=exit;distance=candidate; }
+            }
+            return nearest;
         }
         public static bool TryDoor(FarmGame farm)
         {

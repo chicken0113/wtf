@@ -52,12 +52,12 @@ namespace EverythingGrows
             { float d=Vector2.Distance(farm.PlayerPosition,npc.transform.position); if(CanInteract(npc) && npc.IsVisiting && d<=npc.interactionRange && d<distance) { nearest=npc; distance=d; } }
             return Open(nearest);
         }
-        public bool OpenPointed(Vector2 point)
+        public ShopNpc PointedNpc(Vector2 point)
         {
             ShopNpc target=null;float nearest=float.PositiveInfinity;
             foreach(var npc in farm.GetComponentsInChildren<ShopNpc>())
             {
-                if(!CanInteract(npc)||!npc.IsVisiting||Vector2.Distance(farm.PlayerPosition,npc.transform.position)>npc.interactionRange)continue;
+                if(!npc.isActiveAndEnabled||!npc.IsVisiting)continue;
                 foreach(var visual in npc.GetComponentsInChildren<SpriteRenderer>())
                 {
                     if(!visual.enabled||!new Rect(visual.bounds.min,visual.bounds.size).Contains(point))continue;
@@ -65,8 +65,9 @@ namespace EverythingGrows
                     if(distance<nearest){target=npc;nearest=distance;}
                 }
             }
-            return Open(target);
+            return target;
         }
+        public bool OpenPointed(Vector2 point) => Open(PointedNpc(point));
         public void Close() { activeNpc=null; activeProfile=null; }
         public void CheckDistance() { if(IsOpen && Vector2.Distance(farm.PlayerPosition,activeNpc.transform.position)>activeNpc.interactionRange) Close(); }
         public bool Buy(int index)
@@ -91,33 +92,54 @@ namespace EverythingGrows
             if(!farm.RemoveInventoryItem(index)) return false;
             Gold+=price; farm.Notify("Sold "+item.label+" for "+price+" gold."); return true;
         }
+        // Reused by drawing and outside-click handling, including the inventory panel during trading.
+        public Rect PanelRect
+        {
+            get
+            {
+                if(IsTrading)
+                {
+                    float width=Mathf.Min(400,Screen.width*.46f),height=Mathf.Min(350,Screen.height-120);
+                    return new Rect(Screen.width*.5f-width-8,farm.InventoryPanelRect.y,width,height);
+                }
+                if(IsQuestDesk)
+                {
+                    float width=Mathf.Min(590,Screen.width-32),height=Mathf.Min(510,Screen.height-72);
+                    return new Rect((Screen.width-width)*.5f,(Screen.height-height)*.5f,width,height);
+                }
+                float dialogueWidth=Mathf.Min(480,Screen.width-32);
+                return new Rect((Screen.width-dialogueWidth)*.5f,Screen.height-210,dialogueWidth,150);
+            }
+        }
+        public bool ContainsUI(Vector2 point) => IsOpen && (PanelRect.Contains(point) || (IsTrading && farm.InventoryPanelRect.Contains(point)));
         private void OnGUI()
         {
             if(farm==null || farm.Combat.IsGameOver || farm.MapOpen) return;
+            if(Event.current.type==EventType.MouseDown && Event.current.button==1 && farm.SecondaryPointerConsumed)Event.current.Use();
             if(!IsOpen)
             {
                 foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) if(CanInteract(npc) && npc.IsVisiting && Vector2.Distance(farm.PlayerPosition,npc.transform.position)<=npc.interactionRange)
                 {
                     var position=Camera.main.WorldToScreenPoint(npc.transform.position+Vector3.up*.7f);
                     var profile=npcs.Find(entry=>entry!=null && entry.id==npc.npcId);
-                    GUI.Label(new Rect(position.x-90,Screen.height-position.y,180,24),profile!=null&&profile.guildQuestGiver?"F: guild requests":profile!=null && profile.shopEnabled && CanTrade?"F: open shop":"F: talk");
+                    GUI.Label(new Rect(position.x-90,Screen.height-position.y,180,24),profile!=null&&profile.guildQuestGiver?"RMB: guild requests":profile!=null && profile.shopEnabled && CanTrade?"RMB: open shop":"RMB: talk");
                 }
                 return;
             }
             if(!IsTrading)
             {
                 if(IsQuestDesk) { DrawGuildQuests(); return; }
-                float dialogueWidth=Mathf.Min(480,Screen.width-32); var box=new Rect((Screen.width-dialogueWidth)*.5f,Screen.height-210,dialogueWidth,150);
+                var box=PanelRect;
                 GUI.Box(box,activeProfile.displayName);
                 GUI.Label(new Rect(box.x+16,box.y+32,box.width-32,70),activeProfile.greeting,new GUIStyle(GUI.skin.label) {wordWrap=true,fontSize=15});
                 if(GUI.Button(new Rect(box.xMax-90,box.yMax-36,75,26),"Close")) Close();
                 return;
             }
             float width=Mathf.Min(400,Screen.width*.46f),height=Mathf.Min(350,Screen.height-120);
-            Rect panel=new Rect(Screen.width*.5f-width-8,farm.InventoryPanelRect.y,width,height);
+            Rect panel=PanelRect;
             GUI.Box(panel,activeProfile.displayName);
             if(GUI.Button(new Rect(panel.xMax-65,panel.y+4,56,24),"Close")) { Close(); return; }
-            GUI.Label(new Rect(panel.x+12,panel.y+29,width-24,22),"RMB item: sell | Tab / F / Esc: close");
+            GUI.Label(new Rect(panel.x+12,panel.y+29,width-24,22),"RMB item: sell | Esc / RMB outside: close");
             Rect viewport=new Rect(panel.x+10,panel.y+58,width-20,height-68);
             scroll=GUI.BeginScrollView(viewport,scroll,new Rect(0,0,width-40,activeProfile.offers.Count*48));
             for(int i=0;i<activeProfile.offers.Count;i++)
@@ -135,7 +157,7 @@ namespace EverythingGrows
         private void DrawGuildQuests()
         {
             float width=Mathf.Min(590,Screen.width-32),height=Mathf.Min(510,Screen.height-72);
-            var panel=new Rect((Screen.width-width)*.5f,(Screen.height-height)*.5f,width,height);
+            var panel=PanelRect;
             GUI.Box(panel,activeProfile.displayName+" - Guild requests");
             if(GUI.Button(new Rect(panel.xMax-70,panel.y+5,60,25),"Close")) { Close(); return; }
             GUI.Label(new Rect(panel.x+16,panel.y+34,width-32,44),"Accept a request, defeat dungeon monsters, then return here for your reward.",new GUIStyle(GUI.skin.label){wordWrap=true});

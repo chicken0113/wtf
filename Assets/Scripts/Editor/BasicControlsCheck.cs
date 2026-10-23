@@ -50,14 +50,14 @@ public static class BasicControlsCheck
                 var house=f.GetComponentInChildren<FarmBuilding>();var door=house.GetComponentInChildren<MapExit>();f.TeleportPlayer(door.transform.position);
                 Check(!f.FarmAction(house.transform.position,true)&&house.gameObject.activeInHierarchy,"UI harvested house");
                 Check(!door.GetComponentInChildren<WorldLabel>().DisplayText.Contains("[E]"),"Door label still displays E");
-                step=1;Check(f.InteractWorld(house.transform.position)&&GameSession.Busy,"F did not enter house from doormat");return;
+                step=1;Check(f.InteractWorld(door.transform.position)&&GameSession.Busy,"F did not enter house from doormat");return;
             }
             if(step==1)
             {
                 Check(f.gameObject.scene.path==InteriorWorldSetup.Home,"F did not enter room");
                 var door=f.GetComponentInChildren<MapExit>();f.TeleportPlayer(door.transform.position);
                 Check(!f.FarmAction(door.transform.position)&&!GameSession.Busy,"E triggered door travel");
-                step=2;Check(f.InteractWorld(new Vector2(50,50))&&GameSession.Busy,"F did not exit room");return;
+                step=2;Check(f.InteractWorld(door.transform.position)&&GameSession.Busy,"F did not exit room");return;
             }
             if(step==2)
             {
@@ -75,7 +75,7 @@ public static class BasicControlsCheck
             combat.RequestRoll(Vector2.up);combat.TickCombat(.4f);Check(!combat.IsRolling,"Expired buffered input triggered a later dodge");
             combat.TickCombat(.5f);f.TeleportPlayer(new Vector2(10.8f,-5));Check(combat.RequestRoll(Vector2.right),"Wall test dodge failed");combat.TickCombat(.3f);
             Check(f.PlayerPosition.x<=11.26f&&new MapCollision(f).CanStand(f.PlayerPosition,f.PlayerRadius),"Dodge crossed wall");
-            SessionState.SetBool(Key,false);EditorApplication.update-=Tick;Debug.Log("BASIC_CONTROLS_SUCCESS: E pickup/plant/harvest, F NPC/doors, updated door labels, movement/aim/UI isolation and dodge guards.");EditorApplication.Exit(0);
+            SessionState.SetBool(Key,false);EditorApplication.update-=Tick;Debug.Log("BASIC_CONTROLS_SUCCESS: farming/NPC/pointed doors, updated labels, movement/aim/UI isolation and dodge guards.");EditorApplication.Exit(0);
         }
         catch(Exception e){SessionState.SetBool(Key,false);Debug.LogException(e);EditorApplication.Exit(1);}
     }

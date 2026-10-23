@@ -40,7 +40,7 @@ public static class TowerDungeonSetup
             Draw("Step "+(i+1),exit.transform,p+V(0,-.9f+i*.35f),V(1.8f,.26f),new Color(shade,shade+.07f,shade+.09f),-78);
         }
         foreach(int side in new[]{-1,1})Draw("Teal stair rail",exit.transform,p+V(side*1.05f,0),V(.12f,2.3f),exit.ModeColor,-77);
-        Label(exit.transform,title+" [F]",p+Vector2.down*1.65f);
+        Label(exit.transform,title+" [RMB]",p+Vector2.down*1.65f);
     }
     private static void MakeLobby()
     {

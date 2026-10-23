@@ -47,7 +47,7 @@ namespace EverythingGrows
                 Rect rect=SlotRect(i);
                 if (DrawSlot(rect, i, true)) break;
             }
-            foreach(var piece in farm.WorldPieces) if(piece.model!=null) { var position=view.WorldToScreenPoint(piece.model.transform.position); GUI.Label(new Rect(position.x-60,Screen.height-position.y+12,120,22),"E: "+piece.definition.label); }
+            foreach(var piece in farm.WorldPieces) if(piece.model!=null) { var position=view.WorldToScreenPoint(piece.model.transform.position); GUI.Label(new Rect(position.x-60,Screen.height-position.y+12,120,22),"RMB: "+piece.definition.label); }
         }
         private void DrawInventoryWindow()
         {
@@ -85,6 +85,7 @@ namespace EverythingGrows
             if (farm.Shop != null && farm.Shop.IsTrading && item != null)
                 GUI.Label(new Rect(rect.x,rect.y+(hotbar?35:34),52,hotbar?16:18), farm.Shop.SalePrice(item)+" G", smallStyle);
             if (Event.current.type != EventType.MouseDown || !rect.Contains(Event.current.mousePosition)) return false;
+            if (Event.current.button == 1 && farm.SecondaryPointerConsumed) { Event.current.Use(); return true; }
             if (Event.current.button == 0) farm.SelectSlot(index);
             else if (Event.current.button == 1)
             {
