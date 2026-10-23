@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67430746936148f088787ceb69ecd9be, type: 3}
   m_Name: StartingInventory
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.StartingInventory
+  hotbarSlots: 4
+  storageSlots: 1
   items:
   - item: {fileID: 11400000, guid: 79ab0160a68f41644902c89a95e1c883, type: 2}
     quantity: 1

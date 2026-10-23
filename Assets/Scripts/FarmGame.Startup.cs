@@ -27,6 +27,7 @@ namespace EverythingGrows
             initializationStarted = true;
             try
             {
+                inventory.Configure(resources.Starting!=null?resources.Starting.hotbarSlots:4,resources.Starting!=null?resources.Starting.storageSlots:1);
                 InitializeRuntime(grantStartingItems, resources);
                 IsInitialized = true;
                 InitializationError = null;

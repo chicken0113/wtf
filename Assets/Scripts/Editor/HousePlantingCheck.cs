@@ -22,7 +22,7 @@ public static class HousePlantingCheck
         int pieces=farm.WorldPieceCount;
         Check(farm.HarvestBuildingAt(point) && (original==null || !original.gameObject.activeInHierarchy) && farm.WorldPieceCount==pieces+1,"Full inventory house harvest did not drop");
         Check(farm.GetComponentsInChildren<FarmBuilding>().Length==0,"Harvest auto-installed a house");
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         Check(farm.DetachAt(farm.PlayerPosition+Vector2.down*.65f),"Dropped house cannot be picked up");
         var house=Resources.Load<PlantDefinition>("Buildings/House"); var upgraded=house.harvestResult;
         Check(farm.SelectedItem==house && upgraded!=null,"House upgrade data missing");
@@ -43,18 +43,18 @@ public static class HousePlantingCheck
         pieces=farm.WorldPieceCount;
         Check(farm.HarvestBuildingAt(cell) && farm.Capacity==5 && farm.InventoryCount==5 && farm.WorldPieceCount==pieces+1,"Full inventory house harvest lost items or changed capacity");
         Check(farm.GetComponentsInChildren<FarmBuilding>().Length==0,"Harvested house remained installed");
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         farm.AddItem(upgraded); farm.TeleportPlayer(new Vector2(7,-5));
         Check(farm.PlaceHouse(new Vector2(7,-3)),"House cannot be installed elsewhere");
         farm.AddItem(house); int carried=farm.InventoryCount;
         Check(!farm.PlaceHouse(new Vector2(7,-3)) && farm.InventoryCount==carried,"Overlapping placement consumed house");
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         farm.TeleportPlayer(new Vector2(1,-4));
         var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"); farm.AddItem(seed); farm.PlantSelected(cell);
         while(farm.AddItem(hoe)) {}
         farm.Water(cell,.1f); farm.Tick(seed.growthSeconds); pieces=farm.WorldPieceCount;
         Check(farm.InteractPlot(cell) && !farm.IsMature(cell) && farm.WorldPieceCount==pieces+1,"Full inventory crop did not drop");
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         var tomato=Resources.Load<PlantDefinition>("Crops/TomatoSeeds"); farm.AddItem(tomato); farm.PlantSelected(cell);
         while(farm.AddItem(hoe)) {}
         farm.Water(cell,.1f); farm.Tick(tomato.growthSeconds); pieces=farm.WorldPieceCount;

@@ -91,7 +91,7 @@ public static class StarterFarmBuilder
         var item=shop.npcs[0].offers[0].item;
         while(farm.AddItem(item)) {}
         gold=shop.Gold; Check(!shop.Buy(0) && shop.Gold==gold,"Full purchase charged money");
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         shop.npcs[0].offers[0].buyPrice=shop.Gold+1;
         Check(!shop.Buy(0) && farm.InventoryCount==0 && shop.Gold==gold,"Unaffordable purchase succeeded");
         shop.npcs.Add(new NpcProfile {id="second",displayName="Second",offers=new(){new ShopOffer {item=item,buyPrice=3,sellPrice=2}}});

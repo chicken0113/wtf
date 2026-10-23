@@ -47,7 +47,7 @@ public static class ActionFeelCheck
             var enemies=CombatCheckAccess.Enemies(c);var target=enemies[enemies.Count-1];
             var model=(SpriteRenderer)Field(target,"model");Color original=model.color;
             var sword=Resources.Load<PlantDefinition>("Equipment/Sword");var bow=Resources.Load<PlantDefinition>("Equipment/Bow");
-            f.RemoveInventoryItem(f.InventoryCount-1);
+            f.RemoveInventoryItem(InventoryCheckAccess.LastOccupied(f));
             Check(f.AddItem(sword),"Equip sword");f.UpdateAim(point+Vector2.right*2,false);
             int kills=c.Kills,count=f.InventoryCount;
             Check(c.Attack(sword,point+Vector2.right*2),"Melee did not start");
@@ -59,7 +59,7 @@ public static class ActionFeelCheck
             c.TickCombat(1);Check(c.Kills==kills&&f.InventoryCount==count,"Training hit gave rewards");
             // A wall closer than the muzzle offset must still stop the actual attack.
             var wall=new GameObject("Muzzle wall").AddComponent<MapObstacle>();wall.transform.position=point+Vector2.right*.38f;wall.size=new Vector2(.1f,2);
-            f.RemoveInventoryItem(f.InventoryCount-1);
+            f.RemoveInventoryItem(InventoryCheckAccess.LastOccupied(f));
             Check(f.AddItem(bow),"Equip bow");
             float before=(float)Field(target,"health");
             Check(c.Attack(bow,point+Vector2.right*2),"Ranged attack did not start");

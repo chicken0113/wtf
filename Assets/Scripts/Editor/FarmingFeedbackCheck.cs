@@ -39,7 +39,7 @@ public static class FarmingFeedbackCheck
             {
                 Debug.Log("FEEDBACK_VISUAL_SETUP");
                 farm.enabled=false; // Freeze growth while rendering the actual HUD through the probe.
-                while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+                InventoryCheckAccess.Clear(farm);
                 var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds");
                 var dry=new Vector2Int(0,-2);var growing=new Vector2Int(1,-2);var ripe=new Vector2Int(2,-2);
                 foreach(var cell in new[]{dry,growing,ripe}) { farm.Till(cell); farm.AddItem(seed); Check(farm.PlantSelected(cell),"Visual fixture planting failed"); }
@@ -89,7 +89,7 @@ public static class FarmingFeedbackCheck
         Check(!icon.enabled && !Border(farm).enabled,"Out-of-range preview visible");
         Query(farm,"UpdateFarmingIcon",new Vector2(0,-2),true);
         Check(!icon.enabled && !Border(farm).enabled,"Preview visible over UI");
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         Query(farm,"UpdateFarmingIcon",new Vector2(0,-2),false);
         Check(!icon.enabled && !Border(farm).enabled,"Empty hands displayed preview");
         farm.AddItem(seed);var empty=new Vector2Int(0,-3);farm.Till(empty);
@@ -107,7 +107,7 @@ public static class FarmingFeedbackCheck
             {
                 Query(farm,"UpdateFarmingIcon",(Vector2)empty,false);
                 Check(icon.enabled && icon.sprite==plantingSprite && Border(farm).enabled,"Scythe did not fall back to planting on empty soil");
-                farm.RemoveInventoryItem(farm.InventoryCount-1);farm.AddItem(seed);Check(farm.PlantSelected(empty),"Dead-crop fixture planting failed");farm.AddItem(item);
+                farm.RemoveInventoryItem(InventoryCheckAccess.LastOccupied(farm));farm.AddItem(seed);Check(farm.PlantSelected(empty),"Dead-crop fixture planting failed");farm.AddItem(item);
                 foreach(var plot in (System.Collections.IEnumerable)Read(Read(farm,"Farming"),"Plots"))
                     if((Vector2Int)plot.GetType().GetField("cell").GetValue(plot)==empty) plot.GetType().GetField("wilted").SetValue(plot,true);
             }
@@ -119,14 +119,14 @@ public static class FarmingFeedbackCheck
                 Check(farm.UseTool(target),"Hoe fixture failed");
                 Query(farm,"UpdateFarmingIcon",(Vector2)target,false);
                 Check(icon.enabled && icon.sprite==plantingSprite && Border(farm).enabled,"Hoe did not fall back to planting after tilling");
-                Check(farm.FarmAction(target) && farm.InventoryItem(farm.InventoryCount-1)!=item,"E could not plant the indicated hoe");
+                Check(farm.FarmAction(target) && farm.InventoryItem(InventoryCheckAccess.LastOccupied(farm))!=item,"E could not plant the indicated hoe");
                 Query(farm,"UpdateFarmingIcon",(Vector2)target,false);
                 Check(!icon.enabled && !Border(farm).enabled,"Occupied cell retained invalid preview");
                 farm.AddItem(item);Check(farm.UseTool(target),"Could not remove planted tool with hoe");
             }
-            farm.RemoveInventoryItem(farm.InventoryCount-1);
+            farm.RemoveInventoryItem(InventoryCheckAccess.LastOccupied(farm));
         }
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);farm.AddItem(water);
+        InventoryCheckAccess.Clear(farm);farm.AddItem(water);
         Query(farm,"UpdateFarmingIcon",new Vector2(0,-4),false);
         Check(icon.enabled && icon.sprite==art.ItemSprite(water) && Border(farm).enabled,"Water action did not take priority over possible planting");
     }
@@ -161,7 +161,7 @@ public static class FarmingFeedbackCheck
         }
         Check(found,"No empty farmable test cell");
         farm.TeleportPlayer(cell);
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         farm.AddItem(hoe);
         Check(!Allowed(Query(rules,"PlantHint",cell)) && !farm.PlantSelected(cell),"Untilled soil accepted planting");
         Check(Allowed(Query(rules,"ToolHint",cell,GrowthEffect.Dig)) && farm.UseTool(cell),"Hoe preview and execution disagree");
@@ -190,7 +190,7 @@ public static class FarmingFeedbackCheck
             while(farm.AddItem(hoe)) {}
             int pieces=farm.WorldPieceCount;
             Check(farm.InteractPlot(cell) && farm.WorldPieceCount==pieces+1,"Full inventory harvest did not drop");
-            while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+            InventoryCheckAccess.Clear(farm);
             farm.AddItem(seed.harvestResult);
             Check(!Allowed(Query(rules,"PlantHint",cell)) && !farm.PlantSelected(cell),"Harvested vegetable showed plantable");
             farm.RemoveInventoryItem(0);farm.AddItem(tomato);farm.PlantSelected(cell);farm.Water(cell,.1f);farm.Tick(tomato.growthSeconds);
@@ -202,7 +202,7 @@ public static class FarmingFeedbackCheck
             Check(!Allowed(Query(farm,"PrimaryFarmHint",(Vector2)cell)),"Out-of-reach tool preview allowed");
             farm.TeleportPlayer(cell);farm.Uproot(cell);
             // Mature utility plants are harvestable; producers wait for their output.
-            while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+            InventoryCheckAccess.Clear(farm);
             var stone=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Stone.asset");
             farm.AddItem(stone);farm.PlantSelected(cell);farm.Water(cell,.1f);farm.Tick(stone.growthSeconds);
             Check(!Allowed(Query(rules,"InteractionHint",cell)) && !farm.InteractPlot(cell),"Unready producer showed harvestable");
@@ -221,7 +221,7 @@ public static class FarmingFeedbackCheck
         farm.TeleportPlayer(cell);farm.Till(cell);
         foreach(var item in new[]{hoe,seed}) foreach(bool mature in new[]{false,true})
         {
-            while(farm.InventoryCount>0)farm.RemoveInventoryItem(0);
+            InventoryCheckAccess.Clear(farm);
             Check(farm.AddItem(item) && farm.PlantSelected(cell),"Removal fixture planting failed");
             if(mature) { farm.Water(cell,.1f);farm.Tick(item.growthSeconds);Check(farm.IsMature(cell),"Removal fixture did not mature"); }
             else Check(!farm.FarmAction(cell) && !farm.Uproot(cell) && farm.InventoryCount==0,"Immature planted object was recovered");
@@ -231,7 +231,7 @@ public static class FarmingFeedbackCheck
             Check(!farm.Till(cell) && farm.PlantSelected(cell),"Removal lost tilled soil or prevented replanting");
             farm.AddItem(hoe);Check(farm.UsePrimaryTool(cell,true),"Cleanup hoe failed");
         }
-        while(farm.InventoryCount>0)farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         var storage=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/InventorySlot.asset");
         farm.AddItem(storage);farm.PlantSelected(cell);farm.Water(cell,.1f);farm.Tick(storage.growthSeconds);
         while(farm.AddItem(hoe)) {}

@@ -18,11 +18,12 @@ namespace EverythingGrows
     {
         public List<ItemStackSave> inventory=new();
         public int gold,selected,removedSlots,removedHearts,kills;
+        public bool inventoryUsesSlots;
         public float health,cycleElapsed;
         public Vector2 position;
         public bool gameOver;
     }
-    [Serializable] public sealed class ItemStackSave { public string item; public int count; }
+    [Serializable] public sealed class ItemStackSave { public string item; public int count; public int slot; }
     [Serializable] public sealed class PlotSave
     {
         public Vector2Int cell;

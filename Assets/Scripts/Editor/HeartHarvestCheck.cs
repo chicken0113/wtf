@@ -28,7 +28,7 @@ public static class HeartHarvestCheck
         while(farm.AddItem(hoe)) {}
         int fullPieces=farm.WorldPieceCount;
         Check(combat.HarvestHeart(0) && combat.HeartCount==4 && farm.InventoryCount==farm.Capacity && farm.WorldPieceCount==fullPieces+1,"Full inventory heart did not drop");
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         Check(farm.DetachAt(farm.PlayerPosition+Vector2.down*.65f) && farm.UseTool(Vector2Int.zero) && combat.HeartCount==5,"Dropped heart cannot be picked up and restored");
         int pieces=farm.WorldPieceCount;
         Check(combat.HarvestHeart(2) && farm.WorldPieceCount==pieces && farm.SelectedItem==heart && farm.InventoryQuantity(0)==1,"One press did not grant one heart");

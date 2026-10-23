@@ -40,7 +40,7 @@ public static class SecondaryControlsCheck
     }
     private static void Right(Vector2 world,Vector2? gui=null) => farm.ProcessSecondaryPointer(world,gui??GuiWorld);
     private static Vector2 InventorySlot => farm.InventoryPanelRect.position+new Vector2(38,102);
-    private static Vector2 HotbarSlot => new Vector2((Screen.width-Mathf.Min(8,farm.Capacity)*56)/2+26,Screen.height-46);
+    private static Vector2 HotbarSlot => new Vector2((Screen.width-farm.HotbarCapacity*56)/2+26,Screen.height-46);
     private static void QueueGui(Vector2 point,Action assertion,Action before=null) { guiClick=point;guiAssertion=assertion;beforeGui=before;guiDone=false; }
     public static void DrawProbe()
     {
@@ -72,7 +72,7 @@ public static class SecondaryControlsCheck
             if(step==0)
             {
                 farm.gameObject.AddComponent<SecondaryControlsGuiProbe>();
-                while(farm.InventoryCount>0)farm.RemoveInventoryItem(0);
+                InventoryCheckAccess.Clear(farm);
                 var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds");
                 Check(farm.AddItem(seed)&&farm.AddItem(seed)&&farm.AddItem(seed),"Seed fixture failed");
                 farm.TeleportPlayer(new Vector2(0,-3));farm.Till(new Vector2Int(0,-2)); // StartingPlot may already have tilled this cell.

@@ -7,12 +7,12 @@
 | 수정할 기능 | 규칙·상태 담당 | 연결·표시 담당 |
 | --- | --- | --- |
 | 시작 설정 누락·잘못된 참조·수치 | `SetupDataValidator.cs`, `FarmSetupValidator.cs` | `FarmGame.Startup.cs`, `Editor/ProjectSetupCheck.cs`; 자세한 사용법은 [SETUP_VALIDATION.md](SETUP_VALIDATION.md) |
-| 아이템 수량·겹치기·선택·슬롯 제한 | `Assets/Scripts/InventoryState.cs` | `FarmGame.Inventory.cs`가 메시지·바닥 드롭 연결 |
+| 아이템 수량·고정 슬롯·이동/교환·선택·슬롯 제한 | `Assets/Scripts/InventoryState.cs` | `FarmGame.Inventory.cs`가 메시지·바닥 드롭 연결 |
 | 밭 갈기·심기·물주기·성장·수확·괭이 제거·재수확 | `Assets/Scripts/FarmingSystem.cs` | `FarmGame`의 기존 공개 함수가 위임 |
 | 농사 가능 판정·칸 중앙 아이콘 | `FarmingSystem.PlantHint / InteractionHint / ToolHint`, `FarmActionHint` | `FarmGame.FarmingHints.UpdateFarmingIcon`이 도구 우선·맨손/거리/UI 숨김·칸 중앙 표시, `FarmArt.PlantingIcon`은 공통 심기 그림 |
 | 밭 한 칸의 상태 | `Assets/Scripts/PlantPlot.cs` | SpriteRenderer를 보관하지 않음 |
 | 작물·흙의 그림·크기·그리는 순서 | `Assets/Scripts/FarmWorldView.cs` | 농사 규칙을 변경하지 않음 |
-| 핫바·인벤토리·골드·지도 | `Assets/Scripts/FarmHud.cs` | `DrawSlot`이 핫바/인벤토리 표시와 슬롯 클릭을 공통 처리 |
+| 핫바·보관 칸·드래그·골드·지도 | `Assets/Scripts/FarmHud.cs` | `DrawSlot`이 핫바/인벤토리 표시와 슬롯 클릭을 공통 처리 |
 | 키 읽기·프레임 처리 순서·메뉴 열기 | `Assets/Scripts/FarmGame.Input.cs` | `Update`, `ProcessMenuInput` |
 | 우클릭 대상 선택·조준·UI 클릭 차단 | `Assets/Scripts/FarmGame.Controls.cs` | `ProcessSecondaryPointer` → `InteractWorld / FarmAction`, `UpdateAim` |
 | 무기 반동·캐릭터 동작·카메라 흔들림 | `Assets/Scripts/FarmGame.Feedback.cs` | `AnimateFarmer`, `LateUpdate`, `WeaponFeedback` |
@@ -138,3 +138,11 @@
 ### 우클릭 입력과 메뉴
 
 `FarmGame.Input.Update`는 우클릭을 `ProcessSecondaryPointer`에 한 번 전달한다. 메뉴 상태에서는 닫기/안쪽 UI에 먼저 전달하고, 월드에서는 하트/UI 차단 후 `InteractWorld → FarmAction`을 사용한다. 가리킨 NPC는 `NpcManager.PointedNpc`, 문은 `MapExit.PointedDoor`가 고른다. 닿거나 공격/수확할 수 있는지만 보고 근처 NPC를 자동 선택하지 않는다. 창의 그림과 바깥 클릭 판정은 `NpcManager.PanelRect / ContainsUI`를 공유한다. `SecondaryPointerConsumed`로 메뉴를 여닫는 클릭이 같은 프레임에 판매/슬롯 떼기로 재사용되는 것을 막는다. Esc 닫기는 기존 `ProcessMenuInput`을 재사용한다. 저장/씬 재작성은 없다. 검사는 `SecondaryControlsCheck.Run`과 기존 `BasicControlsCheck.Run`, `TowerDungeonCheck.Run`을 사용한다.
+
+### 고정 슬롯과 드래그
+
+- `InventoryState`는 슬롯 번호 → 스택을 보관한다. `Count`/`InventoryCount`는 점유된 칸 수이므로 마지막 슬롯 인덱스나 순회 상한으로 쓰면 안 된다. UI/입력은 `HotbarCapacity`와 `Capacity`로 범위를 정하고, 테스트의 정리/마지막 아이템 조회는 `Editor/InventoryCheckAccess`를 사용한다.
+- `StartingInventory.hotbarSlots / storageSlots`는 시작할 때 읽는다. 기본 4+1=5칸이며, 성장한 보관 아이템의 기존 보너스는 추가 보관 칸이 된다. 숫자/휠/선택은 핫바만 대상으로 한다. 보관 칸 아이템은 핫바로 옮겨서 사용한다.
+- `FarmHud.DrawInventoryWindow`는 보관 칸(스크롤)과 핫바(고정)를 함께 그린다. `DrawSlot`이 누른 원본을 기억하고 `UpdateDrag`가 놓은 칸을 확인해 `FarmGame.MoveInventoryItem → InventoryState.MoveOrSwap`으로 위임한다. 드래그하는 동안 아이템을 미리 제거하지 않으므로 바깥에 놓거나 Esc/창 닫기/맵 이동 시에도 사라지지 않는다. 같은 아이템 합치기와 수량 나누기는 이번 범위가 아니다.
+- 저장 버전은 1이다. 새 `PlayerSave.inventoryUsesSlots=true`일 때 각 `ItemStackSave.slot`을 사용하며 빈칸은 저장 목록에 넣지 않는다. 이전 형식은 목록 순서를 슬롯 번호로 읽는다. 중복/음수 슬롯은 거부하고 기존 인벤토리 교체 전에 참조/번호를 확인한다. 칸 수 감소로 범위 밖인 아이템은 `DropOverflow`가 모두 바닥에 보존한다.
+- `InventoryLayoutCheck.Run`은 이동/교환/빈칸·새/구 저장·중복 거부·초과분 드롭·슬롯 떼기/복원을, `RunVisual`은 GUI 슬롯 드래그/취소와 두 영역 화면을 격리 프로젝트에서 검사한다.

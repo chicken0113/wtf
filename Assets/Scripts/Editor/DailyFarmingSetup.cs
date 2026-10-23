@@ -59,7 +59,7 @@ public static class DailyFarmingSetup
         farm.AddItem(AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset"));
         Check(farm.UseTool(new Vector2Int(5,-2)),"Hoe failed");
         Check(farm.Shop.npcs[0].offers.Any(offer=>offer.item==seed),"Seeds missing from merchant");
-        while(farm.InventoryCount>0) farm.RemoveInventoryItem(0);
+        InventoryCheckAccess.Clear(farm);
         Check(!farm.UseTool(new Vector2Int(5,-1)),"Bare hands can till soil");
         Check(farm.AddItem(seed) && farm.AddItem(seed) && farm.InventoryCount==1 && farm.InventoryQuantity(0)==2,"Seeds do not stack");
         Check(farm.InteractPlot(new Vector2Int(1,-2)) && farm.InventoryQuantity(0)==1,"Planting consumed entire stack");

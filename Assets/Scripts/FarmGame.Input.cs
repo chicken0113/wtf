@@ -47,9 +47,9 @@ namespace EverythingGrows
             combat.TickCombat(Time.deltaTime);
             if(GameSession.Busy) { HideFarmingPreview(); return; }
             UpdateAim(MousePoint,OverUI());
-            for(int i=0;i<Mathf.Min(9,Capacity);i++) if(Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1+i))) selected=i;
+            for(int i=0;i<HotbarCapacity;i++) if(Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1+i))) selected=i;
             float wheel=Input.mouseScrollDelta.y;
-            if(wheel!=0) selected=(selected+(wheel>0?-1:1)+Capacity)%Capacity;
+            if(wheel!=0) selected=(selected+(wheel>0?-1:1)+HotbarCapacity)%HotbarCapacity;
             Tick(Time.deltaTime);
             if(Input.GetKeyDown(KeyCode.R)) RestoreSlot();
             if(Input.GetKeyDown(KeyCode.Q) && Held!=null) { var item=Held; RemoveInventoryItem(selected); Spawn(item,player.position+(Vector3)Vector2.right*.6f); }

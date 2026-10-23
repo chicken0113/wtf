@@ -72,7 +72,13 @@ namespace EverythingGrows
             ValidateGuildQuests(candidate);
             if(string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Save the Unity scene to disk before saving game progress.");
             if(candidate.player.inventory==null || candidate.player.removedSlots<0 || candidate.player.removedHearts<0 || candidate.player.gold<0) throw new InvalidDataException("Invalid player save.");
-            foreach(var stack in candidate.player.inventory) { if(stack==null || string.IsNullOrEmpty(stack.item) || stack.count<1) throw new InvalidDataException("Invalid item quantity."); catalog.Resolve(stack.item); }
+            var slots=new System.Collections.Generic.HashSet<int>();
+            foreach(var stack in candidate.player.inventory)
+            {
+                if(stack==null || string.IsNullOrEmpty(stack.item) || stack.count<1)throw new InvalidDataException("Invalid item quantity.");
+                if(candidate.player.inventoryUsesSlots && (stack.slot<0 || !slots.Add(stack.slot)))throw new InvalidDataException("Invalid or duplicate inventory slot.");
+                catalog.Resolve(stack.item);
+            }
             foreach(var map in candidate.maps)
             {
                 if(map==null || map.plots==null || map.pieces==null || map.buildings==null || map.removedObjects==null) throw new InvalidDataException("Invalid map save.");

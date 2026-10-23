@@ -75,3 +75,7 @@ MapExit Inspector의 **Activation**에서 Door / Boundary를 선택합니다. �
 | 탑 저장 후 재실행·계단 왕복 | 통과 — 클리어/처치 상태, 드롭·장비·골드·체력 유지 |
 
 게임 코드나 저장 형식을 수정할 문제는 발견되지 않았다. 성장 검사는 기존 CaptureMap/Save/Bind를 직접 사용하는 임시 검사로 수행했고, 맵/집 및 탑 재접속은 기존 InteriorWorldCheck.Run/Resume와 TowerDungeonCheck.Resume를 재사용했다. 앱을 닫은 현실 시간만큼 성장하는 기능을 추가한 작업은 아니다.
+
+## 인벤토리 슬롯 위치 저장
+
+인벤토리 이동을 지원하며 버전 1에 `PlayerSave.inventoryUsesSlots`와 `ItemStackSave.slot`을 추가했다. 새 저장은 점유 칸만 번호와 함께 저장하여 중간 빈칸이 유지된다. 이전 저장은 목록 순서대로 배치하며 아이템 ID/수량을 보존한다. 중복·음수 번호는 정상 인벤토리 교체 전에 거부한다. Unity에서 용량을 줄인 경우 범위 밖 아이템은 삭제하지 않고 기존 바닥 드롭으로 보존한다. 선택한 핫바 번호는 현재 핫바 범위로 제한한다. 설정 위치와 조작은 FOUNDATION_CONTROLS.md를 참고한다.

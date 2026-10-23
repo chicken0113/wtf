@@ -5,9 +5,12 @@ namespace EverythingGrows
     public sealed partial class FarmGame
     {
         private readonly InventoryState inventory = new();
-        private int selected { get => inventory.Selected; set => inventory.Selected = value; }
+        private int selected { get => inventory.Selected; set => inventory.Select(value,Capacity); }
         internal int SelectedIndex => selected;
-        internal void SelectSlot(int index) => selected = index;
+        internal void SelectSlot(int index) { if(index>=0 && index<HotbarCapacity)selected=index; }
+        public int HotbarCapacity => inventory.HotbarCapacity(Capacity);
+        public int StorageCapacity => Capacity-HotbarCapacity;
+        public bool MoveInventoryItem(int from,int to) => inventory.MoveOrSwap(from,to,Capacity);
         public int Capacity => inventory.Capacity(StorageBonus);
         public int InventoryCount => inventory.Count;
         public int RemovedSlots => inventory.RemovedSlots;
@@ -31,9 +34,9 @@ namespace EverythingGrows
         private void DropOverflow()
         {
             int dropped=0;
-            while(inventory.Count>Capacity)
+            while(inventory.LastOccupiedIndex>=Capacity)
             {
-                int index=inventory.Count-1; var item=inventory.ItemAt(index); int count=inventory.QuantityAt(index);
+                int index=inventory.LastOccupiedIndex; var item=inventory.ItemAt(index); int count=inventory.QuantityAt(index);
                 for(int i=0;i<count;i++) { RemoveInventoryItem(index); Spawn(item,PlayerPosition+Vector2.down*.65f+Vector2.right*(dropped++%3)*.12f); }
             }
         }
