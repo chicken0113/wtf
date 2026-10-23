@@ -22,6 +22,7 @@
 | NPC 대화·구매·판매 | `Assets/Scripts/NpcManager.cs` | `ShopNpc`, `NpcProfile` 데이터 |
 | 체력·피해·무적·사망 복귀·회피·공격 대기 | `Assets/Scripts/PlayerCombatState.cs` | `OpenFieldCombat`이 기존 API와 직렬화 설정 유지 |
 | 적 탐지·추적·공격 준비·피격·사망·훈련 표적 회복 | `Assets/Scripts/EnemyCombatSystem.cs` | `TickEnemy`, `MoveEnemy`, `Hit`, `HitMelee` |
+| 몬스터 보상 관리 창·검색·추가/복제 | `Editor/MonsterRewardsWindow.cs` | 기존 `MonsterType` 에셋과 `SetupDataValidator.CheckMonsterType`를 직접 사용; `MonsterRewardsWindowCheck.Run` |
 | 몬스터 종류별 드롭·골드 | `MonsterType`, `MonsterRewardSystem.Grant` | `EnemyPlacement.monsterType` → `EnemyCombatSystem` → 기존 `OpenFieldCombat.EnemyDefeated`; [MONSTER_REWARDS.md](MONSTER_REWARDS.md) |
 | 탄환 생성·이동·벽 차단·최초 명중·수명 | `Assets/Scripts/ProjectileSystem.cs` | `Spawn`, `Tick`, `ClearHostile` |
 | 전투 궤적·발사·파편·잔상·공격 예고선 | `Assets/Scripts/CombatEffects.cs` | 캐릭터/손 동작과 카메라는 기존 `FarmGame.Feedback.cs` |

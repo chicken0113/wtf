@@ -1,5 +1,18 @@
 # 몬스터 종류별 보상
 
+## 통합 관리 창
+
+`Tools → Everything Grows → 몬스터 보상 관리`에서 모든 MonsterType 에셋을 한 창에서 편집한다.
+
+- 왼쪽 목록은 종류 이름/파일 이름/경로로 검색한다. Resources 밖의 Assets 에셋도 표시한다.
+- 오른쪽에서 종류 이름, 골드, 드롭 항목의 아이템/확률(0~100%)/최소·최대 수량을 수정한다.
+- 변경은 해당 에셋에 자동 저장되며 일반 수정은 Ctrl+Z로 되돌릴 수 있다. 씬 저장이나 맵 재배치는 하지 않는다.
+- 종류 추가는 `Assets/Resources/Monsters`에 보상 없는 새 종류를 만든다. 선택 복제는 아이템 참조를 유지한 별도 종류를 만들며 기존 파일을 덮어쓰지 않는다.
+- 목록에는 자동으로 반영되며, 수동 새로고침과 Project에서 에셋 찾기도 가능하다.
+- 잘못된 설정은 기존 SetupDataValidator 검사 결과를 상세 영역 아래에 표시한다. Play 중 편집/추가/복제는 잠근다.
+- 새 종류를 만든 후 배치의 Monster Type에 연결해야 사용된다. 종류를 추가하는 것만으로 현재 몬스터의 보상이 바뀌지는 않는다.
+- 창 코드는 `Editor/MonsterRewardsWindow`, 격리 검사 진입점은 `MonsterRewardsWindowCheck.Run`이다.
+
 ## Unity에서 수정
 
 - 기존 근접 적 공통 설정: `Assets/Resources/Monsters/Chaser.asset`.
