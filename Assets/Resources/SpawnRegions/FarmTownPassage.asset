@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4ffa88a54064ba69273610eaf8ca981, type: 3}
+  m_Name: FarmTownPassage
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.SpawnRegion
+  id: aa87f9549aed4e5c805874ca0fc7294b
+  label: 마을 통로
+  spawnEnabled: 1
+  scenePath: Assets/Scenes/FarmTownPassage.unity
+  useMapBounds: 1
+  area: {x: -10, y: -8, width: 20, height: 16}
+  spawnInterval: 8
+  maxAlive: 6
+  viewPadding: 3
+  playerExclusionRadius: 3

@@ -49,7 +49,7 @@ public sealed class MonsterRewardsWindow : EditorWindow
         var created=source!=null?Instantiate(source):CreateInstance<MonsterType>();
         created.label=source!=null?DisplayName(source)+" 복사":"새 몬스터";
         string path=AssetDatabase.GenerateUniqueAssetPath(folder+"/"+(source!=null?source.name+"Copy":"NewMonster")+".asset");
-        AssetDatabase.CreateAsset(created,path);AssetDatabase.SaveAssetIfDirty(created);
+        AssetDatabase.CreateAsset(created,path);created.saveId=AssetDatabase.AssetPathToGUID(path);EditorUtility.SetDirty(created);AssetDatabase.SaveAssetIfDirty(created);
         return created;
     }
     internal static SetupValidationReport CheckType(MonsterType type)
@@ -114,6 +114,10 @@ public sealed class MonsterRewardsWindow : EditorWindow
         using(new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
             EditorGUILayout.PropertyField(data.FindProperty("label"),new GUIContent("종류 이름"));
+            EditorGUILayout.PropertyField(data.FindProperty("isBoss"),new GUIContent("보스 (지역 이탈 정리 제외)"));
+            EditorGUILayout.PropertyField(data.FindProperty("spawnRegions"),new GUIContent("출현 가능한 지역"),true);
+            EditorGUILayout.HelpBox("일반 몬스터만 지역 스폰 대상입니다. 보스는 씬에 고정 배치하세요. 범위·간격·최대 수는 지역 설정에서 조절합니다.",MessageType.Info);
+            if(GUILayout.Button("지역 설정 열기"))SpawnRegionWindow.Open();
             EditorGUILayout.LabelField("행동과 능력치",EditorStyles.boldLabel);
             foreach(string field in new[]{"behavior","maxHealth","moveSpeed","returnSpeed","detectionRange","attackRange","meleeHitRange","attackHalfHearts","windupSeconds","attackCooldown","projectileSpeed","projectileLifetime"})EditorGUILayout.PropertyField(data.FindProperty(field));
             EditorGUILayout.PropertyField(data.FindProperty("gold"),new GUIContent("골드 보상"));

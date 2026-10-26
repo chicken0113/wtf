@@ -10,7 +10,7 @@ namespace EverythingGrows
         public Rect WorldBounds => mapLayout!=null?mapLayout.World:new Rect(-24.5f,-16.5f,49,33);
         public Rect SafeBounds => mapLayout!=null?mapLayout.Safe:new Rect(-6.5f,-4.5f,13,9);
         public Vector2 SpawnPosition => mapLayout!=null?mapLayout.Spawn:Vector2.zero;
-        public bool IsSafe(Vector2 point) => (mapLayout!=null && mapLayout.combatSchedule==FarmMapLayout.CombatSchedule.Peaceful) || SafeBounds.Contains(point);
+        public bool IsSafe(Vector2 point) => !(combat!=null && combat.UsesRegions) && ((mapLayout!=null && mapLayout.combatSchedule==FarmMapLayout.CombatSchedule.Peaceful) || SafeBounds.Contains(point));
         public void ConfigureMap(FarmMapLayout layout) => mapLayout=layout;
         private FarmWorldView worldView;
         private FarmHud hud;
@@ -112,7 +112,7 @@ namespace EverythingGrows
                 foreach(var placement in mapLayout.GetComponentsInChildren<FarmItemPlacement>())
                     if(placement.item!=null) Spawn(placement.item,placement.transform.position,new Vector2(Mathf.Abs(placement.transform.lossyScale.x),Mathf.Abs(placement.transform.lossyScale.y)));
                 mapLayout.HideMarkers();
-                if(mapLayout.showSafeMarkers)
+                if(mapLayout.showSafeMarkers && SpawnRegion.ForScene(gameObject.scene.path).Length==0)
                 {
                 var safe=SafeBounds;
                 for(float x=safe.xMin;x<=safe.xMax;x+=2) { Draw("Safe marker",new Vector2(x,safe.yMin),new Vector2(.12f,.18f),Color.yellow,-80); Draw("Safe marker",new Vector2(x,safe.yMax),new Vector2(.12f,.18f),Color.yellow,-80); }

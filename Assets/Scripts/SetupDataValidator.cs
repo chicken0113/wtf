@@ -43,6 +43,15 @@ namespace EverythingGrows
             CheckMonsterType(data.MeleeMonster,data.Catalog,report,visited,saving);
             CheckMonsterType(data.RangedMonster,data.Catalog,report,visited,saving);
             if(data.MonsterTypes!=null)foreach(var type in data.MonsterTypes)CheckMonsterType(type,data.Catalog,report,visited,saving);
+            if(data.SpawnRegions!=null)
+            {
+                var ids=new HashSet<string>();
+                foreach(var region in data.SpawnRegions){CheckSpawnRegion(region,report);if(region!=null && !ids.Add(region.id))report.Error("REGION_ID_DUPLICATE",region,"id","중복 지역 ID입니다.","지역 관리에서 새 지역을 생성하세요.");}
+            }
+            if(data.MonsterTypes!=null)
+            {
+                var ids=new HashSet<string>();foreach(var type in data.MonsterTypes)if(type!=null && !ids.Add(type.SaveKey))report.Error("MONSTER_ID_DUPLICATE",type,"saveId","중복 몬스터 저장 ID입니다.","몬스터 관리의 종류 복제로 생성하세요.");
+            }
             if (!startingItems) return;
             if (data.Starting == null || data.Starting.items == null || data.Starting.items.Length == 0)
                 report.Error("STARTING_MISSING", data.Starting, "Resources/StartingInventory.items", "기본 지급 아이템 목록이 없습니다.", "StartingInventory.asset에 시작 아이템을 연결하세요.");
@@ -122,6 +131,7 @@ namespace EverythingGrows
         public static void CheckMonsterType(MonsterType type,SaveItemCatalog catalog,SetupValidationReport report,HashSet<PlantDefinition> visited,bool saving)
         {
             if(type==null)return;
+            if(type.spawnRegions==null || System.Array.Exists(type.spawnRegions,r=>r==null))report.Error("MONSTER_REGIONS",type,"spawnRegions","스폰 지역에 빈 참조가 있습니다.","출현할 지역을 지정하거나 빈 칸을 제거하세요.");
             if(!System.Enum.IsDefined(typeof(MonsterBehavior),type.behavior) || type.attackHalfHearts<1)report.Error("MONSTER_BEHAVIOR",type,"behavior / attackHalfHearts","몬스터 행동/피해 수치가 유효하지 않습니다.","행동과 반 하트 단위 피해를 확인하세요.");
             foreach(var pair in new[]{("maxHealth",type.maxHealth),("moveSpeed",type.moveSpeed),("returnSpeed",type.returnSpeed),("detectionRange",type.detectionRange),("attackRange",type.attackRange),("meleeHitRange",type.meleeHitRange),("attackCooldown",type.attackCooldown),("projectileSpeed",type.projectileSpeed),("projectileLifetime",type.projectileLifetime)})Positive(type,pair.Item1,pair.Item2,report);
             Range(type,"windupSeconds",type.windupSeconds,0,float.MaxValue,report);
@@ -135,6 +145,16 @@ namespace EverythingGrows
                 if(drop.minimum<1 || drop.maximum<drop.minimum)report.Error("MONSTER_DROP_AMOUNT",type,field+".minimum / maximum","드롭 수량 범위가 잘못됐습니다.","최소 1 이상, 최대는 최소 이상으로 설정하세요.");
                 CheckItem(drop.item,catalog,report,visited,saving);
             }
+        }
+        public static void CheckSpawnRegion(SpawnRegion region,SetupValidationReport report)
+        {
+            if(region==null)return;
+            if(string.IsNullOrWhiteSpace(region.id) || string.IsNullOrWhiteSpace(region.scenePath))report.Error("REGION_ID",region,"id / scenePath","지역 ID 또는 대상 씬이 없습니다.","지역 관리에서 지역을 추가하고 씬을 지정하세요.");
+            Positive(region,"spawnInterval",region.spawnInterval,report);
+            Range(region,"maxAlive",region.maxAlive,0,int.MaxValue,report);
+            Range(region,"viewPadding",region.viewPadding,0,float.MaxValue,report);
+            Range(region,"playerExclusionRadius",region.playerExclusionRadius,0,float.MaxValue,report);
+            if(!region.useMapBounds && (!Finite(region.area.x) || !Finite(region.area.y) || !Finite(region.area.width) || !Finite(region.area.height) || region.area.width<=0 || region.area.height<=0))report.Error("REGION_AREA",region,"area","지역 범위가 유효하지 않습니다.","양수 크기와 유한한 좌표를 지정하세요.");
         }
         public static void Positive(Object context, string field, float value, SetupValidationReport report)
         {

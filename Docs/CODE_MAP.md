@@ -162,3 +162,7 @@
 ## 자유 거점·부활·사망 회수 (2026-10-27)
 
 현재 사망 경로는 PlayerCombatState.Damage → GameSession.RespawnAfterDeath → FarmGame.LeaveDeathCache → Save → 지정 맵/좌표 이동이다. 기존 ReturnToHospital은 과거 검사/호환용으로 남지만 일반 전투 사망에서 호출하지 않는다. FarmGame.Recovery가 회수·임시 침대·맵 저장을 담당하고 GameSession.Respawn이 등록/기본 위치/검증/이동을 담당한다. 기존 입력의 InteractWorld는 가리킨 가방/침대 상호작용을 먼저 처리한다. 자세한 필드·설정은 FREE_CAMP_RECOVERY.md.
+
+## 지역 개체군 (2026-10-27)
+
+OpenFieldCombat.TickCombat → RegionalSpawnSystem.Tick → 기존 EnemyCombatSystem.Tick 순서로 지역 스폰/정리 후 개체 전투를 진행한다. 수면/개체군 저장은 EnemyCombatSystem.Regions, 지역별 조건은 SpawnRegion, 다른 씬의 낮 정리는 GameSession.Regions가 담당한다. 지역이 연결된 필드에서는 SafeBounds 제한과 옛 층 영구 클리어 규칙을 적용하지 않는다. 몬스터 관리창에서 종류의 출현 가능 지역을 연결하고 ‘지역 설정 열기’로 범위/간격/최대 수를 수정한다. REGIONAL_MONSTERS.md 참조.

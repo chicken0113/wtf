@@ -8,6 +8,10 @@ namespace EverythingGrows
     public sealed class MonsterType : ScriptableObject
     {
         public string label;
+        [HideInInspector] public string saveId;
+        public string SaveKey => string.IsNullOrEmpty(saveId)?name:saveId;
+        public bool isBoss;
+        public SpawnRegion[] spawnRegions=Array.Empty<SpawnRegion>();
         public MonsterBehavior behavior;
         [Min(1)] public float maxHealth=55;
         [Min(.1f)] public float moveSpeed=2;

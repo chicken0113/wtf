@@ -14,6 +14,11 @@ namespace EverythingGrows
         private FarmGame farm;
         private PlayerCombatState playerState;
         private EnemyCombatSystem enemySystem;
+        private RegionalSpawnSystem regionalSpawns;
+        public bool UsesRegions => regionalSpawns!=null && regionalSpawns.Enabled;
+        internal string RegionAt(Vector2 point)=>regionalSpawns?.RegionAt(point);
+        public void SetRegionalDaytime(bool daytime,bool restoring=false)
+        { if(UsesRegions)regionalSpawns.SetDaytime(daytime,enemySystem,restoring); }
         private ProjectileSystem projectiles;
         private CombatEffects effects;
         public int HeartCount => playerState!=null?playerState.HeartCount:startingHearts;
@@ -56,25 +61,32 @@ namespace EverythingGrows
         }
         public void SetNightActive(bool active)
         {
-            if(enemySystem.SetNightActive(active)&&!active) projectiles.ClearHostile();
+            if(!UsesRegions && enemySystem.SetNightActive(active)&&!active) projectiles.ClearHostile();
         }
         private void EnemyDefeated(EnemyCombatSystem.Enemy enemy)
         {
             Kills++;
             GameSession.RecordGuildKill(farm,enemy.ranged);
             MonsterRewardSystem.Grant(farm,enemy.monsterType,enemy.model.transform.position);
-            if(FloorCleared)GameSession.Save(farm);
+            if(FloorCleared || UsesRegions)GameSession.Save(farm);
         }
         public void Initialize(FarmGame owner)
         {
             farm=owner;
             effects=new CombatEffects(transform);
             playerState=new PlayerCombatState(farm,this,effects);
+            regionalSpawns=new RegionalSpawnSystem(farm);
             enemySystem=new EnemyCombatSystem(farm,this,effects,EnemyDefeated);
             projectiles=new ProjectileSystem(farm,effects);
             if(farm.Layout!=null)
             {
-                foreach(var marker in farm.Layout.GetComponentsInChildren<EnemyPlacement>()) enemySystem.Spawn(marker.transform.position,marker.ranged,new Vector2(Mathf.Abs(marker.transform.lossyScale.x),Mathf.Abs(marker.transform.lossyScale.y)),marker.trainingDummy,MapObjectId.Key(marker),marker.monsterType);
+                foreach(var marker in farm.Layout.GetComponentsInChildren<EnemyPlacement>())
+                {
+                    var type=marker.monsterType!=null?marker.monsterType:MonsterType.Default(marker.ranged);
+                    // Regional populations come from the daytime spawner; old normal markers must not create enemies on night entry.
+                    if(UsesRegions && !marker.trainingDummy && !type.isBoss)continue;
+                    enemySystem.Spawn(marker.transform.position,marker.ranged,new Vector2(Mathf.Abs(marker.transform.lossyScale.x),Mathf.Abs(marker.transform.lossyScale.y)),marker.trainingDummy,MapObjectId.Key(marker),marker.monsterType);
+                }
                 return;
             }
             SpawnEnemy(new Vector2(10,2),false); SpawnEnemy(new Vector2(12,-3),true);
@@ -109,6 +121,8 @@ namespace EverythingGrows
             if(IsGameOver||seconds<=0||farm==null) return;
             var collision=new MapCollision(farm);
             playerState.Tick(seconds);
+            if(GameSession.Busy)return;
+            regionalSpawns.Tick(seconds,enemySystem);
             enemySystem.Tick(seconds,collision,playerState,projectiles);
             projectiles.Tick(seconds,collision,enemySystem,playerState);
             effects.Tick(seconds);
@@ -147,6 +161,7 @@ namespace EverythingGrows
             foreach(var enemy in enemySystem.Items) if(enemySystem.Active(enemy) && enemy.health>0 && Vector2.Distance(farm.PlayerPosition,enemy.model.transform.position)<7)
             {
                 var point=camera.WorldToScreenPoint(enemy.model.transform.position+Vector3.up*.7f);
+                if(enemy.sleeping)GUI.Label(new Rect(point.x-12,Screen.height-point.y-20,40,20),"Zzz");
                 if(point.z<0) continue;
                 var previous=GUI.color; GUI.color=new Color(.2f,.1f,.1f); GUI.DrawTexture(new Rect(point.x-22,Screen.height-point.y,44,4),Texture2D.whiteTexture);
                 GUI.color=new Color(.9f,.35f,.25f); GUI.DrawTexture(new Rect(point.x-22,Screen.height-point.y,44*enemy.health/enemy.MaxHealth,4),Texture2D.whiteTexture); GUI.color=previous;

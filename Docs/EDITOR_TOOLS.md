@@ -41,3 +41,7 @@
 - MapConnectionsWindow는 기존 MapExitInspector/MapArrivalInspector와 WorldConnectionValidator를 사용한다.
 - ManagementEditorUI는 씬 선택/저장 버튼/검색/오류 표시만 공유한다. 자동 씬 저장이나 자동 씬 닫기 기능은 없다.
 - 격리 전용 ManagementToolsCheck.Run은 메뉴 중복/누락, 아이템 검색/Undo, 의뢰 오류, NPC Undo, 도착점 검사·미저장 작업 보존과 실제 네 창의 GUI 렌더 오류를 검사한다.
+
+## 몬스터 지역 설정 (2026-10-27)
+
+몬스터 관리의 출현 가능한 지역/보스 항목을 추가했다. 같은 창의 ‘지역 설정 열기’로 SpawnRegionWindow를 열어 지역 생성·씬·범위·간격·최대 수·시야 여유를 편집한다. 별도 Tools 메뉴는 늘리지 않는다. 자세한 사용법은 REGIONAL_MONSTERS.md.

@@ -11,7 +11,7 @@ namespace EverythingGrows
         readonly Rect? forbidden;
         public MapCollision(FarmGame farm,bool avoidSafe=false)
         {
-            world=farm.WorldBounds; forbidden=avoidSafe?farm.SafeBounds:(Rect?)null;
+            world=farm.WorldBounds; forbidden=avoidSafe && !(farm.Combat!=null && farm.Combat.UsesRegions)?farm.SafeBounds:(Rect?)null;
             foreach(var obstacle in Object.FindObjectsByType<MapObstacle>(FindObjectsSortMode.None))
             {
                 if(!obstacle.isActiveAndEnabled || obstacle.gameObject.scene!=farm.gameObject.scene) continue;

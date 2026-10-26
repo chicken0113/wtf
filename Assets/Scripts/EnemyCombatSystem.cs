@@ -5,7 +5,7 @@ using UnityEngine;
 namespace EverythingGrows
 {
     // Owns enemies, targeting, navigation, hit reactions and respawn timers.
-    internal sealed class EnemyCombatSystem
+    internal sealed partial class EnemyCombatSystem
     {
         private readonly FarmGame farm;
         private readonly OpenFieldCombat settings;
@@ -18,13 +18,15 @@ namespace EverythingGrows
         public IReadOnlyList<Enemy> Items => enemies;
         public float Radius => settings.EnemyRadius;
         public int LivingHostileCount { get { int count=0;foreach(var enemy in enemies)if(!enemy.trainingDummy && enemy.health>0)count++;return count; } }
-        public int EnemyCount { get { int count=0;foreach(var enemy in enemies)if(nightActive&&enemy.health>0)count++;return count; } }
+        public int EnemyCount { get { int count=0;foreach(var enemy in enemies)if(Active(enemy)&&enemy.health>0)count++;return count; } }
         public EnemyCombatSystem(FarmGame farm,OpenFieldCombat settings,CombatEffects effects,Action<Enemy> defeated)
         { this.farm=farm;this.settings=settings;this.effects=effects;this.defeated=defeated; }
         internal sealed class Enemy
         {
-            public Vector2 home, aim, pathGoal;
+            public Vector2 home, aim, pathGoal,displaySize;
             public string placementId;
+            public string id=Guid.NewGuid().ToString("N"),regionId;
+            public bool sleeping,provoked;
             public MonsterType monsterType;
             public float MaxHealth => monsterType!=null?monsterType.maxHealth:55;
             public List<Vector2> path=new();
@@ -34,26 +36,31 @@ namespace EverythingGrows
             public float health=55,cooldown=1,windup,respawn,hitTime,stagger;
             public Color tint;
         }
-        public bool Active(Enemy enemy) => nightActive || enemy.trainingDummy;
-        public void Spawn(Vector2 point,bool ranged,Vector2? size=null,bool trainingDummy=false,string placementId=null,MonsterType monsterType=null)
+        public bool Active(Enemy enemy) => settings.UsesRegions || nightActive || enemy.trainingDummy;
+        public void Spawn(Vector2 point,bool ranged,Vector2? size=null,bool trainingDummy=false,string placementId=null,MonsterType monsterType=null,string regionId=null)
         {
-            if((farm.IsSafe(point) || FloorCleared) && !trainingDummy) return;
+            if((farm.IsSafe(point) || (!settings.UsesRegions && FloorCleared)) && !trainingDummy) return;
             if(!trainingDummy && !string.IsNullOrEmpty(placementId))hasPlacedHostiles=true;
             var type=trainingDummy?null:monsterType!=null?monsterType:MonsterType.Default(ranged);
             if(type!=null)ranged=type.IsRanged(ranged);
             var enemy=new Enemy { monsterType=type, placementId=placementId, home=point,ranged=ranged,trainingDummy=trainingDummy,model=effects.Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=effects.Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
+            enemy.displaySize=size??Vector2.one*1.2f;
+            enemy.regionId=regionId??settings.RegionAt(point);
+            enemy.sleeping=settings.UsesRegions && farm.Cycle!=null && !farm.Cycle.IsDaytime && !trainingDummy;
             enemy.health=enemy.MaxHealth;
             enemy.model.enabled=Active(enemy); enemy.warning.enabled=false; enemies.Add(enemy);
             enemy.tint=enemy.model.color;
         }
         public void CaptureState(MapSave state)
         {
+            if(settings.UsesRegions){CaptureRegionalState(state);return;}
             state.combatCleared=FloorCleared;
             state.defeatedEnemies=new List<string>(defeatedPlacements);
             state.defeatedEnemies.Sort(System.StringComparer.Ordinal);
         }
         public void RestoreState(MapSave state)
         {
+            if(settings.UsesRegions){RestoreRegionalState(state);return;}
             FloorCleared=state.combatCleared;
             defeatedPlacements.Clear();
             if(state.defeatedEnemies!=null)foreach(var id in state.defeatedEnemies)defeatedPlacements.Add(id);
@@ -62,7 +69,7 @@ namespace EverythingGrows
                 if(enemy.trainingDummy || (!FloorCleared && !defeatedPlacements.Contains(enemy.placementId??"")))continue;
                 enemy.health=0;enemy.windup=0;enemy.path.Clear();enemy.warning.enabled=false;enemy.model.enabled=false;
             }
-            if(hasPlacedHostiles && LivingHostileCount==0)FloorCleared=true;
+            if(!settings.UsesRegions && hasPlacedHostiles && LivingHostileCount==0)FloorCleared=true;
         }
         public bool SetNightActive(bool active)
         {
@@ -80,6 +87,8 @@ namespace EverythingGrows
         public void Hit(Enemy enemy,float damage,Vector2 direction)
         {
             if(enemy.health<=0 || damage<=0)return;
+            if(settings.UsesRegions && enemy.sleeping)
+            { enemy.sleeping=false;enemy.provoked=true;enemy.cooldown=0; }
             enemy.health-=damage;
             enemy.hitTime=.1f;enemy.stagger=.08f;enemy.windup=0;enemy.warning.enabled=false;enemy.model.color=new Color(1,.4f,.35f);
             effects.Sparks(enemy.model.transform.position,new Color(1,.9f,.65f));farm.ImpactFeedback(false);
@@ -90,7 +99,7 @@ namespace EverythingGrows
                 else
                 {
                     if(!string.IsNullOrEmpty(enemy.placementId))defeatedPlacements.Add(enemy.placementId);
-                    if(hasPlacedHostiles && LivingHostileCount==0)FloorCleared=true;
+                    if(!settings.UsesRegions && hasPlacedHostiles && LivingHostileCount==0)FloorCleared=true;
                     defeated(enemy);
                 }
             }
@@ -129,8 +138,9 @@ namespace EverythingGrows
             }
             Vector2 point=enemy.model.transform.position, offset=farm.PlayerPosition-point;
             if(enemy.trainingDummy) { enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10); return; }
+            if(enemy.sleeping){enemy.windup=0;enemy.warning.enabled=false;return;}
             if(enemy.stagger>0) return;
-            bool active=!farm.IsSafe(farm.PlayerPosition) && offset.magnitude<enemy.monsterType.detectionRange;
+            bool active=!farm.IsSafe(farm.PlayerPosition) && (enemy.provoked || offset.magnitude<enemy.monsterType.detectionRange);
             enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10);
             enemy.model.flipX=offset.x<0;
             if(!active) { enemy.windup=0; enemy.warning.enabled=false; MoveEnemy(enemy,enemy.home,seconds*enemy.monsterType.returnSpeed,seconds,enemyCollision); enemy.cooldown=Mathf.Max(.5f,enemy.cooldown-seconds); return; }
@@ -173,10 +183,10 @@ namespace EverythingGrows
         }
         private void SeparateEnemies(float seconds,MapCollision enemyCollision)
         {
-            if(!nightActive) return;
+            if(!nightActive && !settings.UsesRegions) return;
             for(int i=0;i<enemies.Count;i++) for(int j=i+1;j<enemies.Count;j++)
             {
-                var a=enemies[i]; var b=enemies[j]; if(a.health<=0 || b.health<=0 || a.trainingDummy || b.trainingDummy) continue;
+                var a=enemies[i]; var b=enemies[j]; if(a.health<=0 || b.health<=0 || a.trainingDummy || b.trainingDummy || a.sleeping || b.sleeping) continue;
                 Vector2 pa=a.model.transform.position,pb=b.model.transform.position,delta=pa-pb;
                 float distance=delta.magnitude; if(distance>=Radius*2) continue;
                 Vector2 direction=distance>.001f?delta/distance:((i+j)%2==0?Vector2.right:Vector2.up);

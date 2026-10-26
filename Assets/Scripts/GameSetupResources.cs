@@ -15,6 +15,7 @@ namespace EverythingGrows
         public GameObject HouseDoor;
         public PlantDefinition[] Items;
         public MonsterType[] MonsterTypes;
+        public SpawnRegion[] SpawnRegions;
         public MonsterType MeleeMonster,RangedMonster;
         public static GameSetupResources Load() => new GameSetupResources {
             Cycle = Resources.Load<DayNightSettings>("WorldCycle"),
@@ -27,6 +28,7 @@ namespace EverythingGrows
             HouseDoor = Resources.Load<GameObject>("Buildings/HouseDoor"),
             Items = Resources.LoadAll<PlantDefinition>(""),
             MonsterTypes = Resources.LoadAll<MonsterType>(""),
+            SpawnRegions = Resources.LoadAll<SpawnRegion>(""),
             MeleeMonster = MonsterType.Default(false), RangedMonster = MonsterType.Default(true)
         };
     }

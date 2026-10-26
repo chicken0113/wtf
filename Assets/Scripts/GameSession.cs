@@ -71,6 +71,7 @@ namespace EverythingGrows
         {
             ValidateGuildQuests(candidate);
             ValidateRecovery(candidate);
+            ValidateRegionalEnemies(candidate);
             if(string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Save the Unity scene to disk before saving game progress.");
             if(candidate.player.inventory==null || candidate.player.removedSlots<0 || candidate.player.removedHearts<0 || candidate.player.gold<0 || candidate.player.farmingExperience<0) throw new InvalidDataException("Invalid player save.");
             var slots=new System.Collections.Generic.HashSet<int>();
@@ -114,6 +115,7 @@ namespace EverythingGrows
                 {
                     farm.RestorePlayer(data.player,catalog);
                     farm.Cycle.RestoreElapsed(data.player.cycleElapsed);
+                    CleanupUnloadedRegions(farm);
                     if(data.currentScene==scene)
                     {
                         // Scene edits can put an old saved position inside a new river or building.

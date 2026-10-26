@@ -30,3 +30,10 @@ MonoBehaviour:
     probability: 1
     minimum: 1
     maximum: 1
+  saveId: 8ba9f2381e5a460e8489e06a0f3d07b0
+  isBoss: 0
+  spawnRegions:
+  - {fileID: 11400000, guid: e820d0ca15db4ce5b185b9f8ebf32248, type: 2}
+  - {fileID: 11400000, guid: aa87f9549aed4e5c805874ca0fc7294b, type: 2}
+  - {fileID: 11400000, guid: fbc18c8294e84f3bbf24982a34fe2eda, type: 2}
+  - {fileID: 11400000, guid: fc5b0dd2cea74b2397b315216362d716, type: 2}

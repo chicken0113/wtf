@@ -39,6 +39,13 @@ namespace EverythingGrows
     [Serializable] public sealed class RespawnSave { public string scene,anchor; public Vector2 position; public bool IsSet => !string.IsNullOrEmpty(scene); }
     [Serializable] public sealed class DeathCacheSave { public string id; public Vector2 position; public List<ItemStackSave> items=new(); }
     [Serializable] public sealed class RespawnAnchorSave { public string id; public Vector2 position; }
+    [Serializable] public sealed class RegionalEnemySave
+    {
+        public string id,type,region,placementId;
+        public Vector2 position,home,size;
+        public float health;
+        public bool provoked;
+    }
     [Serializable] public sealed class MapSave
     {
         public string scene;
@@ -50,6 +57,8 @@ namespace EverythingGrows
         public List<BuildingSave> buildings=new();
         public List<string> removedObjects=new();
         // Optional version-1 fields: missing legacy data means no recorded clear/kills.
+        public bool regionalCombatSaved;
+        public List<RegionalEnemySave> regionalEnemies=new();
         public bool combatCleared;
         public List<string> defeatedEnemies=new();
     }

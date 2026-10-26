@@ -35,7 +35,7 @@ namespace EverythingGrows
                 EnemyCombatSystem.Enemy victim=null; bool playerHit=false;
                 if(shot.hostile)
                 {
-                    if(MapCollision.Intersect(start,end,farm.SafeBounds,out float safeEntry)) first=Mathf.Min(first,safeEntry);
+                    if(!farm.Combat.UsesRegions && MapCollision.Intersect(start,end,farm.SafeBounds,out float safeEntry)) first=Mathf.Min(first,safeEntry);
                     if(!farm.IsSafe(farm.PlayerPosition) && SegmentCircle(start,end,farm.PlayerPosition,farm.PlayerRadius+radius,out float entry) && entry<first)
                     { first=entry; playerHit=true; }
                 }
