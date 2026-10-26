@@ -188,6 +188,7 @@ namespace EverythingGrows
             { error="Destination scene is not enabled in Build Settings."; return false; }
             if(SceneUtility.GetBuildIndexByScenePath(farm.gameObject.scene.path)<0) { error="Enable the current scene in Build Settings before travelling."; return false; }
             if(!position.HasValue && string.IsNullOrWhiteSpace(arrival)) { error="Set the destination arrival ID."; return false; }
+            farm.Combat.ResetBossEncounters();
             if(!Save(farm)) return false;
             error=null; EnsureRunner(); pendingScene=target; pendingArrival=arrival; pendingPosition=position; Busy=true;
             runner.StartCoroutine(runner.LoadMap(target,farm.gameObject.scene.path)); return true;

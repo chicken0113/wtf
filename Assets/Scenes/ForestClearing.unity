@@ -42462,6 +42462,89 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1001 &1075702455
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1512007968}
+    m_Modifications:
+    - target: {fileID: 2240098072710813304, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_Name
+      value: FieldBossSpawn
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2240098072710813304, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1075702458}
+  m_SourcePrefab: {fileID: 100100000, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+--- !u!4 &1075702456 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4604394806052200903, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+  m_PrefabInstance: {fileID: 1075702455}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1075702457 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2240098072710813304, guid: 562cdb4a4eab4736ae4be6e720069170, type: 3}
+  m_PrefabInstance: {fileID: 1075702455}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1075702458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1075702457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48ec14aa3c504243bbef3f8c61850a98, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MapObjectId
+  id: dc79448be2d94ab18edfb8208f8d3652
 --- !u!1 &1077796107
 GameObject:
   m_ObjectHideFlags: 0
@@ -56318,6 +56401,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.FarmMapLayout
   combatSchedule: 1
   dayNightLighting: 1
+  passiveHealthRecovery: 1
   worldBounds: {fileID: 783825240}
   safeArea: {fileID: 1311249327}
   playerSpawn: {fileID: 1481509195}
@@ -56344,6 +56428,7 @@ Transform:
   - {fileID: 215611717}
   - {fileID: 667220176}
   - {fileID: 854878998}
+  - {fileID: 1075702456}
   m_Father: {fileID: 900136408}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1512209948

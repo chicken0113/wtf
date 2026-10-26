@@ -32,6 +32,10 @@ public static class CombatCheckAccess
             if(!(bool)Read(enemy,"trainingDummy") && (float)Read(enemy,"health")>0)
                 hit.Invoke(owner,new object[]{enemy,100000f,Vector2.zero});
     }
+    public static void ShootOwned(OpenFieldCombat combat,object enemy,Vector2 point,Vector2 velocity,float damage,float life=2.5f)
+    {
+        var owner=Read(combat,"projectiles");owner.GetType().GetMethod("SpawnOwned",Fields).Invoke(owner,new object[]{point,velocity,damage,true,life,(string)Read(enemy,"id")});
+    }
     public static void Shoot(OpenFieldCombat combat, Vector2 point, Vector2 velocity, float damage, bool hostile, float life = 2.5f)
     {
         var owner = Read(combat, "projectiles");

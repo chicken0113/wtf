@@ -166,3 +166,7 @@
 ## 지역 개체군 (2026-10-27)
 
 OpenFieldCombat.TickCombat → RegionalSpawnSystem.Tick → 기존 EnemyCombatSystem.Tick 순서로 지역 스폰/정리 후 개체 전투를 진행한다. 수면/개체군 저장은 EnemyCombatSystem.Regions, 지역별 조건은 SpawnRegion, 다른 씬의 낮 정리는 GameSession.Regions가 담당한다. 지역이 연결된 필드에서는 SafeBounds 제한과 옛 층 영구 클리어 규칙을 적용하지 않는다. 몬스터 관리창에서 종류의 출현 가능 지역을 연결하고 ‘지역 설정 열기’로 범위/간격/최대 수를 수정한다. REGIONAL_MONSTERS.md 참조.
+
+## 필드 보스 (2026-10-27)
+
+EnemyCombatSystem.Bosses가 보스 추적 범위·귀환·초기화·재등장을 담당하며 기존 TickEnemy의 공격/이동을 재사용한다. GameSession.Travel/RespawnAfterDeath는 출발 저장 전에 살아 있는 보스를 초기화한다. ProjectileSystem의 ownerId는 보스 자신의 탄환만 취소하고, 명중 처리 중에는 취소 표시만 해 반복 목록을 안전하게 유지한다. 재등장 시각은 GameSession.WorldSeconds 기준으로 지역 저장에 기록한다. FIELD_BOSSES.md 참조.

@@ -41,14 +41,19 @@ namespace EverythingGrows
                 state.regionalEnemies.Add(new RegionalEnemySave {
                     id=enemy.id,type=enemy.monsterType.SaveKey,region=enemy.regionId,placementId=enemy.placementId,
                     position=enemy.model.transform.position,home=enemy.home,size=enemy.displaySize,
-                    health=enemy.health,provoked=enemy.provoked });
+                    health=enemy.health,provoked=enemy.provoked,bossEngaged=enemy.bossEngaged,bossReturning=enemy.bossReturning,bossRespawnAt=enemy.bossRespawnAt });
             }
         }
         void RestoreRegionalState(MapSave state)
         {
             FloorCleared=false;defeatedPlacements.Clear();
             if(!state.regionalCombatSaved)return; // Older floor saves become a new regional population once.
-            for(int i=enemies.Count-1;i>=0;i--)if(!enemies[i].trainingDummy){RemoveEnemy(enemies[i]);enemies.RemoveAt(i);}
+            for(int i=enemies.Count-1;i>=0;i--)
+            {
+                var enemy=enemies[i];
+                bool newAuthoredBoss=!enemy.trainingDummy && enemy.monsterType.isBoss && !string.IsNullOrEmpty(enemy.placementId) && !state.regionalEnemies.Any(s=>s.placementId==enemy.placementId);
+                if(!enemy.trainingDummy && !newAuthoredBoss){RemoveEnemy(enemy);enemies.RemoveAt(i);}
+            }
             var types=Resources.LoadAll<MonsterType>("");
             foreach(var saved in state.regionalEnemies)
             {
@@ -57,6 +62,8 @@ namespace EverythingGrows
                 Spawn(saved.position,type.IsRanged(false),saved.size,false,saved.placementId,type,saved.region);
                 var enemy=enemies[enemies.Count-1];enemy.id=saved.id;enemy.home=saved.home;
                 enemy.health=Mathf.Min(saved.health,enemy.MaxHealth);enemy.provoked=saved.provoked;
+                enemy.bossEngaged=saved.bossEngaged;enemy.bossReturning=saved.bossReturning;enemy.bossRespawnAt=saved.bossRespawnAt;
+                if(type.isBoss && enemy.health<=0 && enemy.bossRespawnAt<=0)enemy.bossRespawnAt=GameSession.WorldSeconds+type.bossRespawnSeconds;
                 enemy.sleeping=farm.Cycle!=null && !farm.Cycle.IsDaytime && !enemy.provoked;
                 enemy.model.enabled=enemy.health>0;
             }

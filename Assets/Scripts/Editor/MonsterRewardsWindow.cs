@@ -115,6 +115,11 @@ public sealed class MonsterRewardsWindow : EditorWindow
         {
             EditorGUILayout.PropertyField(data.FindProperty("label"),new GUIContent("종류 이름"));
             EditorGUILayout.PropertyField(data.FindProperty("isBoss"),new GUIContent("보스 (지역 이탈 정리 제외)"));
+            if(data.FindProperty("isBoss").boolValue)
+            {
+                EditorGUILayout.PropertyField(data.FindProperty("bossLeashRange"),new GUIContent("추적 범위 (고정 위치 기준)"));
+                EditorGUILayout.PropertyField(data.FindProperty("bossRespawnSeconds"),new GUIContent("처치 후 재등장 (초)"));
+            }
             EditorGUILayout.PropertyField(data.FindProperty("spawnRegions"),new GUIContent("출현 가능한 지역"),true);
             EditorGUILayout.HelpBox("일반 몬스터만 지역 스폰 대상입니다. 보스는 씬에 고정 배치하세요. 범위·간격·최대 수는 지역 설정에서 조절합니다.",MessageType.Info);
             if(GUILayout.Button("지역 설정 열기"))SpawnRegionWindow.Open();

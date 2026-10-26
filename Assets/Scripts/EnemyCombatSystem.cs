@@ -26,7 +26,8 @@ namespace EverythingGrows
             public Vector2 home, aim, pathGoal,displaySize;
             public string placementId;
             public string id=Guid.NewGuid().ToString("N"),regionId;
-            public bool sleeping,provoked;
+            public bool sleeping,provoked,bossEngaged,bossReturning;
+            public double bossRespawnAt;
             public MonsterType monsterType;
             public float MaxHealth => monsterType!=null?monsterType.maxHealth:55;
             public List<Vector2> path=new();
@@ -86,7 +87,8 @@ namespace EverythingGrows
         }
         public void Hit(Enemy enemy,float damage,Vector2 direction)
         {
-            if(enemy.health<=0 || damage<=0)return;
+            if(enemy.health<=0 || damage<=0 || enemy.bossReturning)return;
+            if(settings.UsesRegions && enemy.monsterType!=null && enemy.monsterType.isBoss)enemy.bossEngaged=true;
             if(settings.UsesRegions && enemy.sleeping)
             { enemy.sleeping=false;enemy.provoked=true;enemy.cooldown=0; }
             enemy.health-=damage;
@@ -95,6 +97,8 @@ namespace EverythingGrows
             if(enemy.health<=0)
             {
                 enemy.health=0; enemy.model.enabled=false; enemy.warning.enabled=false; enemy.windup=0; enemy.respawn=0;
+                if(settings.UsesRegions && enemy.monsterType!=null && enemy.monsterType.isBoss)
+                { enemy.bossEngaged=false;enemy.bossRespawnAt=GameSession.WorldSeconds+enemy.monsterType.bossRespawnSeconds; }
                 if(enemy.trainingDummy) enemy.respawn=3;
                 else
                 {
@@ -121,12 +125,13 @@ namespace EverythingGrows
         public void Tick(float seconds,MapCollision collision,PlayerCombatState player,ProjectileSystem projectiles)
         {
             var enemyCollision=new MapCollision(farm,true);
-            foreach(var enemy in enemies) TickEnemy(enemy,seconds,collision,enemyCollision,player,projectiles);
+            foreach(var enemy in enemies) { TickEnemy(enemy,seconds,collision,enemyCollision,player,projectiles);if(GameSession.Busy)break; }
             SeparateEnemies(seconds,enemyCollision);
         }
         private void TickEnemy(Enemy enemy,float seconds,MapCollision collision,MapCollision enemyCollision,PlayerCombatState player,ProjectileSystem projectiles)
         {
             if(!Active(enemy)) return;
+            if(TickBossLifecycle(enemy,seconds,enemyCollision,projectiles))return;
             enemy.hitTime=Mathf.Max(0,enemy.hitTime-seconds);enemy.stagger=Mathf.Max(0,enemy.stagger-seconds);
             enemy.model.color=Color.Lerp(enemy.tint,new Color(1,.4f,.35f),Mathf.Clamp01(enemy.hitTime/.1f));
             if(enemy.health<=0)
@@ -140,7 +145,8 @@ namespace EverythingGrows
             if(enemy.trainingDummy) { enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10); return; }
             if(enemy.sleeping){enemy.windup=0;enemy.warning.enabled=false;return;}
             if(enemy.stagger>0) return;
-            bool active=!farm.IsSafe(farm.PlayerPosition) && (enemy.provoked || offset.magnitude<enemy.monsterType.detectionRange);
+            bool active=!farm.IsSafe(farm.PlayerPosition) && (enemy.provoked || enemy.bossEngaged || offset.magnitude<enemy.monsterType.detectionRange);
+            if(active && settings.UsesRegions && enemy.monsterType.isBoss)enemy.bossEngaged=true;
             enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10);
             enemy.model.flipX=offset.x<0;
             if(!active) { enemy.windup=0; enemy.warning.enabled=false; MoveEnemy(enemy,enemy.home,seconds*enemy.monsterType.returnSpeed,seconds,enemyCollision); enemy.cooldown=Mathf.Max(.5f,enemy.cooldown-seconds); return; }
@@ -151,7 +157,7 @@ namespace EverythingGrows
                 if(enemy.windup<=0)
                 {
                     enemy.warning.enabled=false;
-                    if(enemy.ranged) projectiles.Spawn(point,enemy.aim*enemy.monsterType.projectileSpeed,player.HalfHeartHealth*enemy.monsterType.attackHalfHearts,true,enemy.monsterType.projectileLifetime);
+                    if(enemy.ranged) projectiles.SpawnOwned(point,enemy.aim*enemy.monsterType.projectileSpeed,player.HalfHeartHealth*enemy.monsterType.attackHalfHearts,true,enemy.monsterType.projectileLifetime,enemy.id);
                     else if(offset.magnitude<enemy.monsterType.meleeHitRange && collision.Trace(point,farm.PlayerPosition,0,true)>=1) player.Damage(player.HalfHeartHealth*enemy.monsterType.attackHalfHearts);
                     enemy.cooldown=enemy.monsterType.attackCooldown;
                 }
@@ -186,7 +192,7 @@ namespace EverythingGrows
             if(!nightActive && !settings.UsesRegions) return;
             for(int i=0;i<enemies.Count;i++) for(int j=i+1;j<enemies.Count;j++)
             {
-                var a=enemies[i]; var b=enemies[j]; if(a.health<=0 || b.health<=0 || a.trainingDummy || b.trainingDummy || a.sleeping || b.sleeping) continue;
+                var a=enemies[i]; var b=enemies[j]; if(a.health<=0 || b.health<=0 || a.trainingDummy || b.trainingDummy || a.sleeping || b.sleeping || a.bossReturning || b.bossReturning) continue;
                 Vector2 pa=a.model.transform.position,pb=b.model.transform.position,delta=pa-pb;
                 float distance=delta.magnitude; if(distance>=Radius*2) continue;
                 Vector2 direction=distance>.001f?delta/distance:((i+j)%2==0?Vector2.right:Vector2.up);

@@ -11,6 +11,8 @@ namespace EverythingGrows
         [HideInInspector] public string saveId;
         public string SaveKey => string.IsNullOrEmpty(saveId)?name:saveId;
         public bool isBoss;
+        [Min(.1f)] public float bossLeashRange=12;
+        [Min(.1f)] public float bossRespawnSeconds=120;
         public SpawnRegion[] spawnRegions=Array.Empty<SpawnRegion>();
         public MonsterBehavior behavior;
         [Min(1)] public float maxHealth=55;

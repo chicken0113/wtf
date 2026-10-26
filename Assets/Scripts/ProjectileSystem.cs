@@ -5,16 +5,22 @@ namespace EverythingGrows
 {
     internal sealed class ProjectileSystem
     {
-        private sealed class Shot { public SpriteRenderer model; public Vector2 velocity; public float damage,life=2.5f; public bool hostile; }
+        private sealed class Shot { public SpriteRenderer model; public Vector2 velocity; public float damage,life=2.5f; public bool hostile,cancelled; public string ownerId; }
         private readonly FarmGame farm;
         private readonly CombatEffects effects;
         private readonly List<Shot> shots = new();
         public ProjectileSystem(FarmGame farm, CombatEffects effects) { this.farm=farm;this.effects=effects; }
-        public void Spawn(Vector2 point,Vector2 velocity,float damage,bool hostile,float life=2.5f)
+        public void Spawn(Vector2 point,Vector2 velocity,float damage,bool hostile,float life=2.5f) => SpawnOwned(point,velocity,damage,hostile,life,null);
+        public void SpawnOwned(Vector2 point,Vector2 velocity,float damage,bool hostile,float life,string ownerId)
         {
             var model=effects.Draw(hostile?"Enemy shot":"Player shot",point,hostile?Vector2.one*.22f:new Vector2(.3f,.12f),hostile?new Color(1,.35f,.25f):new Color(1,.9f,.45f));
             model.transform.rotation=Quaternion.Euler(0,0,Mathf.Atan2(velocity.y,velocity.x)*Mathf.Rad2Deg);
-            shots.Add(new Shot { model=model,velocity=velocity,damage=damage,hostile=hostile,life=Mathf.Max(.001f,life) });
+            shots.Add(new Shot { ownerId=ownerId,model=model,velocity=velocity,damage=damage,hostile=hostile,life=Mathf.Max(.001f,life) });
+        }
+        public void ClearOwner(string ownerId)
+        {
+            // Mark instead of removing: a lethal shot may trigger boss reset during this list's own iteration.
+            foreach(var shot in shots)if(shot.ownerId==ownerId){shot.cancelled=true;shot.life=0;shot.model.enabled=false;}
         }
         public void ClearHostile()
         {
@@ -29,7 +35,9 @@ namespace EverythingGrows
         {
             for(int i=shots.Count-1;i>=0;i--)
             {
-                var shot=shots[i]; Vector2 start=shot.model.transform.position, end=start+shot.velocity*Mathf.Min(seconds,shot.life);
+                var shot=shots[i];
+                if(shot.cancelled){FarmWorldView.Remove(shot.model.gameObject);shots.RemoveAt(i);continue;}
+                Vector2 start=shot.model.transform.position, end=start+shot.velocity*Mathf.Min(seconds,shot.life);
                 shot.life-=seconds; float radius=shot.hostile?.11f:.06f;
                 float wall=collision.Trace(start,end,radius,true), first=wall;
                 EnemyCombatSystem.Enemy victim=null; bool playerHit=false;

@@ -51,6 +51,7 @@ namespace EverythingGrows
         public bool Roll(Vector2 direction) => playerState.Roll(direction);
         public bool RequestRoll(Vector2 direction) => playerState.RequestRoll(direction);
         public void DamagePlayer(float damage) => playerState.Damage(damage);
+        public void ResetBossEncounters() { if(UsesRegions)enemySystem.ResetBossEncounters(projectiles); }
         public void Afterimage(SpriteRenderer source) => effects.Afterimage(source);
         public void ToolEffect(Vector2 point,GrowthEffect kind) => effects.ToolEffect(point,kind);
         public void SpawnEnemy(Vector2 point,bool ranged,Vector2? size=null,bool trainingDummy=false) => enemySystem.Spawn(point,ranged,size,trainingDummy);
@@ -124,6 +125,7 @@ namespace EverythingGrows
             if(GameSession.Busy)return;
             regionalSpawns.Tick(seconds,enemySystem);
             enemySystem.Tick(seconds,collision,playerState,projectiles);
+            if(GameSession.Busy)return;
             projectiles.Tick(seconds,collision,enemySystem,playerState);
             effects.Tick(seconds);
         }

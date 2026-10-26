@@ -31,6 +31,7 @@ namespace EverythingGrows
                 if(SceneUtility.GetBuildIndexByScenePath(destination.scene)<0)destination=data.defaultRespawn;
                 if(destination==null || SceneUtility.GetBuildIndexByScenePath(destination.scene)<0)
                 { error="부활할 기본 씬을 빌드 설정에서 찾을 수 없습니다.";return false; }
+                farm.Combat.ResetBossEncounters();
                 var before=farm.CapturePlayer(catalog);var cache=farm.LeaveDeathCache(catalog);
                 if(!Save(farm)){farm.RemoveDeathCache(cache);farm.RestorePlayer(before,catalog);return false;}
                 farm.Shop?.Close();farm.SetInventoryOpen(false);farm.SetMapOpen(false);

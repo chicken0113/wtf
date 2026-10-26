@@ -131,6 +131,8 @@ namespace EverythingGrows
         public static void CheckMonsterType(MonsterType type,SaveItemCatalog catalog,SetupValidationReport report,HashSet<PlantDefinition> visited,bool saving)
         {
             if(type==null)return;
+            if(type.isBoss)
+            { Positive(type,"bossLeashRange",type.bossLeashRange,report);Positive(type,"bossRespawnSeconds",type.bossRespawnSeconds,report); }
             if(type.spawnRegions==null || System.Array.Exists(type.spawnRegions,r=>r==null))report.Error("MONSTER_REGIONS",type,"spawnRegions","스폰 지역에 빈 참조가 있습니다.","출현할 지역을 지정하거나 빈 칸을 제거하세요.");
             if(!System.Enum.IsDefined(typeof(MonsterBehavior),type.behavior) || type.attackHalfHearts<1)report.Error("MONSTER_BEHAVIOR",type,"behavior / attackHalfHearts","몬스터 행동/피해 수치가 유효하지 않습니다.","행동과 반 하트 단위 피해를 확인하세요.");
             foreach(var pair in new[]{("maxHealth",type.maxHealth),("moveSpeed",type.moveSpeed),("returnSpeed",type.returnSpeed),("detectionRange",type.detectionRange),("attackRange",type.attackRange),("meleeHitRange",type.meleeHitRange),("attackCooldown",type.attackCooldown),("projectileSpeed",type.projectileSpeed),("projectileLifetime",type.projectileLifetime)})Positive(type,pair.Item1,pair.Item2,report);

@@ -44,7 +44,8 @@ namespace EverythingGrows
         public string id,type,region,placementId;
         public Vector2 position,home,size;
         public float health;
-        public bool provoked;
+        public bool provoked,bossEngaged,bossReturning;
+        public double bossRespawnAt;
     }
     [Serializable] public sealed class MapSave
     {
