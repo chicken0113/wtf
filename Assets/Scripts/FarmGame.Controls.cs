@@ -53,6 +53,7 @@ namespace EverythingGrows
         public bool InteractWorld(Vector2 point,bool pointerOverUI=false)
         {
             if(player==null||combat==null||combat.IsGameOver||combat.IsRolling||WorldInputBlocked||GameSession.Busy||pointerOverUI)return false;
+            if(InteractRecovery(point)){HideFarmingPreview();return true;}
             var npc=shop!=null?shop.PointedNpc(point):null;
             if(npc!=null)
             {

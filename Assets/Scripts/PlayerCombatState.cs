@@ -115,11 +115,11 @@ namespace EverythingGrows
             farm.ImpactFeedback(true);
             effects.Sparks(farm.PlayerPosition, new Color(1, .4f, .3f));
             if (Health > 0) return;
-            // Solo defeat keeps possessions and returns through the normal saved map-travel path.
+            // Solo defeat deposits possessions before the normal saved map-travel path.
             Health = HalfHeartHealth;
             invulnerability = 1.5f;
             rollTime = rollBufferTime = 0;
-            GameSession.ReturnToHospital(farm);
+            GameSession.RespawnAfterDeath(farm);
         }
 
         public void Tick(float seconds)

@@ -10,6 +10,8 @@ namespace EverythingGrows
         public string houseReturnScene;
         public Vector2 houseReturnPosition;
         public double worldSeconds;
+        public RespawnSave respawn;
+        public RespawnSave defaultRespawn;
         public PlayerSave player=new();
         public List<MapSave> maps=new();
         public List<GuildQuestSave> guildQuests=new();
@@ -34,9 +36,14 @@ namespace EverythingGrows
     }
     [Serializable] public sealed class PieceSave { public string item; public Vector2 position,size; }
     [Serializable] public sealed class BuildingSave { public string item; public Vector2 position; }
+    [Serializable] public sealed class RespawnSave { public string scene,anchor; public Vector2 position; public bool IsSet => !string.IsNullOrEmpty(scene); }
+    [Serializable] public sealed class DeathCacheSave { public string id; public Vector2 position; public List<ItemStackSave> items=new(); }
+    [Serializable] public sealed class RespawnAnchorSave { public string id; public Vector2 position; }
     [Serializable] public sealed class MapSave
     {
         public string scene;
+        public List<DeathCacheSave> deathCaches=new();
+        public List<RespawnAnchorSave> respawnAnchors=new();
         public double updatedAt;
         public List<PlotSave> plots=new();
         public List<PieceSave> pieces=new();

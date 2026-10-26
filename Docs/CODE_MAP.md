@@ -158,3 +158,7 @@
 - `InventoryLayoutCheck.Run`은 이동/교환/빈칸·새/구 저장·중복 거부·초과분 드롭·슬롯 떼기/복원을, `RunVisual`은 GUI 슬롯 드래그/취소와 두 영역 화면을 격리 프로젝트에서 검사한다.
 
 - 아이템 툴팁은 `FarmHud.DrawTooltip`이 이름/수량/`PlantDefinition.UsageText`를 표시한다. Unity의 `description`이 있으면 그대로 쓰고 없으면 기존 용도에 맞는 기본 설명을 사용한다. 드래그 중에는 숨기며 Repaint에서만 그려 입력을 소비하지 않는다. `dragSourceQuantity`는 원본 검증, `dragQuantity`는 실제 이동/버리기 수량이다. 바닥 아이템은 기존대로 개별 단위이며 저장 형식은 추가 변경하지 않았다.
+
+## 자유 거점·부활·사망 회수 (2026-10-27)
+
+현재 사망 경로는 PlayerCombatState.Damage → GameSession.RespawnAfterDeath → FarmGame.LeaveDeathCache → Save → 지정 맵/좌표 이동이다. 기존 ReturnToHospital은 과거 검사/호환용으로 남지만 일반 전투 사망에서 호출하지 않는다. FarmGame.Recovery가 회수·임시 침대·맵 저장을 담당하고 GameSession.Respawn이 등록/기본 위치/검증/이동을 담당한다. 기존 입력의 InteractWorld는 가리킨 가방/침대 상호작용을 먼저 처리한다. 자세한 필드·설정은 FREE_CAMP_RECOVERY.md.

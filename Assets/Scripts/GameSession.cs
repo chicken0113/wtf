@@ -37,7 +37,7 @@ namespace EverythingGrows
             return total;
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetRuntime() { runner=null; data=null; catalog=null; current=null; loaded=blocked=Busy=false; pendingScene=pendingArrival=error=null; pendingPosition=null; ArrivalGraceUntil=0; }
+        static void ResetRuntime() { runner=null; data=null; catalog=null; current=null; loaded=blocked=Busy=false; pendingScene=pendingArrival=error=null; pendingPosition=null; ArrivalGraceUntil=0; pendingRespawn=false; }
         public static void ResetForTests() { ResetRuntime(); }
         static void EnsureRunner()
         {
@@ -70,6 +70,7 @@ namespace EverythingGrows
         static void Validate(GameSaveData candidate)
         {
             ValidateGuildQuests(candidate);
+            ValidateRecovery(candidate);
             if(string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Save the Unity scene to disk before saving game progress.");
             if(candidate.player.inventory==null || candidate.player.removedSlots<0 || candidate.player.removedHearts<0 || candidate.player.gold<0 || candidate.player.farmingExperience<0) throw new InvalidDataException("Invalid player save.");
             var slots=new System.Collections.Generic.HashSet<int>();
@@ -97,6 +98,7 @@ namespace EverythingGrows
             try
             {
                 Load(); if(blocked) return;
+                EnsureDefaultRespawn(farm);
                 string scene=farm.gameObject.scene.path;
                 if(first && Application.isPlaying && !string.IsNullOrEmpty(data.currentScene) && data.currentScene!=scene)
                 {
@@ -126,6 +128,8 @@ namespace EverythingGrows
                     var position=pendingPosition.Value;
                     farm.TeleportPlayer(new MapCollision(farm).CanStand(position,farm.PlayerRadius)?position:farm.SpawnPosition);
                 }
+                if(pendingRespawn && pendingScene==scene)
+                { farm.TeleportPlayer(ResolveRespawn(farm,data.respawn!=null && data.respawn.IsSet && data.respawn.scene==scene?data.respawn:data.defaultRespawn));pendingRespawn=false; }
                 if(map!=null) farm.Tick(Mathf.Max(0,(float)(data.worldSeconds-map.updatedAt)));
                 farm.ReconcileRestoredInventory();
                 MapExit.PrepareArrival(farm);
@@ -198,7 +202,7 @@ namespace EverythingGrows
             {
                 var failedFarm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
                 error=error??(failedFarm!=null?failedFarm.InitializationError:null)??"Destination scene needs an initialized FarmGame.";
-                pendingScene=origin; pendingArrival=null; pendingPosition=null;
+                pendingScene=origin; pendingArrival=null; pendingPosition=null; pendingRespawn=false;
                 operation=null;
                 try { operation=SceneManager.LoadSceneAsync(origin,LoadSceneMode.Single); }
                 catch(Exception problem) { error+=" Return failed: "+problem.Message; }

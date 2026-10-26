@@ -75,6 +75,8 @@ namespace EverythingGrows
             if(index==16 || index==17) { Box(14,3,4,9,brown); Box(8,11,16,3,index==17?gold:metal); Box(13,14,6,14,index==17?new Color(.65f,.92f,1):metal); Box(15,28,2,2,Color.white); }
             else if(index==18) { Box(21,4,2,24,metal); Box(9,7,3,18,brown); Box(12,4,5,3,brown); Box(12,25,5,3,brown); Box(17,7,3,18,brown); Box(5,15,24,2,gold); }
             else if(index==19) { Box(8,9,5,12,brown); Box(8,19,19,6,metal); Box(25,20,5,3,Color.gray); Box(15,13,7,3,Color.gray); }
+            else if(index==33) { Box(5,3,22,26,brown);Box(7,5,18,22,new Color(.25f,.52f,.7f));Box(9,21,14,5,Color.white); }
+            else if(index==34) { Box(14,3,3,25,brown);Box(17,19,11,9,new Color(.3f,.8f,.9f));Box(8,2,17,3,metal); }
             else if(index==22) { Box(14,3,4,24,brown); Box(6,23,18,4,metal); Box(5,19,5,7,metal); }
             else if(index==FarmingBorderIcon)
             {

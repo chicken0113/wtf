@@ -20,6 +20,8 @@ namespace EverythingGrows
         }
         internal bool CanFarmAt(Vector2Int cell)
         {
+            if(!new MapCollision(this).CanStand(cell,.45f))return false;
+            foreach(var anchor in GetComponentsInChildren<RespawnAnchor>())if(anchor.isActiveAndEnabled && anchor.Contains(cell))return false;
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(building.Blocks(cell)) return false;
             return mapLayout!=null?mapLayout.CanFarm(cell):cell.x>=-23 && cell.x<=23 && cell.y>=-15 && cell.y<=15;
         }
