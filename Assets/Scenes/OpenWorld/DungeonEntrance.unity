@@ -17229,7 +17229,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/Town.unity
+      value: Assets/Scenes/LegacyVillage/Town.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -46297,7 +46297,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/TrainingGround.unity
+      value: Assets/Scenes/Tests/TrainingGround.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -59235,7 +59235,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/FirstGarden.unity
+      value: Assets/Scenes/LegacyVillage/FirstGarden.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -68554,7 +68554,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/TowerFirstFloor.unity
+      value: Assets/Scenes/LegacyVillage/TowerFirstFloor.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -112772,7 +112772,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/ForestClearing.unity
+      value: Assets/Scenes/OpenWorld/ForestClearing.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x

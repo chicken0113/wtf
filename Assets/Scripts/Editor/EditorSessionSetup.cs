@@ -53,7 +53,7 @@ public static class EditorSessionSetup
         EditorSettings.defaultBehaviorMode=EditorBehaviorMode.Mode2D;
         if(SceneView.lastActiveSceneView!=null) { var view=SceneView.lastActiveSceneView; view.in2DMode=true; view.LookAt(Vector3.zero,Quaternion.identity,8,true); }
         EditorSceneManager.MarkSceneDirty(scene);
-        string path=string.IsNullOrEmpty(scene.path)?AssetDatabase.GenerateUniqueAssetPath("Assets/Scenes/FirstGarden.unity"):scene.path;
+        string path=string.IsNullOrEmpty(scene.path)?AssetDatabase.GenerateUniqueAssetPath("Assets/Scenes/LegacyVillage/FirstGarden.unity"):scene.path;
         if(!EditorSceneManager.SaveScene(scene,path)) throw new Exception("Could not save the current scene.");
         EditorBuildSettings.scenes=new[]{new EditorBuildSettingsScene(path,true)}.Concat(EditorBuildSettings.scenes.Where(entry=>entry.path!=path)).ToArray();
         Undo.CollapseUndoOperations(group); Selection.activeGameObject=farm.gameObject;

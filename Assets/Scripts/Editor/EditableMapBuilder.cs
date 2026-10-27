@@ -95,7 +95,7 @@ public static class EditableMapBuilder
     public static void Validate()
     {
         if(!Application.isBatchMode) throw new Exception("Use an isolated project.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity"); Setup();
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity"); Setup();
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); var map=farm.Layout;
         var item=map.GetComponentsInChildren<FarmItemPlacement>().First(); item.transform.position=new Vector3(3,2,0);
         map.playerSpawn.position=new Vector3(2,1,0); map.safeArea.transform.position=new Vector3(3,1,0);

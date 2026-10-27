@@ -2,7 +2,7 @@ namespace EverythingGrows
 {
     public sealed partial class GameSession
     {
-        public const string HospitalScene = "Assets/Scenes/HospitalInterior.unity";
+        public const string HospitalScene = "Assets/Scenes/LegacyVillage/HospitalInterior.unity";
         public const string HospitalRecoveryArrival = "hospital_recovery";
 
         public static bool ReturnToHospital(FarmGame farm)

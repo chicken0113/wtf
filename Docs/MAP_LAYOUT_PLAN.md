@@ -45,7 +45,7 @@ Town의 크기는 64×60을 유지한다.
 
 ## Scene 편집
 
-`Assets/Scenes/Town.unity`의 `EditableMap` 아래에서 편집한다.
+`Assets/Scenes/LegacyVillage/Town.unity`의 `EditableMap` 아래에서 편집한다.
 
 - `Ground and paths`: 잔디·돌바닥·흙길·물·다리 바닥
 - `Buildings`: 길드·대장간·기존 주택·잡화점

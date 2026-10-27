@@ -7,11 +7,11 @@ using UnityEngine.SceneManagement;
 using EverythingGrows;
 public static class NightMerchantExampleSetup
 {
-    public const string Id="forest_night_trader",ScenePath="Assets/Scenes/ForestClearing.unity";
+    public const string Id="forest_night_trader",ScenePath="Assets/Scenes/OpenWorld/ForestClearing.unity";
     public static void Author()
     {
         if(!Application.isBatchMode)throw new InvalidOperationException("배치 작성 전용입니다.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");if(!Apply())throw new InvalidOperationException("야간 상인 배치를 보류했습니다.");Debug.Log("NIGHT_MERCHANT_AUTHORED");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");if(!Apply())throw new InvalidOperationException("야간 상인 배치를 보류했습니다.");Debug.Log("NIGHT_MERCHANT_AUTHORED");
     }
     public static bool Apply()
     {

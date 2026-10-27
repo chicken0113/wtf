@@ -9,7 +9,7 @@ public static class HeartHarvestCheck
     public static void Run()
     {
         if(!Application.isBatchMode) throw new Exception("Use an isolated batch project.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
         // Exercise damage/night behavior in a temporary fixture; the real farm stays peaceful.
         farm.Layout.combatSchedule=FarmMapLayout.CombatSchedule.NightOnly; farm.Initialize(false);

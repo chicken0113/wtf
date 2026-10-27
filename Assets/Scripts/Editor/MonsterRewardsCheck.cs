@@ -13,7 +13,7 @@ public static class MonsterRewardsCheck
     {
         string typePath=type!=null?AssetDatabase.GetAssetPath(type):null;
         if(type!=null) { EditorUtility.SetDirty(type);AssetDatabase.SaveAssetIfDirty(type); }
-        GameSession.ResetForTests();EditorSceneManager.OpenScene("Assets/Scenes/CombatTest.unity");
+        GameSession.ResetForTests();EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/CombatTest.unity");
         if(!string.IsNullOrEmpty(typePath))type=AssetDatabase.LoadAssetAtPath<MonsterType>(typePath);
         var f=UnityEngine.Object.FindFirstObjectByType<FarmGame>();
         if(type!=null)foreach(var marker in (f.Layout!=null?f.Layout.GetComponentsInChildren<EnemyPlacement>():f.GetComponentsInChildren<EnemyPlacement>()))if(!marker.trainingDummy)marker.monsterType=type;

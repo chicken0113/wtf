@@ -25,8 +25,8 @@
 
 ## 씬에서 편집
 
-- `Assets/Scenes/Town.unity`의 `EditableMap` 아래 Ground and paths / Buildings / Town districts / Plaza and decorations / Residents / Travel 그룹을 편집합니다.
-- `Assets/Scenes/GeneralStore.unity`의 Interior 그룹에서 카운터·벽·진열대, Merchant에서 상인 위치를 편집합니다.
+- `Assets/Scenes/LegacyVillage/Town.unity`의 `EditableMap` 아래 Ground and paths / Buildings / Town districts / Plaza and decorations / Residents / Travel 그룹을 편집합니다.
+- `Assets/Scenes/LegacyVillage/GeneralStore.unity`의 Interior 그룹에서 카운터·벽·진열대, Merchant에서 상인 위치를 편집합니다.
 - 마을 건물 프리팹: `Assets/Prefabs/Map/TownGeneralStore.prefab`, `TownSmith.prefab`, `TownHouse.prefab`.
 - 각 건물 아래 `Roof identity`는 용도를 구분하는 지붕 표식입니다. 건물과 함께 움직이며 개별 조절·교체할 수 있습니다. 표식 프리팹은 `Assets/Prefabs/Map/RoofSigns`에 있습니다.
 - 건물의 MapObstacle은 발밑 충돌 영역입니다. 건물 전체 그림과 독립적으로 조절할 수 있습니다.

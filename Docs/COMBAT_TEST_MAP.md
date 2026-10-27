@@ -12,7 +12,7 @@
 
 ## 씬 편집
 
-`Assets/Scenes/CombatTest.unity`를 열면 아래 그룹을 직접 편집할 수 있습니다.
+`Assets/Scenes/LegacyVillage/CombatTest.unity`를 열면 아래 그룹을 직접 편집할 수 있습니다.
 
 - `Combat Test / EditableMap / Ground`: 바닥.
 - `Obstacles`: 외곽 벽 4개, 기둥 2개, 엄폐물 2개. MapObstacle로 충돌하며 Transform 크기를 바꿀 수 있습니다.

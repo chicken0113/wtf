@@ -14,7 +14,7 @@ public static class FarmingProgressionCheck
     private static int Total(FarmGame f)=>f.CapturePlayer(Resources.Load<SaveItemCatalog>("SaveItemCatalog")).farmingExperience;
     private static FarmGame Reload()
     {
-        GameSession.ResetForTests();EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        GameSession.ResetForTests();EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         var f=UnityEngine.Object.FindFirstObjectByType<FarmGame>();f.Initialize(false);GameSession.Bind(f);
         Check(f.IsInitialized && string.IsNullOrEmpty(GameSession.LastError),"Initialize/restore: "+GameSession.LastError);return f;
     }

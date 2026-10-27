@@ -14,7 +14,7 @@ MonoBehaviour:
   id: fc5b0dd2cea74b2397b315216362d716
   label: 숲
   spawnEnabled: 1
-  scenePath: Assets/Scenes/ForestClearing.unity
+  scenePath: Assets/Scenes/OpenWorld/ForestClearing.unity
   useMapBounds: 1
   area: {x: -10, y: -8, width: 20, height: 16}
   spawnInterval: 8

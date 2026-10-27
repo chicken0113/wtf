@@ -10,7 +10,7 @@ using EverythingGrows;
 [InitializeOnLoad]
 public static class CombatTestMapSetup
 {
-    public const string FarmScene="Assets/Scenes/FirstGarden.unity", CombatScene="Assets/Scenes/CombatTest.unity";
+    public const string FarmScene="Assets/Scenes/LegacyVillage/FirstGarden.unity", CombatScene="Assets/Scenes/LegacyVillage/CombatTest.unity";
     const string SpritePath="Assets/Art/MapSprites/TestBlock.png", Request="Library/CombatTestMap.request", Result="Library/CombatTestMap.result";
     static CombatTestMapSetup() { if(!Application.isBatchMode) EditorApplication.update+=Tick; }
     static void Tick()

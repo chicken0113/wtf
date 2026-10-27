@@ -12,8 +12,8 @@ using static PelicanTownLayout;
 [InitializeOnLoad]
 public static class TriangleWorldSetup
 {
-    public const string Passage="Assets/Scenes/FarmTownPassage.unity", Field="Assets/Scenes/DungeonEntrance.unity",
-        Forest="Assets/Scenes/ForestClearing.unity", Training="Assets/Scenes/TrainingGround.unity";
+    public const string Passage="Assets/Scenes/LegacyVillage/FarmTownPassage.unity", Field="Assets/Scenes/OpenWorld/DungeonEntrance.unity",
+        Forest="Assets/Scenes/OpenWorld/ForestClearing.unity", Training="Assets/Scenes/Tests/TrainingGround.unity";
     const string Marker="Triangle world 2026-10-22", Request="Library/TriangleWorld.request", Result="Library/TriangleWorld.result";
     public static string[] Paths => new[]{CombatTestMapSetup.FarmScene,WorldFrameworkSetup.Town,WorldFrameworkSetup.Store,CombatTestMapSetup.CombatScene,Passage,Field,Forest,Training}
         .Concat(InteriorWorldSetup.Installed?InteriorWorldSetup.Rooms:Array.Empty<string>())

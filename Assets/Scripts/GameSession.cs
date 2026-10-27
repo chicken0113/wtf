@@ -59,6 +59,7 @@ namespace EverythingGrows
                 {
                     var candidate=JsonUtility.FromJson<GameSaveData>(File.ReadAllText(path));
                     if(candidate==null || candidate.version!=1 || candidate.player==null || candidate.maps==null || string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Unsupported or invalid save data.");
+                    ScenePaths.Migrate(candidate);
                     candidate.guildQuests ??= new System.Collections.Generic.List<GuildQuestSave>();
                     Validate(candidate);EnsureMerchantSeed(candidate);data=candidate;return;
                 }

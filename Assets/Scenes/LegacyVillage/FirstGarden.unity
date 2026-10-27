@@ -95374,7 +95374,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/DungeonEntrance.unity
+      value: Assets/Scenes/OpenWorld/DungeonEntrance.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -127401,7 +127401,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4980186508272810861, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/FarmTownPassage.unity
+      value: Assets/Scenes/LegacyVillage/FarmTownPassage.unity
       objectReference: {fileID: 0}
     - target: {fileID: 5793455732231719042, guid: a32a782da18f3aa46a440cf5dad814b8, type: 3}
       propertyPath: m_LocalPosition.x

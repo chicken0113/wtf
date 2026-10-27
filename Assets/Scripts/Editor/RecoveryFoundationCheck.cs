@@ -15,7 +15,7 @@ public static class RecoveryFoundationCheck
     public static void Run()
     {
         Check(Application.isBatchMode && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR")) && Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase),"Isolated project/save required");
-        MapSaveAuthoring.RefreshCatalog();EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");ProjectSetupCheck.Run();
+        MapSaveAuthoring.RefreshCatalog();EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");ProjectSetupCheck.Run();
         SessionState.SetBool(Key,true);EditorApplication.isPlaying=true;
     }
     static GameSaveData Saved()=>JsonUtility.FromJson<GameSaveData>(File.ReadAllText(GameSession.SavePath));

@@ -6,46 +6,46 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/MainMenu.unity
+    path: Assets/Scenes/System/MainMenu.unity
     guid: a55748fb95ef8364f98e9bd0af798a15
   - enabled: 1
-    path: Assets/Scenes/FirstGarden.unity
+    path: Assets/Scenes/LegacyVillage/FirstGarden.unity
     guid: 90ab5f2b487166e4d89fc23b1e4b1aab
   - enabled: 1
-    path: Assets/Scenes/CombatTest.unity
+    path: Assets/Scenes/LegacyVillage/CombatTest.unity
     guid: 470e7ae931849f64fb43f1ef8f88283b
   - enabled: 1
-    path: Assets/Scenes/Town.unity
+    path: Assets/Scenes/LegacyVillage/Town.unity
     guid: f87c6109683d1c14199a49ee927ac78c
   - enabled: 1
-    path: Assets/Scenes/GeneralStore.unity
+    path: Assets/Scenes/LegacyVillage/GeneralStore.unity
     guid: d3438668c19f30747a1acc5e0b6eab5b
   - enabled: 1
-    path: Assets/Scenes/FarmTownPassage.unity
+    path: Assets/Scenes/LegacyVillage/FarmTownPassage.unity
     guid: 17fd75b3ae67c984b8ccd11698a0a5f3
   - enabled: 1
-    path: Assets/Scenes/DungeonEntrance.unity
+    path: Assets/Scenes/OpenWorld/DungeonEntrance.unity
     guid: 636f84d5b2f02a547af361f9af05c1ed
   - enabled: 1
-    path: Assets/Scenes/ForestClearing.unity
+    path: Assets/Scenes/OpenWorld/ForestClearing.unity
     guid: b92330e40a4efa5449915fff309e288c
   - enabled: 1
-    path: Assets/Scenes/TrainingGround.unity
+    path: Assets/Scenes/Tests/TrainingGround.unity
     guid: 361665cc3f48f3045ab0124f2af398d4
   - enabled: 1
-    path: Assets/Scenes/FarmHouseInterior.unity
+    path: Assets/Scenes/LegacyVillage/FarmHouseInterior.unity
     guid: 114b7edb252557a4ea70f98e6bbed57f
   - enabled: 1
-    path: Assets/Scenes/GuildInterior.unity
+    path: Assets/Scenes/LegacyVillage/GuildInterior.unity
     guid: 8b1183716d5fb0e41bd3a47688372816
   - enabled: 1
-    path: Assets/Scenes/SmithInterior.unity
+    path: Assets/Scenes/LegacyVillage/SmithInterior.unity
     guid: 9fc611890dbb8e34599612c4fcaf2196
   - enabled: 1
-    path: Assets/Scenes/TowerFirstFloor.unity
+    path: Assets/Scenes/LegacyVillage/TowerFirstFloor.unity
     guid: e291c00d07e37cb43a997998e10b3f92
   - enabled: 1
-    path: Assets/Scenes/HospitalInterior.unity
+    path: Assets/Scenes/LegacyVillage/HospitalInterior.unity
     guid: e6b5e89f5bbb9ec4197fc77001a68056
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

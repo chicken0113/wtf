@@ -10,7 +10,7 @@ using EverythingGrows;
 [InitializeOnLoad]
 public static class WorldFrameworkSetup
 {
-    public const string Town="Assets/Scenes/Town.unity", Store="Assets/Scenes/GeneralStore.unity";
+    public const string Town="Assets/Scenes/LegacyVillage/Town.unity", Store="Assets/Scenes/LegacyVillage/GeneralStore.unity";
     const string Request="Library/WorldFramework.request",Result="Library/WorldFramework.result";
     static Sprite Tile => AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/MapSprites/TestBlock.png");
     static WorldFrameworkSetup() { if(!Application.isBatchMode) EditorApplication.update+=Tick; }

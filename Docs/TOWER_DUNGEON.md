@@ -15,8 +15,8 @@
 
 | 대상 | 위치 |
 | --- | --- |
-| 1층 | `Assets/Scenes/TowerFirstFloor.unity` |
-| 2층 | `Assets/Scenes/CombatTest.unity` — 기존 경로/GUID 유지 |
+| 1층 | `Assets/Scenes/LegacyVillage/TowerFirstFloor.unity` |
+| 2층 | `Assets/Scenes/LegacyVillage/CombatTest.unity` — 기존 경로/GUID 유지 |
 | 탑 외관 | `DungeonEntrance`의 `EditableMap/Tower exterior` |
 | 계단 | 각 층의 `EditableMap/Travel` 아래 `Up to 2F` / `Down to 1F` |
 | 이동 연결 | 계단의 `MapExit`: destinationScene / arrivalId / areaSize / requireInteract / requireClearFloor |

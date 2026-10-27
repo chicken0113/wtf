@@ -16,7 +16,7 @@ MonoBehaviour:
   - id: clear_dungeon
     title: Clear the ruins
     description: Defeat any 2 monsters in the dungeon, then report to the guild.
-    targetScene: Assets/Scenes/CombatTest.unity
+    targetScene: Assets/Scenes/LegacyVillage/CombatTest.unity
     enemyKind: 0
     requiredKills: 2
     rewardGold: 50
@@ -24,7 +24,7 @@ MonoBehaviour:
   - id: ranged_watch
     title: Stop the spitter
     description: Defeat 1 ranged dungeon monster and return for your reward.
-    targetScene: Assets/Scenes/CombatTest.unity
+    targetScene: Assets/Scenes/LegacyVillage/CombatTest.unity
     enemyKind: 2
     requiredKills: 1
     rewardGold: 40

@@ -11,7 +11,7 @@ using static PelicanTownLayout;
 [InitializeOnLoad]
 public static class InteriorWorldSetup
 {
-    public const string Home="Assets/Scenes/FarmHouseInterior.unity",Guild="Assets/Scenes/GuildInterior.unity",Smith="Assets/Scenes/SmithInterior.unity";
+    public const string Home="Assets/Scenes/LegacyVillage/FarmHouseInterior.unity",Guild="Assets/Scenes/LegacyVillage/GuildInterior.unity",Smith="Assets/Scenes/LegacyVillage/SmithInterior.unity";
     public static readonly string[] Rooms={Home,Guild,Smith};
     public static bool Installed=>File.Exists(Home);
     const string Marker="Building interiors 2026-10-22",DoorPrefab="Assets/Resources/Buildings/HouseDoor.prefab",Request="Library/InteriorWorld.request",Result="Library/InteriorWorld.result";

@@ -12,7 +12,7 @@ public static class GrowthCategoriesCheck
     private static SaveItemCatalog Catalog=>Resources.Load<SaveItemCatalog>("SaveItemCatalog");
     private static FarmGame Reload()
     {
-        GameSession.ResetForTests();EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        GameSession.ResetForTests();EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         var f=UnityEngine.Object.FindFirstObjectByType<FarmGame>();f.Initialize(false);GameSession.Bind(f);
         Check(f.IsInitialized && string.IsNullOrEmpty(GameSession.LastError),f.InitializationError+GameSession.LastError);return f;
     }

@@ -19,10 +19,11 @@ internal static class ManagementEditorUI
             .Concat(Enumerable.Range(0,SceneManager.sceneCount).Select(i=>SceneManager.GetSceneAt(i).path)).Where(p=>!string.IsNullOrEmpty(p)).Distinct().ToArray();
         if(paths.Length==0) { EditorGUILayout.HelpBox("저장된 씬을 열어주세요.",MessageType.Info);return default; }
         if(string.IsNullOrEmpty(path))path=SceneManager.GetActiveScene().path;
+        path=EverythingGrows.ScenePaths.Resolve(path);
         int index=Array.IndexOf(paths,path);if(index<0)index=0;
         using(new EditorGUI.DisabledScope(Playing))
         {
-            index=EditorGUILayout.Popup("씬",index,paths.Select(p=>System.IO.Path.GetFileNameWithoutExtension(p)).ToArray());path=paths[index];
+            index=EditorGUILayout.Popup("씬",index,paths.Select(p=>p.Replace("Assets/Scenes/","").Replace(".unity","")).ToArray());path=paths[index];
             var scene=SceneManager.GetSceneByPath(path);
             if(!scene.IsValid() || !scene.isLoaded)
             {

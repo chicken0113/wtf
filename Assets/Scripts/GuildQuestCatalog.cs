@@ -9,7 +9,7 @@ namespace EverythingGrows
         [Tooltip("Permanent save identifier. Do not rename after publishing.")] public string id;
         public string title;
         [TextArea] public string description;
-        public string targetScene="Assets/Scenes/CombatTest.unity";
+        public string targetScene="Assets/Scenes/LegacyVillage/CombatTest.unity";
         public GuildEnemyKind enemyKind;
         [Min(1)] public int requiredKills=2;
         [Min(0)] public int rewardGold=50;

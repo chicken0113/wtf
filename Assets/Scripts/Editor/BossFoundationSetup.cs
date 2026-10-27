@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using EverythingGrows;
 public static class BossFoundationSetup
 {
-    public const string ScenePath="Assets/Scenes/ForestClearing.unity";
+    public const string ScenePath="Assets/Scenes/OpenWorld/ForestClearing.unity";
     public const string PrefabPath="Assets/Prefabs/Map/FieldBossSpawn.prefab";
     public static bool Apply()
     {

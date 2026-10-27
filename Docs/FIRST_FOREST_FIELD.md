@@ -1,6 +1,6 @@
 # First forest field
 
-`Assets/Scenes/ForestClearing.unity` is the first open-field layout prototype.
+`Assets/Scenes/OpenWorld/ForestClearing.unity` is the first open-field layout prototype.
 
 - 52 × 44 world units; eastern automatic exit keeps the existing destination and arrival IDs.
 - Southwest pond and open grass: a possible player camp, not a protected zone. Walkable grass and trails permit farming; pond collision prevents entry/planting.

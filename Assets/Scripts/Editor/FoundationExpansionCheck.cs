@@ -23,7 +23,7 @@ public static class FoundationExpansionCheck
     public static void Run()
     {
         if(!Application.isBatchMode || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR")) || !Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase))throw new Exception("Isolated project and save only.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");MenuFoundationSetup.Ensure();ProjectSetupCheck.Run();
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");MenuFoundationSetup.Ensure();ProjectSetupCheck.Run();
         var f=Open(TowerDungeonSetup.Battle);InventoryCheckAccess.Clear(f);
         var hoe=AssetDatabase.LoadAssetAtPath<PlantDefinition>("Assets/Settings/Hoe.asset");var effect=ScriptableObject.CreateInstance<FoundationTestEffect>();hoe.useEffect=effect;hoe.consumeOnUse=true;
         f.AddItem(hoe);f.AddItem(hoe);int count=f.InventoryCount;
@@ -44,7 +44,7 @@ public static class FoundationExpansionCheck
         Check(Directory.GetFiles(Path.Combine(GameSession.SaveDirectory,"PreviousRuns"),"wtf-autosave.json",SearchOption.AllDirectories).Any(p=>File.ReadAllText(p)==original),"Old save not archived intact");
 
         const string createdPath="Assets/Scenes/FoundationTestFloor.unity";
-        EditorSceneManager.OpenScene("Assets/Scenes/GeneralStore.unity");var active=SceneManager.GetActiveScene();string before=File.ReadAllText(active.path);
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/GeneralStore.unity");var active=SceneManager.GetActiveScene();string before=File.ReadAllText(active.path);
         var work=new GameObject("Unsaved work retention");SceneManager.MoveGameObjectToScene(work,active);EditorSceneManager.MarkSceneDirty(active);var builds=EditorBuildSettings.scenes;
         Scene created=default;
         try

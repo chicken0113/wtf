@@ -9,14 +9,14 @@ using EverythingGrows;
 [InitializeOnLoad]
 public static class NightMerchantCheck
 {
-    const string Key="NightMerchantCheckActive",Forest="Assets/Scenes/ForestClearing.unity",Store="Assets/Scenes/GeneralStore.unity";
+    const string Key="NightMerchantCheckActive",Forest="Assets/Scenes/OpenWorld/ForestClearing.unity",Store="Assets/Scenes/LegacyVillage/GeneralStore.unity";
     static int step,seed;static double deadline;static Vector2 chosen;
     static NightMerchantCheck(){if(Application.isBatchMode && SessionState.GetBool(Key,false)){deadline=EditorApplication.timeSinceStartup+100;EditorApplication.update+=Tick;}}
     static void Check(bool ok,string text){if(!ok)throw new Exception(text);}
     public static void Run()
     {
         Check(Application.isBatchMode && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR")) && Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase),"Isolated project and saves only");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");Check(NightMerchantExampleSetup.Apply(),"Visitor authoring failed");string scene=File.ReadAllText(Forest);Check(NightMerchantExampleSetup.Apply() && File.ReadAllText(Forest)==scene,"Visitor authoring duplicated objects");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");Check(NightMerchantExampleSetup.Apply(),"Visitor authoring failed");string scene=File.ReadAllText(Forest);Check(NightMerchantExampleSetup.Apply() && File.ReadAllText(Forest)==scene,"Visitor authoring duplicated objects");
         var opened=EditorSceneManager.OpenScene(Forest);var manager=UnityEngine.Object.FindFirstObjectByType<NpcManager>();manager.npcs.Single(p=>p.id==NightMerchantExampleSetup.Id).visitChance=1;EditorUtility.SetDirty(manager);EditorSceneManager.SaveScene(opened);
         ProjectSetupCheck.Run();SessionState.SetBool(Key,true);EditorApplication.isPlaying=true;
     }

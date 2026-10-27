@@ -19,7 +19,7 @@ public static class MenuFlowCheck
     public static void Run()
     {
         Check(Application.isBatchMode && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR")) && Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase),"Isolated project and saves only.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");MenuFoundationSetup.Ensure();EditorSceneManager.OpenScene(GameMenu.TitleScene);
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");MenuFoundationSetup.Ensure();EditorSceneManager.OpenScene(GameMenu.TitleScene);
         var view=EditorWindow.GetWindow(typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView"));view.Show();view.position=new Rect(100,100,1280,800);view.Focus();
         SessionState.SetBool(Key,true);EditorApplication.isPlaying=true;
     }

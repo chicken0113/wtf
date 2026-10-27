@@ -14,7 +14,7 @@ MonoBehaviour:
   id: e820d0ca15db4ce5b185b9f8ebf32248
   label: 시작 야영지
   spawnEnabled: 1
-  scenePath: Assets/Scenes/FirstGarden.unity
+  scenePath: Assets/Scenes/LegacyVillage/FirstGarden.unity
   useMapBounds: 1
   area: {x: -10, y: -8, width: 20, height: 16}
   spawnInterval: 8

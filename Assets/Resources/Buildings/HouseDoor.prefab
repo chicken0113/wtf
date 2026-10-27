@@ -184,7 +184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24e1a4ec333243f4b4d8fde2d0602e7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MapExit
-  destinationScene: Assets/Scenes/FarmHouseInterior.unity
+  destinationScene: Assets/Scenes/LegacyVillage/FarmHouseInterior.unity
   arrivalId: home_entry
   areaSize: {x: 1.8, y: 1.2}
   requireInteract: 1

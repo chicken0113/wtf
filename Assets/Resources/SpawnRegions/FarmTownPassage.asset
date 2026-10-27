@@ -14,7 +14,7 @@ MonoBehaviour:
   id: aa87f9549aed4e5c805874ca0fc7294b
   label: 마을 통로
   spawnEnabled: 1
-  scenePath: Assets/Scenes/FarmTownPassage.unity
+  scenePath: Assets/Scenes/LegacyVillage/FarmTownPassage.unity
   useMapBounds: 1
   area: {x: -10, y: -8, width: 20, height: 16}
   spawnInterval: 8

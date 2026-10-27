@@ -8,14 +8,14 @@ using EverythingGrows;
 [InitializeOnLoad]
 public static class FieldBossCheck
 {
-    const string Key="FieldBossCheckActive",Other="Assets/Scenes/TrainingGround.unity";
+    const string Key="FieldBossCheckActive",Other="Assets/Scenes/Tests/TrainingGround.unity";
     static int step;static double deadline,respawnAt;static Vector2 home;
     static FieldBossCheck(){if(Application.isBatchMode && SessionState.GetBool(Key,false)){deadline=EditorApplication.timeSinceStartup+100;EditorApplication.update+=Tick;}}
     static void Check(bool ok,string text){if(!ok)throw new Exception(text);}
     public static void Run()
     {
         Check(Application.isBatchMode && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR")) && Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase),"Isolated project/save only");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         Check(BossFoundationSetup.Apply(),"Prototype authoring failed");string first=File.ReadAllText(BossFoundationSetup.ScenePath);
         Check(BossFoundationSetup.Apply() && File.ReadAllText(BossFoundationSetup.ScenePath)==first,"Prototype authoring duplicated or changed scene");
         var type=Resources.Load<MonsterType>("Monsters/FieldBoss");type.bossRespawnSeconds=3;EditorUtility.SetDirty(type);

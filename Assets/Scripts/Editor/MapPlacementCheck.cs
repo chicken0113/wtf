@@ -9,7 +9,7 @@ public static class MapPlacementCheck
     public static void Run()
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated batch project.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         var map=UnityEngine.Object.FindFirstObjectByType<FarmMapLayout>();
         var ground=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/GroundTile.prefab");
         var item=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/SwordPickup.prefab");

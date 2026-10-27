@@ -8,14 +8,14 @@ using EverythingGrows;
 [InitializeOnLoad]
 public static class ForagingCheck
 {
-    const string Key="ForagingCheckActive",Forest="Assets/Scenes/ForestClearing.unity",Other="Assets/Scenes/TrainingGround.unity";
+    const string Key="ForagingCheckActive",Forest="Assets/Scenes/OpenWorld/ForestClearing.unity",Other="Assets/Scenes/Tests/TrainingGround.unity";
     static int step;static double deadline,readyAt;static Vector2 stonePoint,cloudPoint;static string stoneId,cloudId;
     static ForagingCheck(){if(Application.isBatchMode && SessionState.GetBool(Key,false)){deadline=EditorApplication.timeSinceStartup+100;EditorApplication.update+=Tick;}}
     static void Check(bool ok,string text){if(!ok)throw new Exception(text);}
     public static void Run()
     {
         Check(Application.isBatchMode && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR")) && Path.GetFullPath(Application.dataPath).StartsWith(Path.GetFullPath(Path.GetTempPath()),StringComparison.OrdinalIgnoreCase),"Isolated project and saves only");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");Check(ForageExampleSetup.Apply(),"Example placement failed");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");Check(ForageExampleSetup.Apply(),"Example placement failed");
         string authored=File.ReadAllText(Forest);Check(ForageExampleSetup.Apply() && File.ReadAllText(Forest)==authored,"Examples duplicated");
         var profile=Resources.Load<ForageDefinition>("Foraging/StoneFragments");profile.respawnSeconds=3;EditorUtility.SetDirty(profile);
         foreach(var region in SpawnRegion.ForScene(Forest)){region.maxAlive=0;EditorUtility.SetDirty(region);}AssetDatabase.SaveAssets();

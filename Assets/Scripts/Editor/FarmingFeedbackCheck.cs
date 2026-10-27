@@ -22,7 +22,7 @@ public static class FarmingFeedbackCheck
     {
         Guard();
         if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WTF_SAVE_TEST_DIR"))) throw new Exception("Use isolated save directory.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         SessionState.SetString(VisualKey+"Error","");
         var gameView=EditorWindow.GetWindow(typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView"));gameView.Show();gameView.position=new Rect(100,100,1280,800);gameView.Focus();
         SessionState.SetBool(VisualKey,true); EditorApplication.isPlaying=true;
@@ -145,7 +145,7 @@ public static class FarmingFeedbackCheck
     public static void Run()
     {
         Guard();
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false);
         Check(farm.IsInitialized,farm.InitializationError);
         var rules=Read(farm,"Farming");

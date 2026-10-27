@@ -10,7 +10,7 @@ using EverythingGrows;
 [InitializeOnLoad]
 public static class PersistencePlayCheck
 {
-    const string Key="WtfPersistenceCheck", Origin="Assets/Scenes/FirstGarden.unity", Destination="Assets/Scenes/PersistenceTestMap.unity";
+    const string Key="WtfPersistenceCheck", Origin="Assets/Scenes/LegacyVillage/FirstGarden.unity", Destination="Assets/Scenes/PersistenceTestMap.unity";
     static int step,previousFarmId;
     static double deadline;
     static string mode;

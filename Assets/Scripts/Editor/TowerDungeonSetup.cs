@@ -11,7 +11,7 @@ using static PelicanTownLayout;
 // One-time authoring only. No runtime regeneration of manually edited floors.
 public static class TowerDungeonSetup
 {
-    public const string Lobby="Assets/Scenes/TowerFirstFloor.unity";
+    public const string Lobby="Assets/Scenes/LegacyVillage/TowerFirstFloor.unity";
     public const string Battle=CombatTestMapSetup.CombatScene;
     public static bool Installed=>File.Exists(Lobby);
     private const string Marker="Tower floors 2026-10-23";

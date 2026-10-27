@@ -9,7 +9,7 @@ using EverythingGrows;
 public static class RegionalMonstersCheck
 {
     const string Key="RegionalMonstersCheckActive";
-    const string Battle="Assets/Scenes/CombatTest.unity",Other="Assets/Scenes/TrainingGround.unity";
+    const string Battle="Assets/Scenes/LegacyVillage/CombatTest.unity",Other="Assets/Scenes/Tests/TrainingGround.unity";
     static int step,baselineKills;static double deadline;static Vector2 woundedPosition;static float woundedHealth;
     static RegionalMonstersCheck(){if(Application.isBatchMode && SessionState.GetBool(Key,false)){deadline=EditorApplication.timeSinceStartup+120;EditorApplication.update+=Tick;}}
     static void Check(bool value,string message){if(!value)throw new Exception(message);}

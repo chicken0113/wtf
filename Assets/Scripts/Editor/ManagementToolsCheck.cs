@@ -31,7 +31,7 @@ public static class ManagementToolsCheck
         var quests=Resources.Load<GuildQuestCatalog>("GuildQuests");Check(!GuildQuestWindow.CheckCatalog(quests).HasErrors,"Existing quests invalid");
         var copy=UnityEngine.Object.Instantiate(quests);copy.quests[1].id=copy.quests[0].id;Check(GuildQuestWindow.CheckCatalog(copy).HasErrors,"Duplicate quest ID accepted");UnityEngine.Object.DestroyImmediate(copy);
 
-        const string path="Assets/Scenes/GeneralStore.unity";string saved=File.ReadAllText(path);var scene=EditorSceneManager.OpenScene(path);
+        const string path="Assets/Scenes/LegacyVillage/GeneralStore.unity";string saved=File.ReadAllText(path);var scene=EditorSceneManager.OpenScene(path);
         var manager=ManagementEditorUI.Components<NpcManager>(scene).First();var data=new SerializedObject(manager);var profile=data.FindProperty("npcs").GetArrayElementAtIndex(0);
         string greeting=profile.FindPropertyRelative("greeting").stringValue;Undo.IncrementCurrentGroup();profile.FindPropertyRelative("greeting").stringValue="Editor tool test";data.ApplyModifiedProperties();
         Undo.FlushUndoRecordObjects();Undo.PerformUndo();Check(manager.npcs[0].greeting==greeting,"NPC editing Undo failed");

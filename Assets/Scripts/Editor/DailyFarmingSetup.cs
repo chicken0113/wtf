@@ -34,7 +34,7 @@ public static class DailyFarmingSetup
     public static void Validate()
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated project.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity"); Apply();
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity"); Apply();
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false);
         void Check(bool ok,string reason) { if(!ok) throw new Exception(reason); }
         var seed=Resources.Load<PlantDefinition>("Crops/ParsnipSeeds"); var tomato=Resources.Load<PlantDefinition>("Crops/TomatoSeeds");

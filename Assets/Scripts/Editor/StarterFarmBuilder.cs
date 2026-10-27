@@ -76,7 +76,7 @@ public static class StarterFarmBuilder
     public static void Validate()
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated batch project.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity"); Setup();
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity"); Setup();
         var farm=UnityEngine.Object.FindFirstObjectByType<FarmGame>(); farm.Initialize(false); var shop=farm.Shop;
         var npc=farm.GetComponentInChildren<ShopNpc>();
         void Check(bool ok,string reason) { if(!ok) throw new Exception(reason); }

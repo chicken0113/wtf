@@ -39,7 +39,7 @@ public sealed class GuildQuestWindow : EditorWindow
             {
                 selected=quests.arraySize;quests.InsertArrayElementAtIndex(selected);var q=quests.GetArrayElementAtIndex(selected);
                 q.FindPropertyRelative("id").stringValue="quest_"+Guid.NewGuid().ToString("N");q.FindPropertyRelative("title").stringValue="새 의뢰";
-                q.FindPropertyRelative("description").stringValue="";q.FindPropertyRelative("targetScene").stringValue="Assets/Scenes/CombatTest.unity";
+                q.FindPropertyRelative("description").stringValue="";q.FindPropertyRelative("targetScene").stringValue="Assets/Scenes/LegacyVillage/CombatTest.unity";
                 q.FindPropertyRelative("enemyKind").enumValueIndex=0;q.FindPropertyRelative("requiredKills").intValue=1;q.FindPropertyRelative("rewardGold").intValue=0;q.FindPropertyRelative("repeatable").boolValue=false;search="";
             }
             using(new EditorGUILayout.HorizontalScope())

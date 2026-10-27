@@ -23,7 +23,7 @@ public static class ForestFieldLayout
     public static void Author()
     {
         if(!Application.isBatchMode)throw new InvalidOperationException("Batch authoring only.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         if(!Apply())throw new InvalidOperationException("Forest has unsaved changes or Play is active.");
         Debug.Log("FOREST_FIELD_AUTHORED");
     }

@@ -30,7 +30,7 @@ public static class InventoryLayoutCheck
     }
     private static FarmGame Reload()
     {
-        GameSession.ResetForTests();EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        GameSession.ResetForTests();EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         var f=UnityEngine.Object.FindFirstObjectByType<FarmGame>();f.Initialize(false);GameSession.Bind(f);
         Check(f.IsInitialized && string.IsNullOrEmpty(GameSession.LastError),"Restore failed: "+GameSession.LastError);return f;
     }
@@ -80,7 +80,7 @@ public static class InventoryLayoutCheck
         Guard();var settings=Resources.Load<StartingInventory>("StartingInventory");settings.hotbarSlots=4;settings.storageSlots=8;
         EditorUtility.SetDirty(settings);AssetDatabase.SaveAssetIfDirty(settings);
         var view=EditorWindow.GetWindow(typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView"));view.Show();view.position=new Rect(100,100,1280,800);view.Focus();
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");SessionState.SetBool(Key,true);EditorApplication.isPlaying=true;
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");SessionState.SetBool(Key,true);EditorApplication.isPlaying=true;
     }
     private static object Hud=>typeof(FarmGame).GetField("hud",Members).GetValue(farm);
     private static object Call(object hud,string name,params object[] args)=>hud.GetType().GetMethod(name,Members).Invoke(hud,args);

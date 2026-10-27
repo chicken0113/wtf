@@ -10,14 +10,14 @@ public static class ForageExampleSetup
     public static void Author()
     {
         if(!Application.isBatchMode)throw new System.InvalidOperationException("배치 작성 전용 진입점입니다.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         if(!Apply())throw new System.InvalidOperationException("채집물 예시 배치가 보류되었습니다.");
         Debug.Log("FORAGE_EXAMPLES_AUTHORED");
     }
     public static bool Apply()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode)return false;
-        const string path="Assets/Scenes/ForestClearing.unity";var active=SceneManager.GetActiveScene();
+        const string path="Assets/Scenes/OpenWorld/ForestClearing.unity";var active=SceneManager.GetActiveScene();
         var scene=SceneManager.GetSceneByPath(path);bool opened=!scene.IsValid() || !scene.isLoaded;
         if(!opened && scene.isDirty)return false;
         if(opened)scene=EditorSceneManager.OpenScene(path,OpenSceneMode.Additive);

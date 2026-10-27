@@ -186,3 +186,7 @@ DayNightCycle.ShopsOpen은 Night에만 true다. NpcManager.UpdateAvailability가
 ## 첫 숲 배치 (2026-10-27)
 
 ForestFieldLayout은 ForestClearing에만 적용하는 명시적 일회성 Editor 배치다. Ground/Decoration 하위의 일반 Scene 오브젝트를 편집하며 런타임 재생성은 없다. 기존 보스·채집·상인·지역 스폰을 그대로 재사용한다. FIRST_FOREST_FIELD.md 참조.
+
+## 씬 폴더 분리 (2026-10-27)
+
+OpenWorld/LegacyVillage/Tests/System으로 Scene 자산을 분류한다. 런타임 ScenePaths.Migrate는 저장 복원 검증 전에 이전 경로를 현재 경로로 변환한다. Editor의 SceneOrganization은 명시적 요청 시에만 자산·문자열 경로를 이동하며 열린 씬을 저장하거나 닫지 않는다. 공통 씬 선택기는 폴더명을 함께 표시한다. SCENE_GROUPS.md 참조.

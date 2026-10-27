@@ -35,7 +35,7 @@ public static class OpenFieldPlayCheck
     public static void RunAuthored()
     {
         if(!Application.isBatchMode) throw new Exception("Use isolated batch project.");
-        EditorSceneManager.OpenScene("Assets/Scenes/FirstGarden.unity");
+        EditorSceneManager.OpenScene("Assets/Scenes/LegacyVillage/FirstGarden.unity");
         SessionState.SetBool(Key,true); SessionState.SetString(Key+"Error","");
         EditorApplication.isPlaying=true;
     }

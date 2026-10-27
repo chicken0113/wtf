@@ -14,7 +14,7 @@
 
 | 항목 | 위치 |
 | --- | --- |
-| 병원 내부 | `Assets/Scenes/HospitalInterior.unity` |
+| 병원 내부 | `Assets/Scenes/LegacyVillage/HospitalInterior.unity` |
 | 사망 복귀 위치 | `EditableMap/Travel/Arrival - hospital_recovery` |
 | 정상 출입 위치 | `EditableMap/Travel/Arrival - hospital_entry` |
 | 마을 병원 문 | Town의 `Clinic exterior/Hospital entrance` |
