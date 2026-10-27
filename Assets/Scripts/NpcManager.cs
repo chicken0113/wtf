@@ -13,6 +13,9 @@ namespace EverythingGrows
     {
         public string id="farm_merchant",displayName="Farm merchant";
         public bool shopEnabled=true;
+        public bool visitingMerchant;
+        [Range(0,1)] public float visitChance=.35f;
+        public Transform[] visitLocations=Array.Empty<Transform>();
         public bool guildQuestGiver;
         [TextArea] public string greeting="Welcome. Take a look around.";
         public List<ShopOffer> offers=new();
@@ -31,11 +34,24 @@ namespace EverythingGrows
         public bool IsOpen => activeNpc!=null && CanInteract(activeNpc) && activeNpc.IsVisiting && activeProfile!=null;
         public bool IsTrading => IsOpen && CanTrade && activeProfile.shopEnabled;
         public bool IsQuestDesk => IsOpen && activeProfile.guildQuestGiver;
-        private bool CanInteract(ShopNpc npc) => farm!=null && farm.Combat!=null && !farm.Combat.IsGameOver && npc!=null && npc.isActiveAndEnabled && (!npc.daytimeOnly || CanTrade);
+        private bool CanInteract(ShopNpc npc)
+        {
+            if(farm==null || farm.Combat==null || farm.Combat.IsGameOver || npc==null || !npc.enabled || !npc.gameObject.activeInHierarchy)return false;
+            var profile=npcs.Find(p=>p!=null && p.id==npc.npcId);if(profile==null)return false;
+            return profile.shopEnabled?CanTrade:!npc.daytimeOnly || farm.Cycle==null || farm.Cycle.IsDaytime;
+        }
         public void UpdateAvailability()
         {
-            foreach(var npc in farm.GetComponentsInChildren<ShopNpc>()) npc.SetVisiting(CanInteract(npc));
-            if(activeNpc!=null && !activeNpc.IsVisiting) Close();
+            foreach(var npc in farm.GetComponentsInChildren<ShopNpc>())
+            {
+                bool available=CanInteract(npc);Vector2 position=npc.HomePosition;
+                var profile=npcs.Find(p=>p!=null && p.id==npc.npcId);
+                if(available && profile.visitingMerchant)
+                    available=GameSession.TryNightVisit(farm,profile,npc.HomePosition,out position) && new MapCollision(farm).CanStand(position,.3f);
+                npc.transform.position=available?position:npc.HomePosition;
+                npc.SetVisiting(available);
+            }
+            if(activeNpc!=null && !activeNpc.IsVisiting){Close();farm.SetInventoryOpen(false);}
         }
         public void Initialize(FarmGame owner) { if(farm!=null) return; farm=owner; Gold=Mathf.Max(0,startingGold); art=new FarmArt(); }
         public void RestoreGold(int gold) { Gold=Mathf.Max(0,gold); }

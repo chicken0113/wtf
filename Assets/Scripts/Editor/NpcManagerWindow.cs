@@ -47,6 +47,7 @@ public sealed class NpcManagerWindow : EditorWindow
                 selected=profiles.arraySize;profiles.InsertArrayElementAtIndex(selected);var row=profiles.GetArrayElementAtIndex(selected);
                 row.FindPropertyRelative("id").stringValue="npc_"+Guid.NewGuid().ToString("N");
                 row.FindPropertyRelative("displayName").stringValue="새 NPC";row.FindPropertyRelative("greeting").stringValue="안녕하세요.";
+                row.FindPropertyRelative("visitingMerchant").boolValue=false;row.FindPropertyRelative("visitChance").floatValue=.35f;row.FindPropertyRelative("visitLocations").ClearArray();
                 row.FindPropertyRelative("shopEnabled").boolValue=true;row.FindPropertyRelative("guildQuestGiver").boolValue=false;row.FindPropertyRelative("offers").ClearArray();search="";
             }
             using(new EditorGUILayout.HorizontalScope())
@@ -72,7 +73,22 @@ public sealed class NpcManagerWindow : EditorWindow
                         EditorGUILayout.HelpBox("씬 NPC는 이 프로필의 ID로 연결됩니다. ID 변경 시 해당 NPC의 Npc Id도 맞춰주세요. 변경 후 아래 버튼으로 씬을 저장합니다.",MessageType.Info);
                         Field(row,"id","NPC ID");Field(row,"displayName","이름");Field(row,"greeting","대사");Field(row,"shopEnabled","상점 사용");Field(row,"guildQuestGiver","길드 의뢰 접수");
                         if(row.FindPropertyRelative("shopEnabled").boolValue)
-                        { EditorGUILayout.HelpBox("Buy Price: 구매가 / Sell Price: 판매가 (-1은 아이템 기본 판매가)",MessageType.Info);EditorGUILayout.PropertyField(row.FindPropertyRelative("offers"),new GUIContent("판매 품목"),true); }
+                        {
+                            EditorGUILayout.HelpBox("상인은 밤 구간에만 출현합니다. 해질녘·새벽에는 퇴장합니다.",MessageType.Info);
+                            Field(row,"visitingMerchant","확률 방문 상인");
+                            if(row.FindPropertyRelative("visitingMerchant").boolValue)
+                            {
+                                var chance=row.FindPropertyRelative("visitChance");EditorGUI.BeginChangeCheck();float percent=EditorGUILayout.Slider("밤마다 방문 확률 (%)",chance.floatValue*100,0,100);if(EditorGUI.EndChangeCheck())chance.floatValue=percent/100;
+                                Field(row,"visitLocations","방문 후보 위치");
+                                if(GUILayout.Button("후보 위치 추가"))
+                                {
+                                    var point=new GameObject("Merchant visit point");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(point,scene);point.transform.SetParent(manager.transform,false);
+                                    point.transform.position=SceneView.lastActiveSceneView!=null?SceneView.lastActiveSceneView.pivot:Vector3.zero;Undo.RegisterCreatedObjectUndo(point,"Add merchant visit point");
+                                    var locations=row.FindPropertyRelative("visitLocations");int i=locations.arraySize;locations.InsertArrayElementAtIndex(i);locations.GetArrayElementAtIndex(i).objectReferenceValue=point.transform;Selection.activeGameObject=point;
+                                }
+                                EditorGUILayout.HelpBox("후보는 NPC 몸체 밖의 빈 오브젝트로 지정하세요. 같은 밤에는 결과와 위치를 다시 추첨하지 않습니다.",MessageType.Info);
+                            }
+                            EditorGUILayout.HelpBox("Buy Price: 구매가 / Sell Price: 판매가 (-1은 아이템 기본 판매가)",MessageType.Info);EditorGUILayout.PropertyField(row.FindPropertyRelative("offers"),new GUIContent("판매 품목"),true); }
                         string id=row.FindPropertyRelative("id").stringValue;
                         var npcs=ManagementEditorUI.Components<ShopNpc>(scene).Where(n=>n.npcId==id).ToArray();
                         EditorGUILayout.LabelField("연결된 NPC: "+npcs.Length);

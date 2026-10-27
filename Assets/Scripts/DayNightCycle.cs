@@ -15,7 +15,8 @@ namespace EverythingGrows
         float Dawn => Mathf.Max(1,Settings.dawnSeconds);
         public float CycleSeconds => Day+Dusk+Night+Dawn;
         public Phase CurrentPhase => Elapsed<Day?Phase.Daylight:Elapsed<Day+Dusk?Phase.Dusk:Elapsed<Day+Dusk+Night?Phase.Night:Phase.Dawn;
-        public bool ShopsOpen => CurrentPhase==Phase.Daylight;
+        public bool ShopsOpen => CurrentPhase==Phase.Night;
+        public long CycleNumber { get; private set; }
         public bool IsDaytime => CurrentPhase==Phase.Daylight;
         public bool MonstersActive => farm.Combat.UsesRegions?true:farm.Layout!=null && farm.Layout.combatSchedule!=FarmMapLayout.CombatSchedule.NightOnly
             ? farm.Layout.combatSchedule==FarmMapLayout.CombatSchedule.Always
@@ -37,16 +38,20 @@ namespace EverythingGrows
             shadeSprite=Sprite.Create(Texture2D.whiteTexture,new Rect(0,0,2,2),Vector2.one*.5f,2); shade.sprite=shadeSprite;
             Apply();
         }
-        public void RestoreElapsed(float elapsed) { Elapsed=Mathf.Repeat(Mathf.Max(0,elapsed),CycleSeconds); Apply(true); }
+        public void RestoreElapsed(float elapsed,long cycleNumber=0) { Elapsed=Mathf.Repeat(Mathf.Max(0,elapsed),CycleSeconds);CycleNumber=System.Math.Max(0,cycleNumber);Apply(true); }
         public void Tick(float seconds)
         {
             if(Settings==null || seconds<=0 || farm.Combat.IsGameOver) return;
-            var previous=CurrentPhase; Elapsed=Mathf.Repeat(Elapsed+seconds,CycleSeconds); Apply();
+            var previous=CurrentPhase;
+            float nextElapsed=Elapsed+seconds;
+            CycleNumber+=(long)Mathf.Floor(nextElapsed/CycleSeconds);
+            Elapsed=Mathf.Repeat(nextElapsed,CycleSeconds);Apply();
+            if(previous!=CurrentPhase && ShopsOpen && farm.IsInitialized && GameSession.CurrentFarm==farm && GameSession.MerchantVisitsNeedSave)GameSession.Save(farm);
             if(previous!=CurrentPhase && IsDaytime)GameSession.CleanupUnloadedRegions(farm);
             if(previous!=CurrentPhase && farm.Combat.UsesRegions)farm.Notify(IsDaytime?"낮입니다. 몬스터가 깨어나고 지역 스폰을 시작합니다.":"몬스터가 잠듭니다. 공격하면 깨어납니다.");
             else if(previous!=CurrentPhase && farm.Layout!=null && farm.Layout.combatSchedule!=FarmMapLayout.CombatSchedule.NightOnly)
                 farm.Notify(CurrentPhase==Phase.Daylight?"Daylight.":CurrentPhase==Phase.Dusk?"Evening.":CurrentPhase==Phase.Night?"Night.":"Dawn.");
-            else if(previous!=CurrentPhase) farm.Notify(CurrentPhase==Phase.Daylight?"Daylight. Merchants are visiting.":CurrentPhase==Phase.Dusk?"Evening. Merchants left; monsters are appearing.":CurrentPhase==Phase.Night?"Night. Watch for monsters outside the farm.":"Dawn. Monsters are disappearing.");
+            else if(previous!=CurrentPhase) farm.Notify(CurrentPhase==Phase.Daylight?"Daylight. Merchants left.":CurrentPhase==Phase.Dusk?"Evening.":CurrentPhase==Phase.Night?"Night. Merchants are visiting.":"Dawn. Merchants left.");
         }
         void Apply(bool restoring=false)
         {

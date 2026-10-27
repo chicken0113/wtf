@@ -87,6 +87,14 @@ namespace EverythingGrows
             foreach (var profile in manager.npcs)
             {
                 if (profile == null || string.IsNullOrWhiteSpace(profile.id) || !ids.Add(profile.id)) { report.Error("NPC_PROFILE", manager, "npcs.id", "프로필이 비었거나 ID가 중복됩니다.", "고유 ID의 NPC 프로필을 연결하세요."); continue; }
+                if(profile.visitingMerchant)
+                {
+                    SetupDataValidator.Range(manager,profile.id+".visitChance",profile.visitChance,0,1,report);
+                    if(!profile.shopEnabled || profile.visitLocations==null || profile.visitLocations.Length==0)report.Error("VISITOR_SETTINGS",manager,profile.id,"방문 상점 또는 후보 위치가 없습니다.","상점 사용을 켜고 NPC 외부의 후보 위치를 지정하세요.");
+                    else foreach(var point in profile.visitLocations)
+                        if(point==null || point.gameObject.scene!=farm.gameObject.scene || point.GetComponentInParent<ShopNpc>()!=null || !Finite(point.position))report.Error("VISITOR_LOCATION",manager,profile.id,"방문 후보 위치가 유효하지 않습니다.","같은 씬의 NPC 몸체 밖에 위치 오브젝트를 지정하세요.");
+                    if(System.Array.FindAll(npcs,n=>n.npcId==profile.id).Length>1)report.Error("VISITOR_DUPLICATE",manager,profile.id,"방문 상인 몸체가 여러 개 연결됐습니다.","방문 프로필에는 캐릭터 한 개만 연결하세요.");
+                }
                 if (!profile.shopEnabled) continue;
                 if (profile.offers == null) { report.Error("SHOP_OFFERS", manager, profile.id + ".offers", "상점 목록이 null입니다.", "판매 목록을 복원하세요. 빈 목록은 허용됩니다."); continue; }
                 foreach (var offer in profile.offers)

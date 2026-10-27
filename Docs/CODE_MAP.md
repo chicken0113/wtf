@@ -178,3 +178,7 @@ EnemyCombatSystem.Bosses가 보스 추적 범위·귀환·초기화·재등장�
 ## 필드 채집물 (2026-10-27)
 
 FarmItemPlacement.forage가 있는 지점은 ForageSystem이 상태를 소유하고 FarmGame.World의 기존 조각을 표시한다. DetachAt은 forageId가 있을 때만 Collect로 위임한다. FarmGame.Tick의 채집 갱신은 GameSession.WorldSeconds의 절대 예정 시각을 확인하며 맵 복원에서 전달하는 경과 시간을 중복 가산하지 않는다. FarmPersistence는 일반 pieces와 forageNodes를 구분하고, 획득 저장 실패 시 인벤토리/지점 상태를 복구한다. 아이템 관리의 ‘채집물 설정’에서 종류를 편집하고 Scene에 배치한다. FORAGING.md 참조.
+
+## 야간 상인 (2026-10-27)
+
+DayNightCycle.ShopsOpen은 Night에만 true다. NpcManager.UpdateAvailability가 고정/방문 프로필을 확인하고 GameSession.TryNightVisit에 방문 결과를 요청한다. GameSession.Merchants가 저장 seed·씬·프로필·cycleNumber로 방문/불참과 위치를 유지한다. GameSession.Bind는 복원 후 현재 맵 상인을 갱신하고 필요한 첫 결과/이전 저장 seed를 저장한다. 비상점 NPC의 기존 주간/상시 대화는 유지한다. NIGHT_MERCHANTS.md 참조.

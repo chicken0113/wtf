@@ -14,7 +14,7 @@
 
 - **FirstGarden**: 기존 농사·집·상인. 연결 통로와 던전 입구 필드로 이동합니다.
 - **Town**: 안전한 마을. 64×60 크기이며 사용자 스케치의 위치대로 북서쪽 길드·공원, 북동쪽 대장간, 중앙 돌바닥 광장, 남서쪽 주택·잡화점을 배치했습니다. 그래픽은 기존 프로젝트 에셋이며 건물 12채의 지붕 위에 용도별 표식을 붙였습니다. Rowan은 대장간 안으로 이동했습니다.
-- **GeneralStore**: 카운터·진열대·상인이 있는 실내. 낮에 기존 물품을 구매하고 인벤토리 물품을 판매합니다.
+- **GeneralStore**: 카운터·진열대·상인이 있는 실내. 밤에 기존 물품을 구매하고 인벤토리 물품을 판매합니다.
 - **CombatTest**: 기존 전투 테스트 공간. 던전 입구 필드로 돌아옵니다.
 - **FarmTownPassage / DungeonEntrance / ForestClearing / TrainingGround**: 연결 통로·입구 필드·숲·훈련장. [삼각형 월드 배치](TRIANGLE_WORLD.md)를 참고합니다.
 - **FarmHouseInterior / GuildInterior / SmithInterior**: 집·길드·대장간 실내. 파란 발판에서 F로 출입합니다. [건물 내부](BUILDING_INTERIORS.md)를 참고합니다. Rowan은 대장간 내부에서 기존 무기 거래를 담당하고, 길드 접수원/게시판은 의뢰를 수락·보고하는 창구입니다.

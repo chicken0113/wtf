@@ -10,6 +10,8 @@ namespace EverythingGrows
         public string houseReturnScene;
         public Vector2 houseReturnPosition;
         public double worldSeconds;
+        public int merchantSeed;
+        public List<NightVisitSave> nightVisits=new();
         public RespawnSave respawn;
         public RespawnSave defaultRespawn;
         public PlayerSave player=new();
@@ -23,6 +25,7 @@ namespace EverythingGrows
         public bool inventoryUsesSlots;
         public int farmingExperience; // Optional version-1 total XP; missing legacy value is zero.
         public float health,cycleElapsed;
+        public long cycleNumber;
         public Vector2 position;
         public bool gameOver;
     }
@@ -53,6 +56,13 @@ namespace EverythingGrows
         public int remaining;
         public bool harvested;
         public double readyAt;
+    }
+    [Serializable] public sealed class NightVisitSave
+    {
+        public string scene,profileId;
+        public long cycleNumber;
+        public bool appears;
+        public Vector2 position;
     }
     [Serializable] public sealed class MapSave
     {

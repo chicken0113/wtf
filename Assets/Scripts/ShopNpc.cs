@@ -3,9 +3,13 @@ namespace EverythingGrows
 {
     public sealed class ShopNpc : MonoBehaviour
     {
+        [Tooltip("Non-shop NPCs only. Merchant shops use the shared night schedule regardless of this legacy field.")]
         public bool daytimeOnly=true;
         public string npcId="farm_merchant";
         [Min(.1f)] public float interactionRange=2.2f;
+        private bool homeCaptured;
+        private Vector2 homePosition;
+        public Vector2 HomePosition { get { if(!homeCaptured){homePosition=transform.position;homeCaptured=true;}return homePosition; } }
         private Renderer[] visuals;
         private bool[] visualStates;
         private Collider2D[] colliders;

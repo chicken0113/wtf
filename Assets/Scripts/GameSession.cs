@@ -37,7 +37,7 @@ namespace EverythingGrows
             return total;
         }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetRuntime() { runner=null; data=null; catalog=null; current=null; loaded=blocked=Busy=false; pendingScene=pendingArrival=error=null; pendingPosition=null; ArrivalGraceUntil=0; pendingRespawn=false; }
+        static void ResetRuntime() { runner=null; data=null; catalog=null; current=null; loaded=blocked=Busy=false; pendingScene=pendingArrival=error=null; pendingPosition=null; ArrivalGraceUntil=0; pendingRespawn=false;merchantStateDirty=false; }
         public static void ResetForTests() { ResetRuntime(); }
         static void EnsureRunner()
         {
@@ -50,7 +50,7 @@ namespace EverythingGrows
             loaded=true; catalog=Resources.Load<SaveItemCatalog>("SaveItemCatalog");
             var setup=new SetupValidationReport(); SetupDataValidator.CheckCatalog(catalog,setup);
             if(setup.HasErrors) throw new InvalidOperationException(setup.FirstError);
-            if(!File.Exists(SavePath) && !File.Exists(SavePath+".bak")) { data=new GameSaveData(); return; }
+            if(!File.Exists(SavePath) && !File.Exists(SavePath+".bak")) { data=new GameSaveData();EnsureMerchantSeed(data);return; }
             Exception failure=null;
             foreach(var path in new[]{SavePath,SavePath+".bak"})
             {
@@ -60,7 +60,7 @@ namespace EverythingGrows
                     var candidate=JsonUtility.FromJson<GameSaveData>(File.ReadAllText(path));
                     if(candidate==null || candidate.version!=1 || candidate.player==null || candidate.maps==null || string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Unsupported or invalid save data.");
                     candidate.guildQuests ??= new System.Collections.Generic.List<GuildQuestSave>();
-                    Validate(candidate); data=candidate; return;
+                    Validate(candidate);EnsureMerchantSeed(candidate);data=candidate;return;
                 }
                 catch(InvalidOperationException) { throw; }
                 catch(Exception problem) { failure=problem; }
@@ -72,8 +72,9 @@ namespace EverythingGrows
             ValidateGuildQuests(candidate);
             ValidateRecovery(candidate);
             ValidateRegionalEnemies(candidate);
+            ValidateNightVisits(candidate);
             if(string.IsNullOrEmpty(candidate.currentScene)) throw new InvalidDataException("Save the Unity scene to disk before saving game progress.");
-            if(candidate.player.inventory==null || candidate.player.removedSlots<0 || candidate.player.removedHearts<0 || candidate.player.gold<0 || candidate.player.farmingExperience<0) throw new InvalidDataException("Invalid player save.");
+            if(candidate.player.inventory==null || candidate.player.removedSlots<0 || candidate.player.removedHearts<0 || candidate.player.gold<0 || candidate.player.farmingExperience<0 || candidate.player.cycleNumber<0) throw new InvalidDataException("Invalid player save.");
             var slots=new System.Collections.Generic.HashSet<int>();
             foreach(var stack in candidate.player.inventory)
             {
@@ -121,7 +122,7 @@ namespace EverythingGrows
                 if(!string.IsNullOrEmpty(data.currentScene))
                 {
                     farm.RestorePlayer(data.player,catalog);
-                    farm.Cycle.RestoreElapsed(data.player.cycleElapsed);
+                    farm.Cycle.RestoreElapsed(data.player.cycleElapsed,data.player.cycleNumber);
                     CleanupUnloadedRegions(farm);
                     if(data.currentScene==scene)
                     {
@@ -143,10 +144,11 @@ namespace EverythingGrows
                 farm.ReconcileRestoredInventory();
                 MapExit.PrepareArrival(farm);
                 current=farm;
+                farm.Shop?.UpdateAvailability();
                 ArrivalGraceUntil=Time.unscaledTime+1;
                 if(pendingScene==scene) { pendingScene=pendingArrival=null; pendingPosition=null; }
                 // Do not write on entry until the arriving map has been validated by the travel coroutine.
-                if(string.IsNullOrEmpty(data.currentScene)) Save(farm);
+                if(!Busy && (string.IsNullOrEmpty(data.currentScene) || merchantStateDirty))Save(farm);
             }
             catch(Exception problem) { error=problem.Message; if(!Busy) blocked=true; Debug.LogError("Save restore failed: "+problem); }
         }
@@ -167,7 +169,7 @@ namespace EverythingGrows
                 string temporary=SavePath+".tmp";
                 File.WriteAllText(temporary,JsonUtility.ToJson(next,true));
                 if(File.Exists(SavePath)) File.Replace(temporary,SavePath,SavePath+".bak"); else File.Move(temporary,SavePath);
-                data=next; error=null; return true;
+                data=next;error=null;merchantStateDirty=false;return true;
             }
             catch(Exception problem) { error="Autosave failed: "+problem.Message; Debug.LogError(error); return false; }
         }

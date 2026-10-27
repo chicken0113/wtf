@@ -10,7 +10,7 @@ namespace EverythingGrows
         private string AuthoredKey(FarmBuilding building) => authoredBuildingKeys.TryGetValue(building,out var key)?key:MapObjectId.Key(building);
         public PlayerSave CapturePlayer(SaveItemCatalog catalog)
         {
-            var state=new PlayerSave {gold=Gold,position=PlayerPosition,health=combat.Health,removedHearts=combat.RemovedHearts,kills=combat.Kills,gameOver=combat.IsGameOver,cycleElapsed=Cycle.Elapsed};
+            var state=new PlayerSave {gold=Gold,position=PlayerPosition,health=combat.Health,removedHearts=combat.RemovedHearts,kills=combat.Kills,gameOver=combat.IsGameOver,cycleElapsed=Cycle.Elapsed,cycleNumber=Cycle.CycleNumber};
             state.farmingExperience=progression.TotalExperience;
             inventory.Capture(state,catalog);
             return state;
