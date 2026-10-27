@@ -100,7 +100,7 @@
 
 | 수치 | Unity에서 볼 데이터 |
 | --- | --- |
-| 이동·회피·탄속·반동·흔들림·농기구 연속 간격 | `Assets/Resources/PlayerControls.asset` (`Tools > Everything Grows > 플레이어 조작 설정`) |
+| 이동·회피·반동·흔들림·농기구 연속 간격 | `Assets/Resources/PlayerControls.asset` (`Tools > Everything Grows > 플레이어 조작 설정`) |
 | 성장 시간·수확 결과·크기·무기 피해/사거리/간격 | 각 `PlantDefinition` 에셋 |
 | 시작 아이템 | `Assets/Resources/StartingInventory.asset` |
 | NPC 판매 물품·가격 | 해당 씬의 `NpcManager` 프로필 |
@@ -170,3 +170,7 @@ OpenFieldCombat.TickCombat → RegionalSpawnSystem.Tick → 기존 EnemyCombatSy
 ## 필드 보스 (2026-10-27)
 
 EnemyCombatSystem.Bosses가 보스 추적 범위·귀환·초기화·재등장을 담당하며 기존 TickEnemy의 공격/이동을 재사용한다. GameSession.Travel/RespawnAfterDeath는 출발 저장 전에 살아 있는 보스를 초기화한다. ProjectileSystem의 ownerId는 보스 자신의 탄환만 취소하고, 명중 처리 중에는 취소 표시만 해 반복 목록을 안전하게 유지한다. 재등장 시각은 GameSession.WorldSeconds 기준으로 지역 저장에 기록한다. FIELD_BOSSES.md 참조.
+
+## 탄환 개별 설정 (2026-10-27)
+
+원거리 아이템의 attackRange/projectileSpeed/projectileLifetime과 몬스터 종류의 projectileRange/projectileSpeed/projectileLifetime이 각각 사거리·탄속·최대 수명을 소유한다. ProjectileSettings.Duration/Distance를 실제 발사와 두 관리창의 미리보기가 공유한다. PlayerControls의 기존 공통 탄속 필드는 호환을 위해 숨겨서만 남긴다. PROJECTILE_SETTINGS.md 참조.

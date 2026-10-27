@@ -64,7 +64,7 @@ public static class ActionFeelCheck
             float before=(float)Field(target,"health");
             Check(c.Attack(bow,point+Vector2.right*2),"Ranged attack did not start");
             var shots=CombatCheckAccess.Shots(c);var shot=shots[shots.Count-1];
-            Check(Mathf.Abs(((Vector2)Field(shot,"velocity")).magnitude-f.Controls.projectileSpeed)<.001f,"Wrong player projectile speed");
+            Check(Mathf.Abs(((Vector2)Field(shot,"velocity")).magnitude-bow.projectileSpeed)<.001f,"Wrong player projectile speed");
             c.TickCombat(.15f);Check((float)Field(target,"health")==before,"Muzzle shot bypassed adjacent wall");
             UnityEngine.Object.DestroyImmediate(wall.gameObject);c.TickCombat(1);
             Check(c.Attack(bow,point+Vector2.right*2),"Second ranged attack failed");

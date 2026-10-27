@@ -124,7 +124,14 @@ public sealed class MonsterRewardsWindow : EditorWindow
             EditorGUILayout.HelpBox("일반 몬스터만 지역 스폰 대상입니다. 보스는 씬에 고정 배치하세요. 범위·간격·최대 수는 지역 설정에서 조절합니다.",MessageType.Info);
             if(GUILayout.Button("지역 설정 열기"))SpawnRegionWindow.Open();
             EditorGUILayout.LabelField("행동과 능력치",EditorStyles.boldLabel);
-            foreach(string field in new[]{"behavior","maxHealth","moveSpeed","returnSpeed","detectionRange","attackRange","meleeHitRange","attackHalfHearts","windupSeconds","attackCooldown","projectileSpeed","projectileLifetime"})EditorGUILayout.PropertyField(data.FindProperty(field));
+            foreach(string field in new[]{"behavior","maxHealth","moveSpeed","returnSpeed","detectionRange","meleeHitRange","attackHalfHearts","windupSeconds","attackCooldown"})EditorGUILayout.PropertyField(data.FindProperty(field));
+            EditorGUILayout.PropertyField(data.FindProperty("attackRange"),new GUIContent("공격 시작 거리 (칸)"));
+            EditorGUILayout.Space();EditorGUILayout.LabelField("원거리 탄환 (원거리 행동에만 적용)",EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(data.FindProperty("projectileRange"),new GUIContent("탄환 사거리 (칸)"));
+            EditorGUILayout.PropertyField(data.FindProperty("projectileSpeed"),new GUIContent("탄속 (칸/초)"));
+            EditorGUILayout.PropertyField(data.FindProperty("projectileLifetime"),new GUIContent("최대 유지 시간 (초)"));
+            float range=data.FindProperty("projectileRange").floatValue,speed=data.FindProperty("projectileSpeed").floatValue,life=data.FindProperty("projectileLifetime").floatValue;
+            if(range>0 && speed>0 && life>0)EditorGUILayout.HelpBox($"실제 최대 이동 거리: {ProjectileSettings.Distance(range,speed,life):0.###}칸 · 유지 시간: {ProjectileSettings.Duration(range,speed,life):0.###}초\n거리 또는 시간 중 먼저 한도에 도달하면 사라집니다.",MessageType.Info);
             EditorGUILayout.PropertyField(data.FindProperty("gold"),new GUIContent("골드 보상"));
             var drops=data.FindProperty("drops");
             EditorGUILayout.Space();EditorGUILayout.LabelField("드롭 목록",EditorStyles.boldLabel);

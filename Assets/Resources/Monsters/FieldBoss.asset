@@ -35,3 +35,4 @@ MonoBehaviour:
   spawnRegions: []
   bossLeashRange: 12
   bossRespawnSeconds: 120
+  projectileRange: 11.25

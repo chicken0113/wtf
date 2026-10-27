@@ -10,7 +10,7 @@ namespace EverythingGrows
         [Min(0)] public float rollCooldown=.65f;
         [Range(0,.3f)] public float rollInputBuffer=.12f;
         [Header("Action feedback")]
-        [Min(1)] public float projectileSpeed=18;
+        [HideInInspector] public float projectileSpeed=18; // Legacy serialized value; ranged items now own speed.
         [Range(0,.3f)] public float weaponRecoil=.12f;
         [Range(0,.2f)] public float cameraShake=.06f;
         [Min(.02f)] public float toolDragInterval=.1f;

@@ -58,6 +58,8 @@ namespace EverythingGrows
         [Min(1)] public float damage = 15;
         [Min(.1f)] public float attackRange = 1.8f;
         [Min(.1f)] public float attackInterval = .45f;
+        [Min(.1f)] public float projectileSpeed = 18;
+        [Min(.01f)] public float projectileLifetime = 1;
         public string UsageText
         {
             get

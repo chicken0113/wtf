@@ -20,7 +20,6 @@ namespace EverythingGrows
                 Positive(data.Controls, "moveSpeed", data.Controls.moveSpeed, report);
                 Positive(data.Controls, "rollSpeed", data.Controls.rollSpeed, report);
                 Positive(data.Controls, "rollDuration", data.Controls.rollDuration, report);
-                Positive(data.Controls, "projectileSpeed", data.Controls.projectileSpeed, report);
                 Positive(data.Controls, "toolDragInterval", data.Controls.toolDragInterval, report);
                 Range(data.Controls, "rollCooldown", data.Controls.rollCooldown, 0, float.MaxValue, report);
                 Range(data.Controls, "rollInputBuffer", data.Controls.rollInputBuffer, 0, .3f, report);
@@ -115,6 +114,7 @@ namespace EverythingGrows
             if (item.isSeed && item.GrowthType!=PlantGrowthType.Functional && item.harvestResult == null) report.Error("SEED_RESULT", item, "harvestResult", "씨앗의 수확 결과가 없습니다.", "자랄 작물을 연결하세요.");
             if(item.useEffect!=null)Positive(item,"attackInterval",item.attackInterval,report);
             if (item.effect == GrowthEffect.Weapon) { Positive(item, "damage", item.damage, report); Positive(item, "attackRange", item.attackRange, report); Positive(item, "attackInterval", item.attackInterval, report); }
+            if(item.effect==GrowthEffect.Weapon && item.ranged){Positive(item,"projectileSpeed",item.projectileSpeed,report);Positive(item,"projectileLifetime",item.projectileLifetime,report);}
             if (item.effect == GrowthEffect.Water) Positive(item, "effectRadius", item.effectRadius, report);
             if(!System.Enum.IsDefined(typeof(PlantGrowthType),item.growthType) || !System.Enum.IsDefined(typeof(PlantFunction),item.growthFunction))
                 report.Error("GROWTH_TYPE",item,"growthType / growthFunction","알 수 없는 성장 유형 또는 기능입니다.","Inspector에서 성장 유형과 기능을 다시 선택하세요.");
@@ -135,7 +135,7 @@ namespace EverythingGrows
             { Positive(type,"bossLeashRange",type.bossLeashRange,report);Positive(type,"bossRespawnSeconds",type.bossRespawnSeconds,report); }
             if(type.spawnRegions==null || System.Array.Exists(type.spawnRegions,r=>r==null))report.Error("MONSTER_REGIONS",type,"spawnRegions","스폰 지역에 빈 참조가 있습니다.","출현할 지역을 지정하거나 빈 칸을 제거하세요.");
             if(!System.Enum.IsDefined(typeof(MonsterBehavior),type.behavior) || type.attackHalfHearts<1)report.Error("MONSTER_BEHAVIOR",type,"behavior / attackHalfHearts","몬스터 행동/피해 수치가 유효하지 않습니다.","행동과 반 하트 단위 피해를 확인하세요.");
-            foreach(var pair in new[]{("maxHealth",type.maxHealth),("moveSpeed",type.moveSpeed),("returnSpeed",type.returnSpeed),("detectionRange",type.detectionRange),("attackRange",type.attackRange),("meleeHitRange",type.meleeHitRange),("attackCooldown",type.attackCooldown),("projectileSpeed",type.projectileSpeed),("projectileLifetime",type.projectileLifetime)})Positive(type,pair.Item1,pair.Item2,report);
+            foreach(var pair in new[]{("maxHealth",type.maxHealth),("moveSpeed",type.moveSpeed),("returnSpeed",type.returnSpeed),("detectionRange",type.detectionRange),("attackRange",type.attackRange),("meleeHitRange",type.meleeHitRange),("attackCooldown",type.attackCooldown),("projectileRange",type.projectileRange),("projectileSpeed",type.projectileSpeed),("projectileLifetime",type.projectileLifetime)})Positive(type,pair.Item1,pair.Item2,report);
             Range(type,"windupSeconds",type.windupSeconds,0,float.MaxValue,report);
             if(type.gold<0 || type.drops==null)
             { report.Error("MONSTER_REWARDS",type,"gold / drops","골드가 음수이거나 드롭 목록이 없습니다.","골드를 0 이상으로, 드롭 목록을 유효한 배열로 설정하세요. 아이템을 주지 않으려면 목록을 비우세요.");return; }

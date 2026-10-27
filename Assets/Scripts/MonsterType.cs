@@ -24,6 +24,7 @@ namespace EverythingGrows
         [Min(1), Tooltip("Damage measured in half hearts.")] public int attackHalfHearts=1;
         [Min(0)] public float windupSeconds=.5f;
         [Min(.01f)] public float attackCooldown=1;
+        [Min(.1f)] public float projectileRange=11.25f;
         [Min(.1f)] public float projectileSpeed=4.5f;
         [Min(.1f)] public float projectileLifetime=2.5f;
         [Min(0)] public int gold;

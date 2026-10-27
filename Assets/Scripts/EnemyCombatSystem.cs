@@ -157,7 +157,7 @@ namespace EverythingGrows
                 if(enemy.windup<=0)
                 {
                     enemy.warning.enabled=false;
-                    if(enemy.ranged) projectiles.SpawnOwned(point,enemy.aim*enemy.monsterType.projectileSpeed,player.HalfHeartHealth*enemy.monsterType.attackHalfHearts,true,enemy.monsterType.projectileLifetime,enemy.id);
+                    if(enemy.ranged) projectiles.SpawnOwned(point,enemy.aim*enemy.monsterType.projectileSpeed,player.HalfHeartHealth*enemy.monsterType.attackHalfHearts,true,ProjectileSettings.Duration(enemy.monsterType.projectileRange,enemy.monsterType.projectileSpeed,enemy.monsterType.projectileLifetime),enemy.id);
                     else if(offset.magnitude<enemy.monsterType.meleeHitRange && collision.Trace(point,farm.PlayerPosition,0,true)>=1) player.Damage(player.HalfHeartHealth*enemy.monsterType.attackHalfHearts);
                     enemy.cooldown=enemy.monsterType.attackCooldown;
                 }

@@ -101,13 +101,13 @@ namespace EverythingGrows
             farm.WeaponFeedback(direction,weapon.ranged,weapon.attackInterval);
             if(weapon.ranged)
             {
-                float speed=farm.Controls!=null?Mathf.Max(1,farm.Controls.projectileSpeed):18;
+                float speed=weapon.projectileSpeed;
                 // Keep the flash in front of walls; sweep the shot from the player
                 // so even a target touching the player cannot fall behind its origin.
                 Vector2 start=farm.PlayerPosition, muzzle=start+direction*Mathf.Min(.45f,weapon.attackRange*.25f);
                 float clear=new MapCollision(farm).Trace(start,muzzle,.06f,true);
                 muzzle=Vector2.Lerp(start,muzzle,Mathf.Max(0,clear-.01f));
-                projectiles.Spawn(start,direction*speed,weapon.damage,false,weapon.attackRange/speed);
+                projectiles.Spawn(start,direction*speed,weapon.damage,false,ProjectileSettings.Duration(weapon.attackRange,speed,weapon.projectileLifetime));
                 effects.MuzzleFlash(muzzle,direction);
             }
             else

@@ -63,7 +63,17 @@ public sealed class PlantDefinitionInspector : Editor
         if(held==GrowthEffect.Water) { Section("Held watering tool");Field("effectRadius"); }
         if(held==GrowthEffect.Storage && active!=PlantGrowthType.Functional) { Section("Storage item");Field("storageBonus"); }
         if(held==GrowthEffect.Weapon)
-        { Section("Combat");Field("ranged");Field("damage");Field("attackRange");Field("attackInterval"); }
+        {
+            Section("Combat");Field("ranged");Field("damage");
+            bool ranged=serializedObject.FindProperty("ranged").boolValue;
+            Field("attackRange",ranged?"탄환 사거리 (칸)":"공격 사거리");Field("attackInterval");
+            if(ranged)
+            {
+                Field("projectileSpeed","탄속 (칸/초)");Field("projectileLifetime","최대 유지 시간 (초)");
+                float range=serializedObject.FindProperty("attackRange").floatValue,speed=serializedObject.FindProperty("projectileSpeed").floatValue,life=serializedObject.FindProperty("projectileLifetime").floatValue;
+                if(range>0 && speed>0 && life>0)EditorGUILayout.HelpBox($"실제 최대 이동 거리: {ProjectileSettings.Distance(range,speed,life):0.###}칸 · 유지 시간: {ProjectileSettings.Duration(range,speed,life):0.###}초\n거리 또는 시간 중 먼저 한도에 도달하면 사라집니다.",MessageType.Info);
+            }
+        }
         else if(item.useEffect!=null) { Section("Special use");Field("attackInterval","Use interval (seconds)"); }
         serializedObject.ApplyModifiedProperties();
     }

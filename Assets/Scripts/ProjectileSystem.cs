@@ -15,7 +15,7 @@ namespace EverythingGrows
         {
             var model=effects.Draw(hostile?"Enemy shot":"Player shot",point,hostile?Vector2.one*.22f:new Vector2(.3f,.12f),hostile?new Color(1,.35f,.25f):new Color(1,.9f,.45f));
             model.transform.rotation=Quaternion.Euler(0,0,Mathf.Atan2(velocity.y,velocity.x)*Mathf.Rad2Deg);
-            shots.Add(new Shot { ownerId=ownerId,model=model,velocity=velocity,damage=damage,hostile=hostile,life=Mathf.Max(.001f,life) });
+            shots.Add(new Shot { ownerId=ownerId,model=model,velocity=velocity,damage=damage,hostile=hostile,life=Mathf.Max(0,life) });
         }
         public void ClearOwner(string ownerId)
         {
