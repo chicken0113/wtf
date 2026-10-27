@@ -182,3 +182,7 @@ FarmItemPlacement.forage가 있는 지점은 ForageSystem이 상태를 소유하
 ## 야간 상인 (2026-10-27)
 
 DayNightCycle.ShopsOpen은 Night에만 true다. NpcManager.UpdateAvailability가 고정/방문 프로필을 확인하고 GameSession.TryNightVisit에 방문 결과를 요청한다. GameSession.Merchants가 저장 seed·씬·프로필·cycleNumber로 방문/불참과 위치를 유지한다. GameSession.Bind는 복원 후 현재 맵 상인을 갱신하고 필요한 첫 결과/이전 저장 seed를 저장한다. 비상점 NPC의 기존 주간/상시 대화는 유지한다. NIGHT_MERCHANTS.md 참조.
+
+## 첫 숲 배치 (2026-10-27)
+
+ForestFieldLayout은 ForestClearing에만 적용하는 명시적 일회성 Editor 배치다. Ground/Decoration 하위의 일반 Scene 오브젝트를 편집하며 런타임 재생성은 없다. 기존 보스·채집·상인·지역 스폰을 그대로 재사용한다. FIRST_FOREST_FIELD.md 참조.
