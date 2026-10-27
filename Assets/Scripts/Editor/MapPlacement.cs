@@ -48,6 +48,10 @@ public static class MapPlacement
             renderer.sortingOrder=Mathf.Min(32767,order);
             PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
         }
+        if(placed.GetComponent<FarmItemPlacement>()?.forage!=null)
+        {
+            var id=placed.GetComponent<MapObjectId>();if(id==null)id=placed.AddComponent<MapObjectId>();id.AssignNew();PrefabUtility.RecordPrefabInstancePropertyModifications(id);
+        }
         Undo.RegisterCreatedObjectUndo(placed,"Place map object"); EditorSceneManager.MarkSceneDirty(map.gameObject.scene); return placed;
     }
     public static GameObject EraseTarget(FarmMapLayout map,Vector2 point)

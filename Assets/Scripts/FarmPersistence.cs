@@ -30,8 +30,9 @@ namespace EverythingGrows
             var state=new MapSave {scene=gameObject.scene.path,updatedAt=worldSeconds,removedObjects=new List<string>(removedMapObjects)};
             state.plots=farming.CapturePlots(catalog);
             CaptureRecovery(state);
+            foraging?.Capture(state,catalog);
             combat.CaptureMapState(state);
-            foreach(var piece in pieces) if(piece.model!=null)
+            foreach(var piece in pieces) if(piece.model!=null && string.IsNullOrEmpty(piece.forageId))
                 state.pieces.Add(new PieceSave {item=catalog.Id(piece.definition),position=piece.model.transform.position,size=(Vector2)piece.model.transform.lossyScale*Mathf.Max(piece.model.GetComponent<SpriteRenderer>().sprite.bounds.size.x,piece.model.GetComponent<SpriteRenderer>().sprite.bounds.size.y)});
             foreach(var building in GetComponentsInChildren<FarmBuilding>()) if(building.runtimePlaced)
                 state.buildings.Add(new BuildingSave {item=catalog.Id(building.HarvestItem),position=building.placementAnchor});
@@ -52,6 +53,7 @@ namespace EverythingGrows
             farming.RestorePlots(state.plots,catalog);
             foreach(var saved in state.pieces) Spawn(catalog.Resolve(saved.item),saved.position,saved.size);
             foreach(var saved in state.buildings) CreateInstalledHouse(catalog.Resolve(saved.item),saved.position);
+            foraging?.Restore(state,catalog);
         }
     }
 }

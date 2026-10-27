@@ -47,12 +47,20 @@ namespace EverythingGrows
         public bool provoked,bossEngaged,bossReturning;
         public double bossRespawnAt;
     }
+    [Serializable] public sealed class ForageNodeSave
+    {
+        public string id,item;
+        public int remaining;
+        public bool harvested;
+        public double readyAt;
+    }
     [Serializable] public sealed class MapSave
     {
         public string scene;
         public List<DeathCacheSave> deathCaches=new();
         public List<RespawnAnchorSave> respawnAnchors=new();
         public double updatedAt;
+        public List<ForageNodeSave> forageNodes=new();
         public List<PlotSave> plots=new();
         public List<PieceSave> pieces=new();
         public List<BuildingSave> buildings=new();

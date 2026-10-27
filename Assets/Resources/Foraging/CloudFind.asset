@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50e0e620d0bc4d30b3ce4de7bb945c2f, type: 3}
+  m_Name: CloudFind
+  m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.ForageDefinition
+  label: 구름 발견
+  item: {fileID: 11400000, guid: e02311caaa1ffe649b776be6668e35d3, type: 2}
+  quantity: 1
+  respawns: 0
+  respawnSeconds: 60

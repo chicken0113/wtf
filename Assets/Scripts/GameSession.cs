@@ -84,6 +84,13 @@ namespace EverythingGrows
             foreach(var map in candidate.maps)
             {
                 if(map==null || map.plots==null || map.pieces==null || map.buildings==null || map.removedObjects==null) throw new InvalidDataException("Invalid map save.");
+                map.forageNodes??=new System.Collections.Generic.List<ForageNodeSave>();
+                var forageIds=new System.Collections.Generic.HashSet<string>();
+                foreach(var node in map.forageNodes)
+                {
+                    if(node==null || string.IsNullOrWhiteSpace(node.id) || !forageIds.Add(node.id) || string.IsNullOrWhiteSpace(node.item) || node.remaining<0 || double.IsNaN(node.readyAt) || double.IsInfinity(node.readyAt) || node.readyAt<0)throw new InvalidDataException("Invalid gathering node in "+map.scene);
+                    catalog.Resolve(node.item);
+                }
                 map.defeatedEnemies ??= new System.Collections.Generic.List<string>();
                 if(map.defeatedEnemies.Any(string.IsNullOrWhiteSpace) || map.defeatedEnemies.Distinct().Count()!=map.defeatedEnemies.Count)
                     throw new InvalidDataException("Invalid defeated-enemy IDs in map: "+map.scene);

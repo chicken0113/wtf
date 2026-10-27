@@ -51,6 +51,7 @@ namespace EverythingGrows
             {
                 var ids=new HashSet<string>();foreach(var type in data.MonsterTypes)if(type!=null && !ids.Add(type.SaveKey))report.Error("MONSTER_ID_DUPLICATE",type,"saveId","중복 몬스터 저장 ID입니다.","몬스터 관리의 종류 복제로 생성하세요.");
             }
+            foreach(var forage in Resources.LoadAll<ForageDefinition>(""))CheckForage(forage,data.Catalog,report,visited,saving);
             if (!startingItems) return;
             if (data.Starting == null || data.Starting.items == null || data.Starting.items.Length == 0)
                 report.Error("STARTING_MISSING", data.Starting, "Resources/StartingInventory.items", "기본 지급 아이템 목록이 없습니다.", "StartingInventory.asset에 시작 아이템을 연결하세요.");
@@ -147,6 +148,13 @@ namespace EverythingGrows
                 if(drop.minimum<1 || drop.maximum<drop.minimum)report.Error("MONSTER_DROP_AMOUNT",type,field+".minimum / maximum","드롭 수량 범위가 잘못됐습니다.","최소 1 이상, 최대는 최소 이상으로 설정하세요.");
                 CheckItem(drop.item,catalog,report,visited,saving);
             }
+        }
+        public static void CheckForage(ForageDefinition forage,SaveItemCatalog catalog,SetupValidationReport report,HashSet<PlantDefinition> visited,bool saving)
+        {
+            if(forage==null)return;
+            if(forage.item==null || forage.quantity<1)report.Error("FORAGE_ITEM",forage,"item / quantity","채집 아이템 또는 수량이 잘못됐습니다.","아이템을 연결하고 수량을 1 이상으로 지정하세요.");
+            if(forage.respawns)Positive(forage,"respawnSeconds",forage.respawnSeconds,report);
+            CheckItem(forage.item,catalog,report,visited,saving);
         }
         public static void CheckSpawnRegion(SpawnRegion region,SetupValidationReport report)
         {

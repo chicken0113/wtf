@@ -11,11 +11,12 @@ public sealed class FarmItemPlacementInspector : Editor
         if(EditorGUI.EndChangeCheck()) foreach(var value in targets)
         {
             var item=(FarmItemPlacement)value; var renderer=item.GetComponent<SpriteRenderer>();
-            if(renderer==null || item.item==null) continue;
-            var art=new FarmArt(); int index=art.ItemIndex(item.item);
-            Undo.RecordObject(renderer,"Update item preview"); renderer.sprite=item.item.itemSprite!=null?item.item.itemSprite:EditableMapBuilder.PreviewIcon(index); renderer.color=Color.white; EditorUtility.SetDirty(renderer);
+            if(item.forage!=null && !EditorUtility.IsPersistent(item) && item.GetComponent<MapObjectId>()==null){var id=Undo.AddComponent<MapObjectId>(item.gameObject);id.AssignNew();}
+            if(renderer==null || item.DisplayItem==null) continue;
+            var art=new FarmArt(); int index=art.ItemIndex(item.DisplayItem);
+            Undo.RecordObject(renderer,"Update item preview"); renderer.sprite=item.DisplayItem.itemSprite!=null?item.DisplayItem.itemSprite:EditableMapBuilder.PreviewIcon(index); renderer.color=Color.white; EditorUtility.SetDirty(renderer);
         }
-        EditorGUILayout.HelpBox("Item에서 심을 대상을 지정합니다. 씬의 위치와 크기가 Play에서도 적용됩니다.",MessageType.Info);
+        EditorGUILayout.HelpBox("Forage를 연결하면 수량·재생 기능이 있는 채집물입니다. 비우면 기존 Item 바닥 아이템입니다. 위치와 크기는 Play에도 적용됩니다. 복제 후에는 고급 > 현재 맵 저장 ID 준비로 ID를 정리하세요.",MessageType.Info);
     }
 }
 [CustomEditor(typeof(EnemyPlacement)),CanEditMultipleObjects]

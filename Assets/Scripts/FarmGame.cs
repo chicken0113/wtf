@@ -15,6 +15,7 @@ namespace EverythingGrows
         private FarmWorldView worldView;
         private FarmHud hud;
         private FarmingSystem farming;
+        private ForageSystem foraging;
         internal FarmingSystem Farming => farming;
         private FarmArt art => worldView.Art;
         private Sprite sprite => worldView.Square;
@@ -51,7 +52,7 @@ namespace EverythingGrows
         public bool Till(Vector2Int cell) => farming.Till(cell);
         public bool PlantSelected(Vector2Int cell) => farming.PlantSelected(cell);
         public int Water(Vector2 point, float radius) => farming.Water(point, radius);
-        public void Tick(float seconds) => farming.Tick(seconds);
+        public void Tick(float seconds) { farming.Tick(seconds);foraging?.Tick(); }
         public bool InteractPlot(Vector2Int cell) => farming.InteractPlot(cell);
         public bool Collect(Vector2Int cell) => farming.Collect(cell);
         public bool Uproot(Vector2Int cell) => farming.Uproot(cell);
@@ -110,7 +111,8 @@ namespace EverythingGrows
             if(mapLayout!=null)
             {
                 foreach(var placement in mapLayout.GetComponentsInChildren<FarmItemPlacement>())
-                    if(placement.item!=null) Spawn(placement.item,placement.transform.position,new Vector2(Mathf.Abs(placement.transform.lossyScale.x),Mathf.Abs(placement.transform.lossyScale.y)));
+                    if(placement.forage==null && placement.item!=null) Spawn(placement.item,placement.transform.position,new Vector2(Mathf.Abs(placement.transform.lossyScale.x),Mathf.Abs(placement.transform.lossyScale.y)));
+                foraging=new ForageSystem(this,mapLayout.GetComponentsInChildren<FarmItemPlacement>());
                 mapLayout.HideMarkers();
                 if(mapLayout.showSafeMarkers && SpawnRegion.ForScene(gameObject.scene.path).Length==0)
                 {

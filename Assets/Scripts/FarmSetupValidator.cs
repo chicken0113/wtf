@@ -38,8 +38,15 @@ namespace EverythingGrows
                     report.Error("SPAWN_OUTSIDE", layout, "playerSpawn", "시작 위치가 맵 바깥이거나 유효하지 않습니다.", "시작 위치를 맵 범위 안으로 옮기세요.");
                 if (!Finite(layout.Safe.center) || !Finite(layout.Safe.size)) report.Error("SAFE_BOUNDS", layout, "safeArea", "안전 구역에 유효하지 않은 수가 있습니다.", "안전 구역의 위치와 크기를 확인하세요.");
             }
+            var forageIds=new HashSet<string>();
+            foreach(var placement in farm.GetComponentsInChildren<FarmItemPlacement>())if(placement.forage!=null)
+            {
+                SetupDataValidator.CheckForage(placement.forage,data.Catalog,report,visited,saving);
+                if(!forageIds.Add(MapObjectId.Key(placement)))report.Error("FORAGE_ID_DUPLICATE",placement,"MapObjectId","채집물 저장 ID가 중복됩니다.","고급 > 현재 맵 저장 ID 준비를 실행하세요.");
+            }
             foreach (var placement in farm.GetComponentsInChildren<FarmItemPlacement>())
-                if (placement.item == null) report.Warning("PICKUP_EMPTY", placement, "item", "비어 있는 배치 표시는 아이템을 만들지 않습니다.", "아이템을 연결하거나 불필요한 표시를 제거하세요.");
+                if(placement.forage!=null)continue;
+                else if (placement.item == null) report.Warning("PICKUP_EMPTY", placement, "item", "비어 있는 배치 표시는 아이템을 만들지 않습니다.", "아이템을 연결하거나 불필요한 표시를 제거하세요.");
                 else SetupDataValidator.CheckItem(placement.item, data.Catalog, report, visited, saving);
             foreach (var building in farm.GetComponentsInChildren<FarmBuilding>())
                 if (building.HarvestItem == null) report.Error("BUILDING_ITEM", building, "item / Buildings/House", "건물을 수확할 아이템이 없습니다.", "건물의 Item 또는 기본 House 에셋을 복원하세요.");

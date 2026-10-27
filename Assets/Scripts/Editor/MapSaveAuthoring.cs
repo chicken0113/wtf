@@ -34,7 +34,8 @@ public static class MapSaveAuthoring
     {
         var scene=UnityEngine.SceneManagement.SceneManager.GetActiveScene(); var used=new System.Collections.Generic.HashSet<string>();
         foreach(var root in scene.GetRootGameObjects()) foreach(var target in root.GetComponentsInChildren<FarmBuilding>(true).Cast<Component>()
-            .Concat(root.GetComponentsInChildren<EnemyPlacement>(true).Where(enemy=>!enemy.trainingDummy).Cast<Component>()))
+            .Concat(root.GetComponentsInChildren<EnemyPlacement>(true).Where(enemy=>!enemy.trainingDummy).Cast<Component>())
+            .Concat(root.GetComponentsInChildren<FarmItemPlacement>(true).Where(item=>item.forage!=null).Cast<Component>()))
         {
             var marker=target.GetComponent<MapObjectId>(); if(marker==null) marker=Undo.AddComponent<MapObjectId>(target.gameObject);
             if(string.IsNullOrEmpty(marker.Id) || !used.Add(marker.Id)) { Undo.RecordObject(marker,"Assign unique map object ID"); marker.AssignNew(); used.Add(marker.Id); }

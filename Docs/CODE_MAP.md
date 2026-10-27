@@ -174,3 +174,7 @@ EnemyCombatSystem.Bosses가 보스 추적 범위·귀환·초기화·재등장�
 ## 탄환 개별 설정 (2026-10-27)
 
 원거리 아이템의 attackRange/projectileSpeed/projectileLifetime과 몬스터 종류의 projectileRange/projectileSpeed/projectileLifetime이 각각 사거리·탄속·최대 수명을 소유한다. ProjectileSettings.Duration/Distance를 실제 발사와 두 관리창의 미리보기가 공유한다. PlayerControls의 기존 공통 탄속 필드는 호환을 위해 숨겨서만 남긴다. PROJECTILE_SETTINGS.md 참조.
+
+## 필드 채집물 (2026-10-27)
+
+FarmItemPlacement.forage가 있는 지점은 ForageSystem이 상태를 소유하고 FarmGame.World의 기존 조각을 표시한다. DetachAt은 forageId가 있을 때만 Collect로 위임한다. FarmGame.Tick의 채집 갱신은 GameSession.WorldSeconds의 절대 예정 시각을 확인하며 맵 복원에서 전달하는 경과 시간을 중복 가산하지 않는다. FarmPersistence는 일반 pieces와 forageNodes를 구분하고, 획득 저장 실패 시 인벤토리/지점 상태를 복구한다. 아이템 관리의 ‘채집물 설정’에서 종류를 편집하고 Scene에 배치한다. FORAGING.md 참조.

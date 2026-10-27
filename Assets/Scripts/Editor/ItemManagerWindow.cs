@@ -29,6 +29,7 @@ public sealed class ItemManagerWindow : EditorWindow
         using(new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
         {
             search=GUILayout.TextField(search,EditorStyles.toolbarSearchField);
+            if(GUILayout.Button("채집물 설정",EditorStyles.toolbarButton,GUILayout.Width(95)))ForageWindow.Open();
             if(GUILayout.Button("새로고침",EditorStyles.toolbarButton,GUILayout.Width(75)))Refresh();
         }
         using(new EditorGUILayout.HorizontalScope())

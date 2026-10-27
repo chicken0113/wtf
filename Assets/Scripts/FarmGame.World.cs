@@ -5,7 +5,7 @@ namespace EverythingGrows
 {
     public sealed partial class FarmGame
     {
-        internal sealed class Piece { public PlantDefinition definition; public GameObject model; }
+        internal sealed class Piece { public PlantDefinition definition; public GameObject model; public string forageId; }
         private readonly List<Piece> pieces = new();
         internal IEnumerable<Piece> WorldPieces => pieces;
         public int WorldPieceCount => pieces.Count;
@@ -18,6 +18,10 @@ namespace EverythingGrows
             renderer.transform.localScale=new Vector3((size??Vector2.one*.8f).x/longest,(size??Vector2.one*.8f).y/longest,1);
             pieces.Add(new Piece { definition=definition,model=renderer.gameObject });
         }
+        internal Piece SpawnForagePiece(PlantDefinition item,Vector2 point,Vector2 size,string id)
+        { Spawn(item,point,size);var piece=pieces[pieces.Count-1];piece.forageId=id;return piece; }
+        internal void RemoveForagePiece(Piece piece)
+        { if(piece==null)return;if(piece.model!=null)Remove(piece.model);pieces.Remove(piece); }
         internal bool CanFarmAt(Vector2Int cell)
         {
             if(!new MapCollision(this).CanStand(cell,.45f))return false;
@@ -28,7 +32,9 @@ namespace EverythingGrows
         public bool DetachAt(Vector2 point)
         {
             var nearest=PieceAt(point);
-            if(nearest==null || !AddItem(nearest.definition)) return false;
+            if(nearest==null)return false;
+            if(!string.IsNullOrEmpty(nearest.forageId))return foraging.Collect(nearest.forageId);
+            if(!AddItem(nearest.definition)) return false;
             Remove(nearest.model); pieces.Remove(nearest); message="Detached "+nearest.definition.label+". Its old place is empty."; return true;
         }
         private Piece PieceAt(Vector2 point)
