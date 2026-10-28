@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Spitter
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MonsterType
   label: Spitter
+  modelPrefab: {fileID: 3110525735128084734, guid: 150730fbf57d72b48a9ec0eef8fff842, type: 3}
   saveId: 8ba9f2381e5a460e8489e06a0f3d07b0
   isBoss: 0
   bossLeashRange: 12

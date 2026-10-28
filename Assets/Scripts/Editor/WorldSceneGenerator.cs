@@ -31,6 +31,7 @@ internal static class WorldSceneGenerator
             Paint(map,plan,settings);PlaceExistingActors(farm,plan);
             foreach(var camera in ManagementEditorUI.Components<Camera>(scene))camera.transform.position=(Vector3)map.Spawn+Vector3.back*10;
             Root("Generated world - seed "+settings.seed,map.transform,Vector2.zero);
+            World3DSetup.Convert(scene,World3DModels.Ensure());
             Verify(farm,plan);
             if(!EditorSceneManager.SaveScene(scene,path))throw new IOException("생성한 월드를 저장하지 못했습니다.");
             ConfigureRegions(path);

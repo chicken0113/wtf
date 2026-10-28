@@ -12,15 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70b7409dc1dd4ef5976e114eddf8ba00, type: 3}
   m_Name: RespawnToken
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
-  label: 부활 표식
+  label: "\uBD80\uD65C \uD45C\uC2DD"
+  modelPrefab: {fileID: 965898496315193720, guid: 69f36215838bbbe4cb481b4e7a4264d8, type: 3}
+  description: "\uC88C\uD074\uB9AD\uD558\uBA74 \uD604\uC7AC \uC11C \uC788\uB294 \uC704\uCE58\uB97C
+    \uBD80\uD65C \uC704\uCE58\uB85C \uB4F1\uB85D\uD558\uACE0 \uD558\uB098 \uC18C\uBAA8\uB429\uB2C8\uB2E4."
   color: {r: 1, g: 0.22, b: 0.32, a: 1}
+  effect: 5
+  useEffect: {fileID: 11400000, guid: 0bbd88acab9149419b1a678ed6e3f5aa, type: 2}
+  consumeOnUse: 1
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthType: 1
   growthFunction: 0
   harvestQuantity: 1
   functionSeconds: 0
-  effect: 5
-  requiredFarmingLevel: 1
-  harvestExperience: 10
   growthSeconds: 6
   effectRadius: 1
   productionSeconds: 8
@@ -28,14 +33,16 @@ MonoBehaviour:
   harvestResult: {fileID: 0}
   transformed: 0
   iconIndex: 34
+  itemSprite: {fileID: 0}
+  plantedDisplaySize: 0.85
+  matureDisplaySize: 1
   sellPrice: 10
-  stackable: 1
   isSeed: 0
+  stackable: 1
   regrowSeconds: 0
   ranged: 0
   damage: 15
   attackRange: 1.8
   attackInterval: 0.45
-  description: 좌클릭하면 현재 서 있는 위치를 부활 위치로 등록하고 하나 소모됩니다.
-  useEffect: {fileID: 11400000, guid: 0bbd88acab9149419b1a678ed6e3f5aa, type: 2}
-  consumeOnUse: 1
+  projectileSpeed: 18
+  projectileLifetime: 1

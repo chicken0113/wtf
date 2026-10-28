@@ -13,14 +13,18 @@ MonoBehaviour:
   m_Name: CauliflowerSeeds
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Cauliflower Seeds
+  modelPrefab: {fileID: 5785468140460609295, guid: 99dd4e31811dbfa4fa455be8c447b955, type: 3}
+  description:
   color: {r: 0.5, g: 0.8, b: 0.3, a: 1}
+  effect: 5
+  useEffect: {fileID: 0}
+  consumeOnUse: 0
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthType: 1
   growthFunction: 0
   harvestQuantity: 1
   functionSeconds: 0
-  effect: 5
-  requiredFarmingLevel: 1
-  harvestExperience: 10
   growthSeconds: 60
   effectRadius: 1
   productionSeconds: 8
@@ -28,11 +32,16 @@ MonoBehaviour:
   harvestResult: {fileID: 11400000, guid: ae66d81fcf604738a7995fc5de6d05d8, type: 2}
   transformed: 0
   iconIndex: 23
+  itemSprite: {fileID: 0}
+  plantedDisplaySize: 0.85
+  matureDisplaySize: 1
   sellPrice: 5
-  stackable: 1
   isSeed: 1
+  stackable: 1
   regrowSeconds: 0
   ranged: 0
   damage: 15
   attackRange: 1.8
   attackInterval: 0.45
+  projectileSpeed: 18
+  projectileLifetime: 1

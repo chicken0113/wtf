@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Chaser
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MonsterType
   label: Chaser
+  modelPrefab: {fileID: 7839813610007897342, guid: b9e556fe34279b648b6975c0fe6caa1d, type: 3}
   saveId: 3e4072a9d42043848db4dd96ac6d8bc4
   isBoss: 0
   bossLeashRange: 12

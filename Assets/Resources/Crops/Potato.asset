@@ -13,14 +13,18 @@ MonoBehaviour:
   m_Name: Potato
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Potato
+  modelPrefab: {fileID: 2193635973068996516, guid: 0097bdbbc5f9f6d45ac10b70b144f3a5, type: 3}
+  description:
   color: {r: 0.5, g: 0.8, b: 0.3, a: 1}
+  effect: 5
+  useEffect: {fileID: 0}
+  consumeOnUse: 0
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthType: 1
   growthFunction: 0
   harvestQuantity: 1
   functionSeconds: 0
-  effect: 5
-  requiredFarmingLevel: 1
-  harvestExperience: 10
   growthSeconds: 6
   effectRadius: 1
   productionSeconds: 8
@@ -28,11 +32,16 @@ MonoBehaviour:
   harvestResult: {fileID: 0}
   transformed: 0
   iconIndex: 25
+  itemSprite: {fileID: 0}
+  plantedDisplaySize: 0.85
+  matureDisplaySize: 1
   sellPrice: 80
-  stackable: 1
   isSeed: 0
+  stackable: 1
   regrowSeconds: 0
   ranged: 0
   damage: 15
   attackRange: 1.8
   attackInterval: 0.45
+  projectileSpeed: 18
+  projectileLifetime: 1

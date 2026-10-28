@@ -13,14 +13,18 @@ MonoBehaviour:
   m_Name: Gun
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Gun
+  modelPrefab: {fileID: 2836282840030487430, guid: 848b3bf2592fa444cb985fbd69bb9469, type: 3}
+  description:
   color: {r: 0.8, g: 0.8, b: 0.7, a: 1}
+  effect: 4
+  useEffect: {fileID: 0}
+  consumeOnUse: 0
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthType: 1
   growthFunction: 0
   harvestQuantity: 1
   functionSeconds: 0
-  effect: 4
-  requiredFarmingLevel: 1
-  harvestExperience: 10
   growthSeconds: 8
   effectRadius: 1.5
   productionSeconds: 8
@@ -28,7 +32,13 @@ MonoBehaviour:
   harvestResult: {fileID: 0}
   transformed: 1
   iconIndex: 19
+  itemSprite: {fileID: 0}
+  plantedDisplaySize: 0.85
+  matureDisplaySize: 1
   sellPrice: 70
+  isSeed: 0
+  stackable: 0
+  regrowSeconds: 0
   ranged: 1
   damage: 22
   attackRange: 10

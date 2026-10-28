@@ -45,6 +45,7 @@ namespace EverythingGrows
             var type=trainingDummy?null:monsterType!=null?monsterType:MonsterType.Default(ranged);
             if(type!=null)ranged=type.IsRanged(ranged);
             var enemy=new Enemy { monsterType=type, placementId=placementId, home=point,ranged=ranged,trainingDummy=trainingDummy,model=effects.Draw(trainingDummy?"Training dummy":ranged?"Spitter":"Chaser",point,size??Vector2.one*1.2f,trainingDummy?new Color(.85f,.65f,.32f):Color.white,trainingDummy?0:ranged?21:20),warning=effects.Draw("Attack warning",point,Vector2.one*.15f,Color.yellow) };
+            if(farm.Presentation3D!=null)farm.Presentation3D.Show(enemy.model,type!=null&&type.modelPrefab!=null?type.modelPrefab:farm.Presentation3D.models.Get(ranged?ModelKind3D.RangedEnemy:ModelKind3D.Enemy));
             enemy.displaySize=size??Vector2.one*1.2f;
             enemy.regionId=regionId??settings.RegionAt(point);
             enemy.sleeping=settings.UsesRegions && farm.Cycle!=null && !farm.Cycle.IsDaytime && !trainingDummy;
@@ -142,6 +143,7 @@ namespace EverythingGrows
                 return;
             }
             Vector2 point=enemy.model.transform.position, offset=farm.PlayerPosition-point;
+            if(farm.Presentation3D!=null){var pose=enemy.model.GetComponent<ModelView3D>();pose.actor=true;pose.facing=offset;}
             if(enemy.trainingDummy) { enemy.model.sortingOrder=30-Mathf.RoundToInt(point.y*10); return; }
             if(enemy.sleeping){enemy.windup=0;enemy.warning.enabled=false;return;}
             if(enemy.stagger>0) return;

@@ -16,7 +16,7 @@ public sealed class PlantDefinitionInspector : Editor
     {
         serializedObject.Update();
         using(new EditorGUI.DisabledScope(true))Field("m_Script");
-        Field("label");Field("description");Field("effect","Item use (held)");
+        Field("label");Field("modelPrefab","3D model prefab (Y up, feet at origin)");Field("description");Field("effect","Item use (held)");
         Field("useEffect","Special use effect");Field("consumeOnUse","Consume on successful use");
         Field("stackable");Field("sellPrice");Field("transformed");Field("isSeed");
         Section("Farming progression");Field("requiredFarmingLevel");Field("harvestExperience");

@@ -13,14 +13,18 @@ MonoBehaviour:
   m_Name: Excalibur
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Excalibur
+  modelPrefab: {fileID: 5283695365486531453, guid: 1bcb63ce35e76b242b1ceabc06df9733, type: 3}
+  description:
   color: {r: 0.8, g: 0.8, b: 0.7, a: 1}
+  effect: 4
+  useEffect: {fileID: 0}
+  consumeOnUse: 0
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthType: 1
   growthFunction: 0
   harvestQuantity: 1
   functionSeconds: 0
-  effect: 4
-  requiredFarmingLevel: 1
-  harvestExperience: 10
   growthSeconds: 8
   effectRadius: 1.5
   productionSeconds: 8
@@ -28,8 +32,16 @@ MonoBehaviour:
   harvestResult: {fileID: 0}
   transformed: 1
   iconIndex: 17
+  itemSprite: {fileID: 0}
+  plantedDisplaySize: 0.85
+  matureDisplaySize: 1
   sellPrice: 60
+  isSeed: 0
+  stackable: 0
+  regrowSeconds: 0
   ranged: 0
   damage: 32
   attackRange: 2
   attackInterval: 0.4
+  projectileSpeed: 18
+  projectileLifetime: 1

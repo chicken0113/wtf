@@ -13,14 +13,18 @@ MonoBehaviour:
   m_Name: UpgradedHouse
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Upgraded House
+  modelPrefab: {fileID: 4052011160216595552, guid: dff565771494b924da8132f23799c3fd, type: 3}
+  description:
   color: {r: 1, g: 0.22, b: 0.32, a: 1}
+  effect: 8
+  useEffect: {fileID: 0}
+  consumeOnUse: 0
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthType: 1
   growthFunction: 0
   harvestQuantity: 1
   functionSeconds: 0
-  effect: 8
-  requiredFarmingLevel: 1
-  harvestExperience: 10
   growthSeconds: 15
   effectRadius: 1
   productionSeconds: 8
@@ -28,14 +32,16 @@ MonoBehaviour:
   harvestResult: {fileID: 0}
   transformed: 1
   iconIndex: -1
+  itemSprite: {fileID: 21300000, guid: e1d7c76b4f6ccae46a66b99d44fb09e1, type: 3}
+  plantedDisplaySize: 0.9
+  matureDisplaySize: 6.5
   sellPrice: 200
-  stackable: 0
   isSeed: 0
+  stackable: 0
   regrowSeconds: 0
   ranged: 0
   damage: 15
   attackRange: 1.8
   attackInterval: 0.45
-  itemSprite: {fileID: 21300000, guid: e1d7c76b4f6ccae46a66b99d44fb09e1, type: 3}
-  plantedDisplaySize: 0.9
-  matureDisplaySize: 6.5
+  projectileSpeed: 18
+  projectileLifetime: 1

@@ -5,13 +5,20 @@ MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e6b6ff7c97e74ddfa63fc0b01011b7b1, type: 3}
   m_Name: FieldBoss
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MonsterType
-  label: 임시 필드 보스
+  label: "\uC784\uC2DC \uD544\uB4DC \uBCF4\uC2A4"
+  modelPrefab: {fileID: 7839813610007897342, guid: b9e556fe34279b648b6975c0fe6caa1d, type: 3}
+  saveId: c374208e0c4d49bbbf07adf0eb2fa422
+  isBoss: 1
+  bossLeashRange: 12
+  bossRespawnSeconds: 120
+  spawnRegions: []
   behavior: 1
   maxHealth: 55
   moveSpeed: 2
@@ -22,6 +29,7 @@ MonoBehaviour:
   attackHalfHearts: 1
   windupSeconds: 0.5
   attackCooldown: 1
+  projectileRange: 11.25
   projectileSpeed: 4.5
   projectileLifetime: 2.5
   gold: 0
@@ -30,9 +38,3 @@ MonoBehaviour:
     probability: 1
     minimum: 1
     maximum: 1
-  saveId: c374208e0c4d49bbbf07adf0eb2fa422
-  isBoss: 1
-  spawnRegions: []
-  bossLeashRange: 12
-  bossRespawnSeconds: 120
-  projectileRange: 11.25

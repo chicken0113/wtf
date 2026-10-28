@@ -30,11 +30,18 @@ public static class SingleWorldPlayCheck
             var f=GameSession.CurrentFarm;if(f==null||!f.IsInitialized||Time.timeSinceLevelLoad<.2f)return;f.enabled=false;
             Check(string.IsNullOrEmpty(GameSession.LastError),GameSession.LastError);
             Check(f.gameObject.scene.path==Target,"Unexpected map transition");
+            if(f.Presentation3D!=null)
+            {
+                var mesh=f.GetComponentsInChildren<ModelView3D>().FirstOrDefault(v=>v.name=="Farmer");Check(mesh!=null&&mesh.Model!=null,"Player has no real 3D model");mesh.Sync();Check(mesh.GetComponent<SpriteRenderer>().forceRenderingOff,"Player sprite is still visible");
+                var point=f.PlayerPosition+new Vector2(1,2);Check(Vector2.Distance(WorldProjection.GroundPoint(Camera.main,Camera.main.WorldToScreenPoint(point)),point)<.002f,"3D play projection mismatch");
+            }
             var catalog=Resources.Load<SaveItemCatalog>("SaveItemCatalog");
             if(step==0)
             {
                 Check(f.PlayerPosition==f.SpawnPosition&&f.Combat.UsesRegions,"New game did not start in regional world");
                 Check(f.InventoryCount==4,"Starting tools/seeds missing");
+                var start=f.PlayerPosition;f.MovePlayer(start+Vector2.right*.5f);Check(Vector2.Distance(f.PlayerPosition,start+Vector2.right*.5f)<.01f,"Planar movement failed");f.UpdateAim(f.PlayerPosition+Vector2.right,false);Check(f.AimDirection.x>.99f,"Mouse aim direction failed");
+                if(f.Presentation3D!=null){var model=f.GetComponentsInChildren<ModelView3D>().First(v=>v.name=="Farmer");model.Sync();Check(Vector2.Distance(model.Model.transform.position,f.PlayerPosition)<.01f,"Mesh did not follow player movement");}f.TeleportPlayer(start);
                 var npc=f.GetComponentsInChildren<ShopNpc>().Single(n=>n.npcId==SingleWorldSetup.Trader);
                 Check(!npc.IsVisiting,"Day merchant appeared");
                 InventoryCheckAccess.Clear(f);f.TeleportPlayer(f.GetComponentsInChildren<FarmItemPlacement>().First(p=>p.item==Resources.Load<PlantDefinition>("Equipment/Sword")).transform.position);Check(f.DetachAt(f.PlayerPosition)&&f.SelectedItem==Resources.Load<PlantDefinition>("Equipment/Sword"),"Starting sword cannot be picked up");

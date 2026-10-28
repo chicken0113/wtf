@@ -19,7 +19,7 @@ namespace EverythingGrows
         public SpriteRenderer Draw(string name,Vector2 point,Vector2 size,Color color,int icon=-1)
         {
             var obj=new GameObject(name); obj.transform.SetParent(root,false); obj.transform.position=point; obj.transform.localScale=new Vector3(size.x,size.y,1);
-            var renderer=obj.AddComponent<SpriteRenderer>(); renderer.sprite=icon<0?square:Art.Get(icon); renderer.color=color; renderer.sortingOrder=50; return renderer;
+            var renderer=obj.AddComponent<SpriteRenderer>(); renderer.sprite=icon<0?square:Art.Get(icon); renderer.color=color; renderer.sortingOrder=50;var view=root.GetComponent<World3D>();if(view!=null)view.Show(renderer,ModelKind3D.Effect); return renderer;
         }
         private SpriteRenderer Effect(string name,Vector2 point,Vector2 size,Color tint,float duration,Vector2 velocity=default)
         {

@@ -21,8 +21,7 @@ namespace EverythingGrows
         public static Rect CameraBounds(Camera camera,float padding)
         {
             if(camera==null || !camera.orthographic)return new Rect(float.MinValue/4,float.MinValue/4,float.MaxValue/2,float.MaxValue/2);
-            Vector2 size=new(camera.orthographicSize*2*camera.aspect+padding*2,camera.orthographicSize*2+padding*2);
-            return new Rect((Vector2)camera.transform.position-size*.5f,size);
+            return WorldProjection.GroundBounds(camera,padding);
         }
     }
 }

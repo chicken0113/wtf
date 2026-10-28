@@ -52,6 +52,7 @@ public static class MapPlacement
         {
             var id=placed.GetComponent<MapObjectId>();if(id==null)id=placed.AddComponent<MapObjectId>();id.AssignNew();PrefabUtility.RecordPrefabInstancePropertyModifications(id);
         }
+        var world=map.GetComponentInParent<World3D>();if(world!=null){var sprites=placed.GetComponentsInChildren<SpriteRenderer>();if(sprites.Length==0)placed.transform.rotation=World3D.ModelRotation;foreach(var renderer in sprites)World3DSetup.ConvertRenderer(world,renderer);}
         Undo.RegisterCreatedObjectUndo(placed,"Place map object"); EditorSceneManager.MarkSceneDirty(map.gameObject.scene); return placed;
     }
     public static GameObject EraseTarget(FarmMapLayout map,Vector2 point)
@@ -63,12 +64,13 @@ public static class MapPlacement
             var group=map.transform.Find(category.ToString()); if(group==null) continue;
             foreach(var renderer in group.GetComponentsInChildren<SpriteRenderer>())
             {
-                if(!renderer.enabled || renderer.sprite==null) continue;
+                if((!renderer.enabled&&renderer.GetComponentInChildren<MeshRenderer>()==null) || renderer.sprite==null) continue;
                 var bounds=renderer.bounds;
                 if(point.x<bounds.min.x || point.x>bounds.max.x || point.y<bounds.min.y || point.y>bounds.max.y) continue;
                 int candidateLayer=SortingLayer.GetLayerValueFromID(renderer.sortingLayerID); float candidateDepth=renderer.transform.position.z;
                 if(candidateLayer<layer || (candidateLayer==layer && renderer.sortingOrder<order) || (candidateLayer==layer && renderer.sortingOrder==order && candidateDepth>depth)) continue;
-                var root=renderer.transform; while(root.parent!=group && root.parent!=null) root=root.parent;
+                var tile=renderer.GetComponentInParent<FarmGround>();
+                var root=tile!=null?tile.transform:renderer.transform; if(tile==null)while(root.parent!=group && root.parent!=null) root=root.parent;
                 target=root.gameObject; layer=candidateLayer; order=renderer.sortingOrder; depth=candidateDepth;
             }
         }

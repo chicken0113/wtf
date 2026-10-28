@@ -8,6 +8,7 @@ namespace EverythingGrows
     public sealed class MonsterType : ScriptableObject
     {
         public string label;
+        public GameObject modelPrefab;
         [HideInInspector] public string saveId;
         public string SaveKey => string.IsNullOrEmpty(saveId)?name:saveId;
         public bool isBoss;

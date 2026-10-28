@@ -62,6 +62,7 @@ namespace EverythingGrows
             farmingBorder.transform.position=new Vector3(cell.x,cell.y,0);
             farmingBorder.enabled=true;
             plantingPreview.enabled=true;
+            if(Presentation3D!=null){Presentation3D.Show(farmingBorder,ModelKind3D.Border);Presentation3D.Show(plantingPreview,tool?Presentation3D.models.Item(Held):Presentation3D.models.Get(ModelKind3D.Plant));}
         }
     }
 }

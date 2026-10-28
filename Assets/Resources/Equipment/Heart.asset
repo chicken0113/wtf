@@ -13,14 +13,18 @@ MonoBehaviour:
   m_Name: Heart
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Heart
+  modelPrefab: {fileID: 8203496640849032903, guid: 596bb4594e313194bbbe9a1f5e81ca96, type: 3}
+  description:
   color: {r: 1, g: 0.22, b: 0.32, a: 1}
+  effect: 7
+  useEffect: {fileID: 0}
+  consumeOnUse: 0
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthType: 1
   growthFunction: 0
   harvestQuantity: 1
   functionSeconds: 0
-  effect: 7
-  requiredFarmingLevel: 1
-  harvestExperience: 10
   growthSeconds: 6
   effectRadius: 1
   productionSeconds: 8
@@ -28,11 +32,16 @@ MonoBehaviour:
   harvestResult: {fileID: 0}
   transformed: 0
   iconIndex: 29
+  itemSprite: {fileID: 0}
+  plantedDisplaySize: 0.85
+  matureDisplaySize: 1
   sellPrice: 10
-  stackable: 1
   isSeed: 0
+  stackable: 1
   regrowSeconds: 0
   ranged: 0
   damage: 15
   attackRange: 1.8
   attackInterval: 0.45
+  projectileSpeed: 18
+  projectileLifetime: 1

@@ -16,6 +16,7 @@ namespace EverythingGrows
             renderer.sprite=art.ItemSprite(definition); renderer.color=Color.white;
             float longest=Mathf.Max(renderer.sprite.bounds.size.x,renderer.sprite.bounds.size.y);
             renderer.transform.localScale=new Vector3((size??Vector2.one*.8f).x/longest,(size??Vector2.one*.8f).y/longest,1);
+            if(Presentation3D!=null)Presentation3D.Item(renderer,definition);
             pieces.Add(new Piece { definition=definition,model=renderer.gameObject });
         }
         internal Piece SpawnForagePiece(PlantDefinition item,Vector2 point,Vector2 size,string id)
@@ -73,6 +74,7 @@ namespace EverythingGrows
             var source=art.ItemSprite(item); float scale=item.matureDisplaySize/Mathf.Max(source.bounds.size.x,source.bounds.size.y);
             float height=source.bounds.size.y*scale;
             var renderer=Draw("Placed "+item.label,point+Vector2.up*(height*.5f-.18f),Vector2.one*scale,Color.white,10); renderer.sprite=source;
+            if(Presentation3D!=null)Presentation3D.Item(renderer,item);
             if(mapLayout!=null) renderer.transform.SetParent(mapLayout.transform,true);
             var building=renderer.gameObject.AddComponent<FarmBuilding>(); building.item=item; building.runtimePlaced=true; building.placementAnchor=point;
             building.footprint=new Vector2(item.matureDisplaySize*.85f,height*.32f)/scale;

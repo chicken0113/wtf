@@ -198,3 +198,7 @@ GameMenu.FirstScene은 OpenWorld/ForestClearing을 가리킨다. SingleWorldSetu
 ## 편집용 월드 생성 (2026-10-28)
 
 WorldGenerationPlan은 시드 기반 지형·공터·이동공간만 계산한다. WorldSceneGenerator는 저장된 ForestClearing을 읽기 전용 preview로 복제하고 새 Scene·지역·생성 설정을 저장한다. WorldGenerationWindow는 명시적인 생성 UI와 요청만 처리한다. 현재 표현은 2D이며 런타임 생성과 3D 아트 전환은 없다. WORLD_GENERATION.md 참조.
+
+## 3D 화면 전환 (2026-10-28)
+
+World3D는 씬 카메라·모델 라이브러리·가림 처리를 소유하고 ModelView3D가 기존 논리 렌더 핸들과 실제 메시 프리팹을 연결한다. 지면 XY/높이 -Z 좌표 규약은 WorldProjection에서 화면 입력·시야 범위로 변환한다. 농사·전투·저장은 기존 평면 규칙을 재사용한다. World3DSetup/World3DModels는 명시적 편집용 변환이며 월드 생성도 동일 변환을 호출한다. THREE_D_TRANSITION.md 참조.

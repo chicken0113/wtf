@@ -55,7 +55,7 @@ namespace EverythingGrows
         public static bool TryInteract(FarmGame farm)
         {
             if(farm==null || Camera.main==null || !Input.GetMouseButtonDown(1))return false;
-            var exit=PointedDoor(farm,Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            var exit=PointedDoor(farm,WorldProjection.Pointer(Camera.main,Input.mousePosition));
             return exit!=null && exit.TryActivate(farm,true);
         }
         public static bool TryAutomatic(FarmGame farm)

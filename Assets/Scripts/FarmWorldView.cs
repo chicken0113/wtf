@@ -8,13 +8,14 @@ namespace EverythingGrows
     {
         private sealed class CropVisual { public SpriteRenderer soil, plant; }
         private readonly Transform root;
+        private readonly World3D view3D;
         private readonly Dictionary<Vector2Int, CropVisual> crops = new();
         public FarmArt Art { get; } = new();
         public Sprite Square { get; }
 
         public FarmWorldView(Transform root)
         {
-            this.root = root;
+            this.root = root;view3D=root.GetComponent<World3D>();
             Square = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 2, 2), Vector2.one * .5f, 2);
         }
 
@@ -28,6 +29,7 @@ namespace EverythingGrows
             renderer.sprite = Square;
             renderer.color = color;
             renderer.sortingOrder = order;
+            if(view3D!=null)view3D.Show(renderer,ModelKind3D.Effect);
             return renderer;
         }
 
@@ -43,6 +45,7 @@ namespace EverythingGrows
             crops.Add(plot.cell, new CropVisual {
                 soil = ArtDraw("Tilled soil", plot.cell, Vector2.one, plot.wet ? 11 : 10, new Color(.37f, .23f, .14f), -90)
             });
+            if(view3D!=null){view3D.Show(crops[plot.cell].soil,ModelKind3D.Soil);crops[plot.cell].soil.color=plot.wet?new Color(.55f,.62f,.72f):Color.white;}
             RefreshPlant(plot);
         }
 
@@ -60,12 +63,14 @@ namespace EverythingGrows
                 : Mathf.Min(1, plot.plant.plantedDisplaySize) * Mathf.Lerp(.8f, 1, plot.progress);
             visual.plant.transform.localScale = Vector3.one * (size / Mathf.Max(.01f, longest));
             float height = source.bounds.size.y * size / Mathf.Max(.01f, longest);
-            visual.plant.transform.position = (Vector2)plot.cell + Vector2.up * (plot.mature ? height * .5f - .18f : -.18f);
+            visual.plant.transform.position = view3D!=null?(Vector2)plot.cell:(Vector2)plot.cell + Vector2.up * (plot.mature ? height * .5f - .18f : -.18f);
+            if(view3D!=null){view3D.Item(visual.plant,item);visual.plant.GetComponent<ModelView3D>().buried=plot.mature?0:Mathf.Lerp(.55f,0,plot.progress);}
         }
 
         public void RefreshSoil(PlantPlot plot)
         {
             var soil = crops[plot.cell].soil;
+            if(view3D!=null)soil.color=plot.wet?new Color(.55f,.62f,.72f):Color.white;
             if (Art.Available) soil.sprite = Art.Get(plot.wet ? 11 : 10);
             else soil.color = plot.wet ? new Color(.18f, .25f, .29f) : new Color(.37f, .23f, .14f);
         }

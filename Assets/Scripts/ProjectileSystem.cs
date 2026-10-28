@@ -14,6 +14,7 @@ namespace EverythingGrows
         public void SpawnOwned(Vector2 point,Vector2 velocity,float damage,bool hostile,float life,string ownerId)
         {
             var model=effects.Draw(hostile?"Enemy shot":"Player shot",point,hostile?Vector2.one*.22f:new Vector2(.3f,.12f),hostile?new Color(1,.35f,.25f):new Color(1,.9f,.45f));
+            if(farm.Presentation3D!=null){var v=farm.Presentation3D.Show(model,ModelKind3D.Projectile);v.elevation=.5f;}
             model.transform.rotation=Quaternion.Euler(0,0,Mathf.Atan2(velocity.y,velocity.x)*Mathf.Rad2Deg);
             shots.Add(new Shot { ownerId=ownerId,model=model,velocity=velocity,damage=damage,hostile=hostile,life=Mathf.Max(0,life) });
         }

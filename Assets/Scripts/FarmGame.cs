@@ -78,8 +78,10 @@ namespace EverythingGrows
         public void DropCombatMaterial(Vector2 point,bool ranged) => MonsterRewardSystem.Grant(this,MonsterType.Default(ranged),point);
         public void Configure(PlantDefinition[] data) => definitions=data;
         private void Awake() { if(Application.isPlaying) Initialize(); }
+        public World3D Presentation3D {get;private set;}
         private void InitializeRuntime(bool grantStartingItems, GameSetupResources resources)
         {
+            Presentation3D=GetComponent<World3D>();
             if(mapLayout==null) mapLayout=GetComponentInChildren<FarmMapLayout>();
             worldView=new FarmWorldView(transform);
             farming=new FarmingSystem(this,worldView);
@@ -88,6 +90,7 @@ namespace EverythingGrows
             if(view==null) { var cameraObject=new GameObject("Main Camera"); view=cameraObject.AddComponent<Camera>(); cameraObject.tag="MainCamera"; }
             hud=new FarmHud(this,art,view);
             view.orthographic=true; view.orthographicSize=4.8f; view.transform.position=new Vector3(0,0,-10); view.backgroundColor=new Color(.12f,.22f,.22f);
+            if(Presentation3D!=null)Presentation3D.ConfigureCamera(view,SpawnPosition);
             if(mapLayout==null)
             {
             for(int x=-24;x<=24;x++) for(int y=-16;y<=16;y++)
@@ -104,6 +107,7 @@ namespace EverythingGrows
             }
             farmer=ArtDraw("Farmer",SpawnPosition,Vector2.one*1.1f,0,new Color(.96f,.73f,.35f),10);
             player=farmer.transform;
+            if(Presentation3D!=null)Presentation3D.Show(farmer,ModelKind3D.Player);
             heldModel=Draw("Held object",Vector2.zero,Vector2.one*.55f,Color.white,11);
             heldModel.transform.SetParent(player,true); heldModel.enabled=false;
             plantingPreview=Draw("Farming action icon",Vector2.zero,Vector2.one*.95f,new Color(.4f,.9f,.5f,.35f),-2);
@@ -162,7 +166,7 @@ namespace EverythingGrows
             if(used) actionTime=.25f; return used;
         }
         private void Remove(GameObject root) => FarmWorldView.Remove(root);
-        private Vector2 MousePoint => (Vector2)view.ScreenToWorldPoint(Input.mousePosition)-cameraFeedbackOffset;
+        private Vector2 MousePoint => WorldProjection.Pointer(view,Input.mousePosition)-cameraFeedbackOffset;
         private Vector2Int MouseCell => Vector2Int.RoundToInt(MousePoint);
         private bool Near(Vector2 point) => Vector2.Distance(player.position,point)<=2.8f;
         internal bool WithinReach(Vector2 point) => Near(point);

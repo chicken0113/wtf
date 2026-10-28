@@ -114,6 +114,7 @@ public sealed class MonsterRewardsWindow : EditorWindow
         using(new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
         {
             EditorGUILayout.PropertyField(data.FindProperty("label"),new GUIContent("종류 이름"));
+            EditorGUILayout.PropertyField(data.FindProperty("modelPrefab"),new GUIContent("3D 모델 프리팹"));
             EditorGUILayout.PropertyField(data.FindProperty("isBoss"),new GUIContent("보스 (지역 이탈 정리 제외)"));
             if(data.FindProperty("isBoss").boolValue)
             {

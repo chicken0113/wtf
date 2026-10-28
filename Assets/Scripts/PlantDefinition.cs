@@ -8,6 +8,7 @@ namespace EverythingGrows
     public sealed class PlantDefinition : ScriptableObject
     {
         public string label;
+        [Tooltip("Optional 3D prefab, modeled upright on local Y with feet at the origin.")] public GameObject modelPrefab;
         [TextArea(2,5)] public string description;
         public Color color = Color.white;
         public GrowthEffect effect;

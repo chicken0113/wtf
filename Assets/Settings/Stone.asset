@@ -13,15 +13,35 @@ MonoBehaviour:
   m_Name: Stone
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.PlantDefinition
   label: Stone
+  modelPrefab: {fileID: 6364563036796507213, guid: b1945f795166f404199e049950f1f53f, type: 3}
+  description:
   color: {r: 0.55, g: 0.57, b: 0.6, a: 1}
+  effect: 2
+  useEffect: {fileID: 0}
+  consumeOnUse: 0
+  requiredFarmingLevel: 1
+  harvestExperience: 10
   growthType: 2
   growthFunction: 0
   harvestQuantity: 1
   functionSeconds: 0
-  effect: 2
-  requiredFarmingLevel: 1
-  harvestExperience: 10
   growthSeconds: 6
   effectRadius: 1.5
   productionSeconds: 8
   storageBonus: 3
+  harvestResult: {fileID: 0}
+  transformed: 0
+  iconIndex: -1
+  itemSprite: {fileID: 0}
+  plantedDisplaySize: 0.85
+  matureDisplaySize: 1
+  sellPrice: 5
+  isSeed: 0
+  stackable: 0
+  regrowSeconds: 0
+  ranged: 0
+  damage: 15
+  attackRange: 1.8
+  attackInterval: 0.45
+  projectileSpeed: 18
+  projectileLifetime: 1

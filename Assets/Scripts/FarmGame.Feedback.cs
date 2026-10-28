@@ -45,11 +45,11 @@ namespace EverythingGrows
             if(player==null || view==null) return;
             if(combat!=null&&!WorldInputBlocked&&!combat.IsGameOver&&!GameSession.Busy&&string.IsNullOrEmpty(GameSession.LastError))
             {TickFeedback(Time.deltaTime);AnimateFarmer(frameMovement);}
-            float halfHeight=view.orthographicSize, halfWidth=halfHeight*view.aspect;
+            float halfHeight=view.orthographicSize/(Presentation3D!=null?Mathf.Sin(Presentation3D.cameraPitch*Mathf.Deg2Rad):1), halfWidth=view.orthographicSize*view.aspect;
             var center=new Vector2(ClampCamera(player.position.x,WorldBounds.xMin,WorldBounds.xMax,halfWidth),ClampCamera(player.position.y,WorldBounds.yMin,WorldBounds.yMax,halfHeight));
             var shaken=center+CameraFeedback();
             shaken=new Vector2(ClampCamera(shaken.x,WorldBounds.xMin,WorldBounds.xMax,halfWidth),ClampCamera(shaken.y,WorldBounds.yMin,WorldBounds.yMax,halfHeight));
-            cameraFeedbackOffset=shaken-center;view.transform.position=new Vector3(shaken.x,shaken.y,-10);
+            cameraFeedbackOffset=shaken-center;if(Presentation3D!=null)Presentation3D.Follow(view,shaken);else view.transform.position=new Vector3(shaken.x,shaken.y,-10);
         }
         private static float ClampCamera(float value,float min,float max,float half) => max-min<=half*2?(min+max)*.5f:Mathf.Clamp(value,min+half,max-half);
         private void AnimateFarmer(Vector2 move)
@@ -63,7 +63,8 @@ namespace EverythingGrows
             farmer.sortingOrder=30-Mathf.RoundToInt(player.position.y*10);
             farmer.transform.localScale=new Vector3(1.1f,1.1f+(walking?Mathf.Sin(walkTime*18)*.025f:0),1);
             farmer.transform.localRotation=Quaternion.identity;
-            farmer.color=Color.Lerp(new Color(.96f,.73f,.35f),Color.white,combat.PlayerHitFlash);
+            farmer.color=Presentation3D!=null?Color.Lerp(Color.white,new Color(1,.4f,.4f),combat.PlayerHitFlash):Color.Lerp(new Color(.96f,.73f,.35f),Color.white,combat.PlayerHitFlash);
+            if(Presentation3D!=null){var pose=farmer.GetComponent<ModelView3D>();pose.actor=true;pose.facing=aim;pose.roll=combat.IsRolling?combat.RollProgress:0;}
             if(combat.IsRolling)
             {
                 float roll=combat.RollProgress;
@@ -75,6 +76,7 @@ namespace EverythingGrows
             if(heldModel.enabled)
             {
                 heldModel.sprite=art.ItemSprite(Held);
+                if(Presentation3D!=null)Presentation3D.Item(heldModel,Held,true);
                 float heldSize=Mathf.Max(heldModel.sprite.bounds.size.x,heldModel.sprite.bounds.size.y);
                 heldModel.transform.localScale=Vector3.one*(.5f/Mathf.Max(.01f,heldSize));
                 float action=weaponFeedbackDuration>0?Mathf.Clamp01(weaponFeedbackTime/weaponFeedbackDuration):0;

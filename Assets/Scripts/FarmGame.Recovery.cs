@@ -55,6 +55,7 @@ namespace EverythingGrows
             var bed=Draw("Camping bed",point,new Vector2(.9f,1.3f),new Color(.25f,.52f,.7f),5);
             if(mapLayout!=null)bed.transform.SetParent(mapLayout.transform,true);
             var pillow=Draw("Pillow",point+Vector2.up*.4f,new Vector2(.7f,.3f),Color.white,6);pillow.transform.SetParent(bed.transform,true);
+            if(Presentation3D!=null){Presentation3D.Show(bed,ModelKind3D.Bed,true);pillow.enabled=false;}
             var anchor=bed.gameObject.AddComponent<RespawnAnchor>();anchor.runtimePlaced=true;anchor.runtimeId=id??Guid.NewGuid().ToString("N");return anchor;
         }
         public bool UseRespawnItem(PlantDefinition item,Vector2 target,bool placeAnchor)
