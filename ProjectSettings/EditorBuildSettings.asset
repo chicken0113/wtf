@@ -47,5 +47,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/LegacyVillage/HospitalInterior.unity
     guid: e6b5e89f5bbb9ec4197fc77001a68056
+  - enabled: 1
+    path: Assets/Scenes/OpenWorld/GeneratedWorld.unity
+    guid: bfdb8176d5af53e48b91b46ad74885a8
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

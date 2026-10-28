@@ -9,7 +9,7 @@ namespace EverythingGrows
     public sealed class GameMenu : MonoBehaviour
     {
         public const string TitleScene="Assets/Scenes/System/MainMenu.unity";
-        public const string FirstScene="Assets/Scenes/OpenWorld/ForestClearing.unity";
+        public const string FirstScene="Assets/Scenes/OpenWorld/GeneratedWorld.unity";
         private enum Page { Playing, Title, Paused, Settings, ConfirmNew }
         [Serializable] private sealed class Options { public float volume=1;public bool fullscreen;public int width=1280,height=720; }
         public static GameMenu Instance { get; private set; }

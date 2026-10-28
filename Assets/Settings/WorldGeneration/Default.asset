@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32c63617a713961489b9087fd6993d6c, type: 3}
+  m_Name: Default
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::WorldGenerationSettings
+  seed: 281026
+  width: 64
+  height: 56
+  waterAmount: 0.18
+  forestAmount: 0.55
+  treeDensity: 0.13
+  scene: {fileID: 102900000, guid: bfdb8176d5af53e48b91b46ad74885a8, type: 3}

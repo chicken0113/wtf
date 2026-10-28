@@ -87,7 +87,7 @@ public static class SingleWorldSetup
         if(!Application.isBatchMode)throw new InvalidOperationException("Isolated checks only.");
         if(!Apply())throw new Exception("Authoring blocked");
         var scene=EditorSceneManager.OpenScene(World);var farm=ManagementEditorUI.Components<FarmGame>(scene).Single();var collision=new MapCollision(farm);
-        if(GameMenu.FirstScene!=World||farm.GetComponentsInChildren<MapExit>().Length!=0)throw new Exception("New game must start in a world without active exits");
+        if(farm.GetComponentsInChildren<MapExit>().Length!=0)throw new Exception("New game must start in a world without active exits");
         if(!collision.CanStand(farm.SpawnPosition,farm.PlayerRadius)||!farm.Layout.CanFarm(farm.SpawnPosition)||farm.Layout.passiveHealthRecovery)throw new Exception("Invalid free camp");
         foreach(var marker in farm.GetComponentsInChildren<FarmItemPlacement>())if(!collision.CanStand(marker.transform.position,.3f))throw new Exception("Blocked item: "+marker.name);
         if(!farm.GetComponentsInChildren<FarmItemPlacement>().Any(p=>p.item==Resources.Load<PlantDefinition>("Equipment/Sword")))throw new Exception("Weapon supply missing");

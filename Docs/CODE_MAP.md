@@ -194,3 +194,7 @@ OpenWorld/LegacyVillage/Tests/System으로 Scene 자산을 분류한다. 런타�
 ## 연속 시작 월드 (2026-10-28)
 
 GameMenu.FirstScene은 OpenWorld/ForestClearing을 가리킨다. SingleWorldSetup은 기존 숲의 출구 비활성화·시작 공터·밤 상인·보급품·남북 지역만 작성하며 런타임 재생성은 없다. 기존 게임 시스템을 재사용하고 웨이브는 추가하지 않는다. CONTINUOUS_WORLD.md 참조.
+
+## 편집용 월드 생성 (2026-10-28)
+
+WorldGenerationPlan은 시드 기반 지형·공터·이동공간만 계산한다. WorldSceneGenerator는 저장된 ForestClearing을 읽기 전용 preview로 복제하고 새 Scene·지역·생성 설정을 저장한다. WorldGenerationWindow는 명시적인 생성 UI와 요청만 처리한다. 현재 표현은 2D이며 런타임 생성과 3D 아트 전환은 없다. WORLD_GENERATION.md 참조.
