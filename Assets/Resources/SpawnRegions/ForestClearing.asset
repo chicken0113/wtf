@@ -5,6 +5,7 @@ MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -12,12 +13,17 @@ MonoBehaviour:
   m_Name: ForestClearing
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.SpawnRegion
   id: fc5b0dd2cea74b2397b315216362d716
-  label: 숲
+  label: "\uC6D4\uB4DC \uB0A8\uCABD \uB4E4\uD310"
   spawnEnabled: 1
   scenePath: Assets/Scenes/OpenWorld/ForestClearing.unity
-  useMapBounds: 1
-  area: {x: -10, y: -8, width: 20, height: 16}
-  spawnInterval: 8
-  maxAlive: 6
+  useMapBounds: 0
+  area:
+    serializedVersion: 2
+    x: -26
+    y: -22
+    width: 52
+    height: 18
+  spawnInterval: 10
+  maxAlive: 2
   viewPadding: 3
   playerExclusionRadius: 3

@@ -190,3 +190,7 @@ ForestFieldLayout은 ForestClearing에만 적용하는 명시적 일회성 Edito
 ## 씬 폴더 분리 (2026-10-27)
 
 OpenWorld/LegacyVillage/Tests/System으로 Scene 자산을 분류한다. 런타임 ScenePaths.Migrate는 저장 복원 검증 전에 이전 경로를 현재 경로로 변환한다. Editor의 SceneOrganization은 명시적 요청 시에만 자산·문자열 경로를 이동하며 열린 씬을 저장하거나 닫지 않는다. 공통 씬 선택기는 폴더명을 함께 표시한다. SCENE_GROUPS.md 참조.
+
+## 연속 시작 월드 (2026-10-28)
+
+GameMenu.FirstScene은 OpenWorld/ForestClearing을 가리킨다. SingleWorldSetup은 기존 숲의 출구 비활성화·시작 공터·밤 상인·보급품·남북 지역만 작성하며 런타임 재생성은 없다. 기존 게임 시스템을 재사용하고 웨이브는 추가하지 않는다. CONTINUOUS_WORLD.md 참조.

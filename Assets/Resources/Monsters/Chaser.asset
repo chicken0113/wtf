@@ -5,6 +5,7 @@ MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -12,6 +13,16 @@ MonoBehaviour:
   m_Name: Chaser
   m_EditorClassIdentifier: Assembly-CSharp::EverythingGrows.MonsterType
   label: Chaser
+  saveId: 3e4072a9d42043848db4dd96ac6d8bc4
+  isBoss: 0
+  bossLeashRange: 12
+  bossRespawnSeconds: 120
+  spawnRegions:
+  - {fileID: 11400000, guid: e820d0ca15db4ce5b185b9f8ebf32248, type: 2}
+  - {fileID: 11400000, guid: aa87f9549aed4e5c805874ca0fc7294b, type: 2}
+  - {fileID: 11400000, guid: fbc18c8294e84f3bbf24982a34fe2eda, type: 2}
+  - {fileID: 11400000, guid: fc5b0dd2cea74b2397b315216362d716, type: 2}
+  - {fileID: 11400000, guid: bf79914554c19e444afcab9ada5b3979, type: 2}
   behavior: 1
   maxHealth: 55
   moveSpeed: 2
@@ -22,6 +33,7 @@ MonoBehaviour:
   attackHalfHearts: 1
   windupSeconds: 0.5
   attackCooldown: 1
+  projectileRange: 11.25
   projectileSpeed: 4.5
   projectileLifetime: 2.5
   gold: 0
@@ -30,11 +42,3 @@ MonoBehaviour:
     probability: 1
     minimum: 1
     maximum: 1
-  saveId: 3e4072a9d42043848db4dd96ac6d8bc4
-  isBoss: 0
-  spawnRegions:
-  - {fileID: 11400000, guid: e820d0ca15db4ce5b185b9f8ebf32248, type: 2}
-  - {fileID: 11400000, guid: aa87f9549aed4e5c805874ca0fc7294b, type: 2}
-  - {fileID: 11400000, guid: fbc18c8294e84f3bbf24982a34fe2eda, type: 2}
-  - {fileID: 11400000, guid: fc5b0dd2cea74b2397b315216362d716, type: 2}
-  projectileRange: 11.25

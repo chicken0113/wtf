@@ -9,7 +9,7 @@ Scenes are organized by purpose, with their original names and GUIDs intact:
 | `Assets/Scenes/Tests` | Practice area | TrainingGround |
 | `Assets/Scenes/System` | Shared title/menu | MainMenu |
 
-This separates authoring work, not gameplay. LegacyVillage remains connected and enabled because it still supplies the current starting farm, shops and interiors. No levels or placements were removed, no starting map was changed, and no save was reset. OpenWorld is the focus for future field authoring.
+As of 2026-10-28, New Game starts in OpenWorld/ForestClearing as one continuous starter field, without an active exterior exit. DungeonEntrance is preserved earlier connecting-field work. LegacyVillage remains enabled for older saves and fixtures; its own routes/interiors remain intact. Existing saves are not reset or forcibly relocated. See CONTINUOUS_WORLD.md.
 
 The existing management windows now display folder/scene labels in their scene selectors. `ScenePaths` maps old paths to new paths when loading saves, including per-map state/death bags, checkpoints, house return, night visits and accepted guild quests. Version 1 saves retain their data; normal atomic autosaving writes updated paths later.
 

@@ -168,9 +168,10 @@ namespace EverythingGrows
             var previous=GUI.color; GUI.color=new Color(.52f,.63f,.3f);
             float scale=Mathf.Min((rect.width-24)/farm.WorldBounds.width,(rect.height-48)/farm.WorldBounds.height);
             Vector2 origin=rect.center-farm.WorldBounds.center*new Vector2(scale,-scale);
-            GUI.DrawTexture(new Rect(origin.x+farm.SafeBounds.xMin*scale,origin.y-farm.SafeBounds.yMax*scale,farm.SafeBounds.width*scale,farm.SafeBounds.height*scale),Texture2D.whiteTexture);
+            var area=farm.Combat.UsesRegions?farm.WorldBounds:farm.SafeBounds;
+            GUI.DrawTexture(new Rect(origin.x+area.xMin*scale,origin.y-area.yMax*scale,area.width*scale,area.height*scale),Texture2D.whiteTexture);
             GUI.color=Color.yellow; GUI.DrawTexture(new Rect(origin.x+farm.PlayerPosition.x*scale-3,origin.y-farm.PlayerPosition.y*scale-3,6,6),Texture2D.whiteTexture); GUI.color=previous;
-            GUI.Label(new Rect(rect.x+12,rect.y+8,310,24),"M: close | Center: safe farm | Outside: enemies");
+            GUI.Label(new Rect(rect.x+12,rect.y+8,310,24),farm.Combat.UsesRegions?"M: close | Open field - no protected farm":"M: close | Center: safe farm | Outside: enemies");
         }
     }
 }
